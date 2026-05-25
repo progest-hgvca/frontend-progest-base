@@ -135,49 +135,49 @@ const router = createRouter({
       path: "/relatorios",
       name: "relatorios",
       component: () => import("@/views/relatorios/Relatorios.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/entradas",
       name: "relatoriosEntradas",
       component: () => import("@/views/relatorios/EntradasReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/movimentacoes",
       name: "relatoriosMovimentacoes",
       component: () => import("@/views/relatorios/MovimentacoesReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/saidas",
       name: "relatoriosSaidas",
       component: () => import("@/views/relatorios/SaidasReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/saidas-por-data",
       name: "relatoriosSaidasPorData",
       component: () => import("@/views/relatorios/SaidasPorDataReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/entradas-por-data",
       name: "relatoriosEntradasPorData",
       component: () => import("@/views/relatorios/EntradasPorDataReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/estoque",
       name: "relatoriosEstoque",
       component: () => import("@/views/relatorios/EstoqueReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
       path: "/relatorios/usuarios",
       name: "relatoriosUsuarios",
       component: () => import("@/views/relatorios/UsuariosReport.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/:pathMatch(.*)*",
@@ -332,6 +332,10 @@ router.beforeEach(async (to, from, next) => {
   // Bloquear acesso a rotas de gerenciamento para solicitantes
   if (isAuthenticated && hasSector) {
     const isSolic = await checkIsSolicitante();
+
+    // ------------------------------------------------------------------
+    // Guard 1: bloquear solicitante de rotas de gerenciamento
+    // ------------------------------------------------------------------
     const allowedForSolicitante = [
       "/dashboard",
       "/setor-atual",
@@ -348,6 +352,53 @@ router.beforeEach(async (to, from, next) => {
     ) {
       next("/setor-atual");
       return;
+    }
+
+    // ------------------------------------------------------------------
+    // Guard 2: verificar perfil necessário para rotas com meta.roles
+    // ------------------------------------------------------------------
+    if (to.meta && to.meta.roles && to.meta.roles.length > 0) {
+      try {
+        let list = store.state.listUsuariosSetor || [];
+
+        // Se a lista não foi carregada ainda, tentar buscar
+        if (
+          (!list || list.length === 0) &&
+          functionsUsuarioSetor &&
+          functionsUsuarioSetor.listAll
+        ) {
+          try {
+            await functionsUsuarioSetor.listAll({ $axios: axios, $store: store });
+            list = store.state.listUsuariosSetor || [];
+          } catch (e) {
+            console.warn("Guard roles: erro ao carregar usuarios do setor", e);
+          }
+        }
+
+        const user = store.state.user;
+        const perfilDoUsuario = list.find((u) => {
+          const userId =
+            u.usuario_id || u.user_id || u.id || (u.usuario && u.usuario.id);
+          return userId === (user && user.id);
+        });
+
+        const perfilAtual = (
+          (perfilDoUsuario && (perfilDoUsuario.perfil || (perfilDoUsuario.pivot && perfilDoUsuario.pivot.perfil))) ||
+          (user && user.perfil) ||
+          ""
+        )
+          .toString()
+          .toLowerCase();
+
+        if (!to.meta.roles.includes(perfilAtual)) {
+          next("/setor-atual");
+          return;
+        }
+      } catch (e) {
+        console.warn("Guard roles: erro ao verificar perfil", e);
+        next("/setor-atual");
+        return;
+      }
     }
   }
 

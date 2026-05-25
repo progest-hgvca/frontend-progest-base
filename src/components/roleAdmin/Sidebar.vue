@@ -149,8 +149,8 @@
         </div>
       </template>
 
-      <!-- Submenu: Relatórios -->
-      <div class="submenu-section">
+      <!-- Submenu: Relatórios (visível apenas para admin e almoxarife) -->
+      <div class="submenu-section" v-if="isAdminPerfil || isAlmoxarifePerfil">
         <button
           class="menu-item submenu-toggle"
           @click="toggleRelatoriosSubmenu"
@@ -231,7 +231,9 @@
               <span class="menu-text">Estoque Atual</span>
             </router-link>
 
+            <!-- Relatório de Usuários: somente para admin -->
             <router-link
+              v-if="isAdminPerfil"
               class="submenu-item"
               to="/relatorios/usuarios"
               title="Usuários"
@@ -285,6 +287,31 @@ const hasSetorFornecedor = computed(() => {
         setorDetails.fornecedores_relacionados.length > 0))
   );
 });
+
+/**
+ * Detecção de perfil: verifica o perfil do usuário no setor atual
+ * via listUsuariosSetor (mesma lógica do router e do Home).
+ */
+const getPerfilAtual = () => {
+  const user = store.state.user;
+  if (!user) return '';
+  const list = store.state.listUsuariosSetor || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || (u.usuario && u.usuario.id);
+    return userId === user.id;
+  });
+  return (
+    (found && (found.perfil || (found.pivot && found.pivot.perfil))) ||
+    (user.perfil) ||
+    ''
+  ).toString().toLowerCase();
+};
+
+/** Usuário possui perfil 'admin' no setor atual */
+const isAdminPerfil = computed(() => getPerfilAtual() === 'admin');
+
+/** Usuário possui perfil 'almoxarife' no setor atual */
+const isAlmoxarifePerfil = computed(() => getPerfilAtual() === 'almoxarife');
 
 // Verificar se o usuário possui perfil 'solicitante' no setor atual
 const isSolicitante = computed(() => {

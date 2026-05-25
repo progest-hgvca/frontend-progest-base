@@ -73,7 +73,7 @@
           </div>
 
           <!-- Estoque Section -->
-          <div class="reports-section mb-4">
+          <div class="reports-section mb-4" v-if="isAdmin || isAlmoxarife">
             <div class="section-header">
               <div class="d-flex align-items-center">
                 <div class="section-icon bg-success-subtle">
@@ -140,7 +140,7 @@
           </div>
 
           <!-- Movimentações Section -->
-          <div class="reports-section mb-4">
+          <div class="reports-section mb-4" v-if="isAdmin || isAlmoxarife">
             <div class="section-header">
               <div class="d-flex align-items-center">
                 <div class="section-icon bg-primary-subtle">
@@ -207,7 +207,7 @@
           </div>
 
           <!-- Análises Temporais Section -->
-          <div class="reports-section mb-4">
+          <div class="reports-section mb-4" v-if="isAdmin || isAlmoxarife">
             <div class="section-header">
               <div class="d-flex align-items-center">
                 <div class="section-icon bg-info-subtle">
@@ -274,7 +274,7 @@
           </div>
 
           <!-- Gestão de Pessoas Section -->
-          <div class="reports-section mb-4">
+          <div class="reports-section mb-4" v-if="isAdmin">
             <div class="section-header">
               <div class="d-flex align-items-center">
                 <div class="section-icon bg-warning-subtle">
@@ -337,11 +337,58 @@ import TemplateAdmin from '@/views/roleAdmin/TemplateAdmin.vue'
 export default {
   name: 'RelatoriosIndex',
   components: { TemplateAdmin },
+
   computed: {
+    /**
+     * Usuário logado (do Vuex)
+     */
+    usuarioLogado() {
+      return this.$store.state.user || null
+    },
+
+    /**
+     * Lista de usuários vinculados ao setor atual.
+     * É aqui que está o perfil real do usuário ('admin', 'almoxarife', 'solicitante').
+     */
+    listUsuariosSetor() {
+      return this.$store.state.listUsuariosSetor || []
+    },
+
+    /**
+     * Verifica se o usuário logado possui o perfil especificado
+     * no setor atual, via lista listUsuariosSetor.
+     */
+    isAdmin() {
+      const user = this.usuarioLogado
+      if (!user) return false
+      return this.listUsuariosSetor.some((u) => {
+        const uid = u.usuario_id || u.user_id || u.id || (u.usuario && u.usuario.id)
+        const perfil = (u.perfil || (u.pivot && u.pivot.perfil) || '').toString().toLowerCase()
+        return uid === user.id && perfil === 'admin'
+      })
+    },
+
+    isAlmoxarife() {
+      const user = this.usuarioLogado
+      if (!user) return false
+      return this.listUsuariosSetor.some((u) => {
+        const uid = u.usuario_id || u.user_id || u.id || (u.usuario && u.usuario.id)
+        const perfil = (u.perfil || (u.pivot && u.pivot.perfil) || '').toString().toLowerCase()
+        return uid === user.id && perfil === 'almoxarife'
+      })
+    },
+
+    /**
+     * Total dinâmico de relatórios visíveis para o perfil atual:
+     * - Admin: 7 (todos)
+     * - Almoxarife: 6 (todos exceto Usuários)
+     */
     totalRelatorios() {
-      return 7;
-    }
-  }
+      if (this.isAdmin) return 7
+      if (this.isAlmoxarife) return 6
+      return 0
+    },
+  },
 }
 </script>
 
