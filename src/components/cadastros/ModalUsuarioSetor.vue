@@ -58,6 +58,30 @@ const closeModal = () => {
 
 defineExpose({ openModal, closeModal });
 
+const hasEstoque = computed(() => {
+  const s = parentContext.$store?.state?.setorDetails;
+  return s && !!s.estoque;
+});
+
+const isCentralOuCAF = computed(() => {
+  const s = parentContext.$store?.state?.setorDetails;
+  if (!s) return false;
+  // É central (CAF) se não tem fornecedor/distribuidor vinculado
+  return !(s.setor_fornecedor_id || s.setor_fornecedor || (s.distribuidores_relacionados && s.distribuidores_relacionados.length > 0));
+});
+
+const isRoleDisabled = (role) => {
+  if (role === 'almoxarife' && !hasEstoque.value) return true;
+  if (role === 'solicitante' && isCentralOuCAF.value) return true;
+  return false;
+};
+
+const getRoleErrorMsg = (role) => {
+  if (role === 'almoxarife' && !hasEstoque.value) return "Não permitido: Este setor não possui controle de estoque.";
+  if (role === 'solicitante' && isCentralOuCAF.value) return "Não permitido: Setores centrais/CAF não possuem solicitantes.";
+  return "";
+};
+
 const loadData = async () => {
   const context = {
     $axios: parentContext.$axios,
@@ -82,6 +106,10 @@ watch(isOpen, (newVal) => {
     if (props.mode === "UP" && props.initialData) {
       form.value.usuario_id = props.initialData.usuario_id;
       form.value.perfil = props.initialData.perfil || "solicitante";
+    } else {
+      // Set default form value when opening in ADD mode
+      const defaultRole = isRoleDisabled("solicitante") ? "admin" : "solicitante";
+      form.value = { usuario_id: "", perfil: defaultRole };
     }
   } else {
     form.value = { usuario_id: "", perfil: "solicitante" };
@@ -96,6 +124,13 @@ const submit = async () => {
   };
 
   loading.value = true;
+  
+  if (isRoleDisabled(form.value.perfil)) {
+    if (context.$toastr) context.$toastr.e(getRoleErrorMsg(form.value.perfil));
+    loading.value = false;
+    return;
+  }
+
   try {
     const payload = {
       usuario_id: form.value.usuario_id || props.initialData.usuario_id,
@@ -215,20 +250,28 @@ const submit = async () => {
             <button
               v-for="role in ['admin', 'almoxarife', 'solicitante']"
               :key="role"
+              type="button"
+              :disabled="isRoleDisabled(role)"
               @click="form.perfil = role"
               :class="[
                 'flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-300 text-start',
-                form.perfil === role
-                  ? 'border-primary bg-primary/5 ring-4 ring-primary/10'
-                  : 'border-slate-100 hover:border-slate-200 bg-white',
+                isRoleDisabled(role)
+                  ? 'opacity-50 cursor-not-allowed border-slate-100 bg-slate-50'
+                  : form.perfil === role
+                    ? 'border-primary bg-primary/5 ring-4 ring-primary/10'
+                    : 'border-slate-100 hover:border-slate-200 bg-white',
               ]"
             >
               <div class="flex flex-col">
                 <span
-                  class="text-xs font-black uppercase tracking-widest text-slate-900"
+                  class="text-xs font-black uppercase tracking-widest"
+                  :class="isRoleDisabled(role) ? 'text-slate-400 line-through' : 'text-slate-900'"
                   >{{ role }}</span
                 >
-                <span class="text-[10px] text-slate-500 font-medium mt-0.5">
+                <span 
+                  v-if="!isRoleDisabled(role)"
+                  class="text-[10px] text-slate-500 font-medium mt-0.5"
+                >
                   {{
                     role === "admin"
                       ? "Controle total do setor"
@@ -236,6 +279,12 @@ const submit = async () => {
                         ? "Gestão de estoque e entradas"
                         : "Apenas requisições de itens"
                   }}
+                </span>
+                <span 
+                  v-else
+                  class="text-[10px] text-destructive font-bold mt-0.5"
+                >
+                  {{ getRoleErrorMsg(role) }}
                 </span>
               </div>
               <div
