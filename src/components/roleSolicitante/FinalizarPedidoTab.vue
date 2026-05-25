@@ -37,7 +37,7 @@
           </p>
           <Button @click="adicionarMaisItens">
             <i class="mdi mdi-magnify mr-2"></i>
-            Buscar Itens
+            Montar Pedido
           </Button>
         </CardContent>
       </Card>
@@ -302,7 +302,7 @@ const decrementarQuantidade = (produtoId) => {
 };
 
 const adicionarMaisItens = () => {
-  router.push("/itens?tab=itens");
+  router.push("/pedidos?tab=itens");
 };
 
 const finalizarPedido = async () => {
@@ -363,7 +363,7 @@ const finalizarPedido = async () => {
 
       // Navegar para histórico após 1.5 segundos
       setTimeout(() => {
-        router.push("/itens?tab=historico");
+        router.push("/pedidos?tab=historico");
       }, 1500);
     } else {
       throw new Error(response.data.message || "Erro ao enviar pedido");

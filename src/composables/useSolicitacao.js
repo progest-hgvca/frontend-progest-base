@@ -58,8 +58,8 @@ export function useSolicitacao() {
     const details = store.state.setorDetails;
     if (!details) return [];
 
-    // fornecedores_relacionados é um array com objetos que têm setor_fornecedor_id
-    const relacionamentos = details.fornecedores_relacionados || [];
+    // distribuidores_relacionados é um array com objetos que têm setor_fornecedor_id
+    const relacionamentos = details.distribuidores_relacionados || [];
 
     console.log("🔍 Fornecedores relacionados raw:", relacionamentos);
 

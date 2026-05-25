@@ -30,7 +30,7 @@
         </p>
         <Button @click="irParaBuscar">
           <i class="mdi mdi-magnify mr-2"></i>
-          Buscar Itens
+          Montar Pedido
         </Button>
       </CardContent>
     </Card>
@@ -614,7 +614,7 @@ const imprimirPedido = (pedido) => {
 };
 
 const irParaBuscar = () => {
-  router.push("/itens?tab=itens");
+  router.push("/pedidos?tab=itens");
 };
 
 onMounted(() => {

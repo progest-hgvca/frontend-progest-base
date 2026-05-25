@@ -3,7 +3,7 @@
     <div>
       <h2 class="text-2xl font-bold flex items-center gap-2">
         <i class="mdi mdi-magnify text-xl text-blue-600"></i>
-        Buscar Itens
+        Montar Pedido
       </h2>
       <p class="text-sm text-muted-foreground">
         Pesquise e adicione itens ao seu pedido.
@@ -331,7 +331,7 @@ const handleAddItem = (product) => {
 };
 
 const goToCheckout = () => {
-  router.push("/itens?tab=pedido");
+  router.push("/pedidos?tab=pedido");
 };
 
 onMounted(() => {
