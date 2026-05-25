@@ -38,6 +38,16 @@
           <span class="menu-text">{{ setorAtualNome }}</span>
         </router-link>
 
+        <router-link
+          v-if="setorTemEstoque"
+          class="menu-item"
+          to="/setor-atual?tab=estoque"
+          title="Estoque Local"
+        >
+          <span class="material-icons menu-icon">inventory</span>
+          <span class="menu-text">Estoque Local</span>
+        </router-link>
+
         <router-link class="menu-item" to="/pedidos" title="Pedidos">
           <span class="material-icons menu-icon">inventory_2</span>
           <span class="menu-text">Pedidos</span>
@@ -53,6 +63,25 @@
         >
           <span class="material-icons menu-icon">apartment</span>
           <span class="menu-text">{{ setorAtualNome }}</span>
+        </router-link>
+
+        <router-link
+          v-if="setorTemEstoque"
+          class="menu-item"
+          to="/setor-atual?tab=estoque"
+          title="Estoque Local"
+        >
+          <span class="material-icons menu-icon">inventory</span>
+          <span class="menu-text">Estoque Local</span>
+        </router-link>
+
+        <router-link
+          class="menu-item"
+          to="/setor-atual?tab=movimentacoes"
+          title="Movimentações"
+        >
+          <span class="material-icons menu-icon">swap_horiz</span>
+          <span class="menu-text">Movimentações</span>
         </router-link>
 
         <router-link class="menu-item" to="/pedidos" title="Pedidos">
@@ -292,6 +321,12 @@ const hasSetorFornecedor = computed(() => {
       (setorDetails.distribuidores_relacionados &&
         setorDetails.distribuidores_relacionados.length > 0))
   );
+});
+
+// Verificar se o setor atual possui controle de estoque ativado
+const setorTemEstoque = computed(() => {
+  const setorDetails = store.state.setorDetails;
+  return setorDetails && !!setorDetails.estoque;
 });
 
 /**
