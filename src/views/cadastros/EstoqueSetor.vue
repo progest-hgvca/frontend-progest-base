@@ -8,9 +8,9 @@
       <p class="mt-2">Carregando estoque...</p>
     </div>
 
-    <!-- Error -->
-    <div v-else-if="estoqueError" class="alert alert-danger" role="alert">
-      <i class="mdi mdi-alert-circle-outline me-2"></i>
+    <!-- Error / Aviso -->
+    <div v-else-if="estoqueError" class="alert alert-warning" role="alert">
+      <i class="mdi mdi-information-outline me-2"></i>
       {{ estoqueError }}
     </div>
 
