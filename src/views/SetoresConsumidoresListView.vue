@@ -153,74 +153,8 @@ const loadSetoresConsumidores = async () => {
     );
 
     if (response.data.status && response.data.data) {
-      const todosSetores = response.data.data;
-
-      // 2. Filtrar setores que possuem estoque
-      loadingMessage.value = "Verificando disponibilidade de estoque...";
-
-      const promises = todosSetores.map(async (setor) => {
-        try {
-          // Quando o backend já informa o indicador, ele é a fonte de verdade.
-          if (Object.prototype.hasOwnProperty.call(setor, "estoque")) {
-            return setor.estoque ? setor : null;
-          }
-
-          // Precisamos checar o estoque de cada setor.
-          // Usaremos uma chamada leve ou a listEstoqueUnidade já existente.
-          // Como listEstoqueUnidade espera um 'content' complexo, vamos simular ou chamar direto via axios se preferir
-          // Mas para reuso, vamos adaptar o contexto.
-
-          // Otimização: Se houver muitos setores, isso pode ser pesado.
-          // O ideal seria o backend filtrar, mas faremos no front conforme solicitado.
-
-          const context = {
-            $axios: axios,
-            $store: store,
-            $toastr: undefined,
-            loading: false,
-            // Mocks para evitar erros
-            estoqueItems: { value: [] },
-            resumoEstoque: { value: {} },
-            setorEstoque: { value: {} },
-          };
-
-          const result = await functionsEstoque.listEstoqueUnidade(
-            context,
-            setor.id,
-          );
-
-          const success = Boolean(result?.success ?? result?.status);
-          const estoqueRaw = result?.data;
-          const estoqueList = Array.isArray(estoqueRaw)
-            ? estoqueRaw
-            : Array.isArray(estoqueRaw?.estoque)
-              ? estoqueRaw.estoque
-              : [];
-
-          if (success && estoqueList.length > 0) {
-            // Verifica se tem itens no estoque
-            // Pode ser estoque.length > 0 ou verificar quantidades
-            // Assumindo: Se tem registros na tabela estoque, considera válido.
-            // Ou se a soma das quantidades > 0?
-            // O usuário disse "nao apareça setores sem estoque".
-            // Vamos considerar estoque.length > 0 (tem produtos cadastrados/disponíveis no setor)
-
-            // CORREÇÃO: O usuário confirmou que deve aparecer mesmo com estoque zerado, desde que tenha a 'carta' (registros).
-            // Antes: const temItemComQuantidade = result.data.estoque.some(item => item.quantidade_atual > 0);
-
-            // Agora: Basta ter itens cadastrados no estoque.
-            return setor;
-          }
-        } catch (err) {
-          console.warn(`Erro ao verificar estoque do setor ${setor.nome}`, err);
-        }
-        return null;
-      });
-
-      const resultados = await Promise.all(promises);
-      setores.value = resultados.filter((s) => s !== null);
-
-      console.log("Setores filtrados (com ficha de estoque):", setores.value);
+      setores.value = response.data.data;
+      console.log("Setores consumidores carregados:", setores.value);
     }
   } catch (error) {
     console.error("Erro ao carregar setores consumidores:", error);
