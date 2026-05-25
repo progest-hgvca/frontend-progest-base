@@ -103,12 +103,14 @@ const filteredMovimentacoes = computed(() => {
   return items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 });
 
-const isEntrada = (mov) =>
-  mov.setor_destino_id === props.setorId ||
-  mov.setorDestino?.id === props.setorId;
-const isSaida = (mov) =>
-  mov.setor_origem_id === props.setorId ||
-  mov.setorOrigem?.id === props.setorId;
+const isEntrada = (mov) => {
+  const sid = Number(props.setorId);
+  return Number(mov.setor_destino_id) === sid || Number(mov.setorDestino?.id) === sid;
+};
+const isSaida = (mov) => {
+  const sid = Number(props.setorId);
+  return Number(mov.setor_origem_id) === sid || Number(mov.setorOrigem?.id) === sid;
+};
 
 const formatarData = (data) => {
   if (!data) return "--/--/----";
