@@ -62,7 +62,19 @@ const loadingAdd = ref(false);
 
 const isAdminUser = computed(() => {
   const user = store.state.user;
-  return user && (user.email === "admin@admin.com" || user.is_admin);
+  if (!user) return false;
+  if (user.email?.toLowerCase() === "admin@admin.com") return true;
+
+  const list = store.state.listUsuariosSetor || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
+    const perfil = (u.perfil || u.pivot?.perfil || "").toString().toLowerCase();
+    return (
+      userId === user.id &&
+      (perfil.includes("admin") || perfil.includes("gerente"))
+    );
+  });
+  return !!found || !!user.is_admin;
 });
 
 const isSolicitante = computed(() => {
@@ -321,7 +333,7 @@ const formatarData = (date) => {
               <div class="bg-destructive/10 p-2 rounded-lg">
                 <Trash2Icon class="w-4 h-4" />
               </div>
-              <span class="font-semibold">Excluir Unidade</span>
+              <span class="font-semibold">Excluir Setor</span>
             </Button>
           </CardContent>
         </Card>
@@ -336,7 +348,7 @@ const formatarData = (date) => {
               </CardTitle>
 
               <Dialog
-                v-if="!isSolicitante && !readOnly"
+                v-if="isAdminUser && !readOnly"
                 :open="isAddModalOpen"
                 @update:open="isAddModalOpen = $event"
               >
@@ -437,10 +449,10 @@ const formatarData = (date) => {
                   </div>
 
                   <Button
-                    v-if="!isSolicitante && !readOnly"
+                    v-if="isAdminUser && !readOnly"
                     variant="ghost"
                     size="icon"
-                    class="opacity-0 group-hover:opacity-100 h-8 w-8 text-destructive hover:bg-destructive/10 transition-all"
+                    class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-all"
                     @click="handleRemoveFornecedor(rel.id)"
                     title="Remover distribuidor"
                   >
