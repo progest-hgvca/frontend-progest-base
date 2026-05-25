@@ -122,7 +122,7 @@ const router = createRouter({
       path: "/polos",
       name: "polos",
       component: Polos,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/historico",

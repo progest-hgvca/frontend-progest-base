@@ -300,7 +300,7 @@ const formatarData = (date) => {
       <div class="space-y-6">
         <!-- Shortcut Actions Card -->
         <Card
-          v-if="!isSolicitante && !readOnly"
+          v-if="isAdminUser && !readOnly"
           class="border-slate-200 shadow-sm border-l-4 border-l-primary/50"
         >
           <CardHeader class="pb-3">
