@@ -20,7 +20,7 @@
                     <span class="d-block d-sm-none"
                       ><i class="fas fa-search"></i
                     ></span>
-                    <span class="d-none d-sm-block">Buscar Itens</span>
+                    <span class="d-none d-sm-block">Montar Pedido</span>
                   </a>
                 </li>
                 <li class="nav-item">
@@ -85,7 +85,7 @@ import HistoricoPedidos from "@/components/roleSolicitante/HistoricoPedidos.vue"
 import FinalizarPedidoTab from "@/components/roleSolicitante/FinalizarPedidoTab.vue";
 
 export default {
-  name: "ItensView",
+  name: "PedidosView",
   components: {
     TemplateAdmin,
     ProductSearch,

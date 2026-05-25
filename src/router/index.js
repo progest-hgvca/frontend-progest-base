@@ -4,7 +4,7 @@ import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 import SetorSelectionView from "../views/SetorSelectionView.vue";
 import HistoricoDePedidosView from "@/views/roleSolicitante/HistoricoDePedidosView.vue";
-import ItensView from "@/views/roleSolicitante/ItensView.vue";
+import PedidosView from "@/views/roleSolicitante/PedidosView.vue";
 import SetorAtualView from "@/views/SetorAtualView.vue";
 import { setorCookie } from "@/utils/setorCookie";
 import axios from "axios";
@@ -94,9 +94,9 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresSector: true },
     },
     {
-      path: "/itens",
-      name: "itens",
-      component: ItensView,
+      path: "/pedidos",
+      name: "pedidos",
+      component: PedidosView,
       meta: { requiresAuth: true, requiresSector: true },
     },
     /* categoriasProdutos removed in favor of grupoProduto */
@@ -119,8 +119,8 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresSector: true },
     },
     {
-      path: "/unidades",
-      name: "unidades",
+      path: "/polos",
+      name: "polos",
       component: Polos,
       meta: { requiresAuth: true, requiresSector: true },
     },
@@ -339,7 +339,7 @@ router.beforeEach(async (to, from, next) => {
     const allowedForSolicitante = [
       "/dashboard",
       "/setor-atual",
-      "/itens",
+      "/pedidos",
       "/setor-selection",
       "/login",
       "/register",
