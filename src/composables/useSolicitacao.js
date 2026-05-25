@@ -58,7 +58,7 @@ export function useSolicitacao() {
     const details = store.state.setorDetails;
     if (!details) return [];
 
-    // distribuidores_relacionados é um array com objetos que têm setor_fornecedor_id
+    // distribuidores_relacionados é um array com objetos que têm setor_distribuidor_id
     const relacionamentos = details.distribuidores_relacionados || [];
 
     console.log("🔍 Fornecedores relacionados raw:", relacionamentos);
@@ -67,13 +67,14 @@ export function useSolicitacao() {
       .filter((rel) => {
         // Garantir que temos um ID válido
         const fornecedorId =
-          rel.setor_fornecedor_id || rel.fornecedor_id || rel.id;
+          rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id || rel.id;
         return fornecedorId != null;
       })
       .map((rel) => {
         // Tentar múltiplas formas de obter o ID do setor fornecedor
-        const fornecedorId = rel.setor_fornecedor_id || rel.fornecedor_id;
+        const fornecedorId = rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id;
         const fornecedorNome =
+          rel.distribuidor?.nome ||
           rel.fornecedor?.nome ||
           rel.setor_fornecedor?.nome ||
           rel.nome ||

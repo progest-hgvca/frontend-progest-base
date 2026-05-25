@@ -143,7 +143,7 @@ const onFornecedorChange = (id) => {
     (r) => r.id.toString() === id,
   );
   if (rel) {
-    form.value.setor_origem_id = rel.setor_fornecedor_id;
+    form.value.setor_origem_id = rel.setor_distribuidor_id || rel.setor_fornecedor_id;
     form.value.tipo_produto = rel.tipo_produto;
   } else {
     form.value.setor_origem_id = null;

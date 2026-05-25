@@ -56,7 +56,7 @@ const allSetores = computed(() => {
 
 const setoresDisponiveis = computed(() => {
   const usados = fornecedores.value
-    .map((f) => f.setor_fornecedor_id)
+    .map((f) => f.setor_distribuidor_id)
     .filter(Boolean);
   return allSetores.value.filter((s) => !usados.includes(s.id));
 });
@@ -70,20 +70,21 @@ watch(
       if (localData.value.polo_id)
         localData.value.polo_id = localData.value.polo_id.toString();
 
-      // Popular fornecedores com validação melhorada do legado
+      // Popular distribuidores a partir dos dados do backend
       const rel =
         newValue.distribuidores_relacionados || newValue.fornecedores || [];
         
       fornecedores.value = rel.map((r) => {
-        const fObj = r.fornecedor || r.fornecedor_relacionado || {};
+        // O backend retorna a chave 'distribuidor', não 'fornecedor'
+        const fObj = r.distribuidor || r.fornecedor || r.fornecedor_relacionado || {};
         return {
           id: r.id,
-          setor_fornecedor_id: r.setor_fornecedor_id || fObj.id || null,
+          setor_distribuidor_id: r.setor_distribuidor_id || fObj.id || null,
           nome:
             fObj.nome ||
             fObj.razao_social_nome ||
             fObj.razao_social ||
-            "Setor Fornecedor",
+            "Setor Distribuidor",
         };
       });
     }
@@ -109,11 +110,12 @@ const handleSave = () => {
   const modalCopy = JSON.parse(JSON.stringify(localData.value));
   
   // Trata e limpa os fornecedores antes de salvar (trazido da versão legada)
-  modalCopy.fornecedores = fornecedores.value
-    .filter((f) => f.setor_fornecedor_id)
+  // Enviar como 'distribuidores' com 'setor_distribuidor_id' para casar com o backend
+  modalCopy.distribuidores = fornecedores.value
+    .filter((f) => f.setor_distribuidor_id)
     .map((f) => ({
       id: f.id || undefined,
-      setor_fornecedor_id: f.setor_fornecedor_id,
+      setor_distribuidor_id: f.setor_distribuidor_id,
     }));
 
   const content = {
@@ -134,7 +136,7 @@ const adicionarFornecedor = () => {
   const setor = allSetores.value.find((s) => s.id == selectedSetorId.value);
   if (setor) {
     fornecedores.value.push({
-      setor_fornecedor_id: setor.id,
+      setor_distribuidor_id: setor.id,
       nome: setor.nome,
     });
     selectedSetorId.value = "";

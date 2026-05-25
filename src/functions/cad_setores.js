@@ -10,32 +10,28 @@ var ADD_UP = (content, funcao) => {
 
   const payload = { setores: setoresPayload };
 
-  // Incluir fornecedores quando fornecidos pelo modal
+  // Incluir distribuidores quando fornecidos pelo modal
   try {
-    const fornecedoresLocal =
-      content.modalData.fornecedores || content.fornecedores || [];
-    if (Array.isArray(fornecedoresLocal) && fornecedoresLocal.length > 0) {
+    const distribuidoresLocal =
+      content.modalData.distribuidores || content.distribuidores || [];
+    if (Array.isArray(distribuidoresLocal) && distribuidoresLocal.length > 0) {
       if (funcao == "ADD") {
-        // Para compatibilidade com endpoints que aceitam um único objeto 'fornecedor',
-        // se houver apenas um item, enviar como 'fornecedor', senão enviar 'fornecedores' (API deve aceitar ambos ou ignorar)
-        if (fornecedoresLocal.length === 1) {
-          payload.fornecedor = {
-            setor_id: fornecedoresLocal[0].setor_fornecedor_id,
-            tipo_produto: fornecedoresLocal[0].tipo_produto,
+        // Para criação, backend aceita 'distribuidor' (objeto único) ou array
+        if (distribuidoresLocal.length === 1) {
+          payload.distribuidor = {
+            setor_distribuidor_id: distribuidoresLocal[0].setor_distribuidor_id,
           };
         } else {
-          payload.fornecedores = fornecedoresLocal.map((f) => ({
-            setor_fornecedor_id: f.setor_fornecedor_id,
-            tipo_produto: f.tipo_produto,
+          payload.distribuidores = distribuidoresLocal.map((f) => ({
+            setor_distribuidor_id: f.setor_distribuidor_id,
             id: f.id || undefined,
           }));
         }
       } else if (funcao == "UP") {
-        // Para update, API espera 'fornecedores' array (sincronização)
-        payload.fornecedores = fornecedoresLocal.map((f) => {
+        // Para update, API espera 'distribuidores' array (sincronização)
+        payload.distribuidores = distribuidoresLocal.map((f) => {
           const item = {
-            setor_fornecedor_id: f.setor_fornecedor_id,
-            tipo_produto: f.tipo_produto,
+            setor_distribuidor_id: f.setor_distribuidor_id,
           };
           if (f.id) item.id = f.id;
           return item;
@@ -595,7 +591,7 @@ export const addDistribuidor = async (setorSolicitanteId, setorFornecedorId) => 
       `${API_URL}/setores/addDistribuidor`,
       {
         setor_solicitante_id: setorSolicitanteId,
-        setor_fornecedor_id: setorFornecedorId,
+        setor_distribuidor_id: setorFornecedorId,
       },
       {
         headers: {

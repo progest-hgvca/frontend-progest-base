@@ -98,7 +98,7 @@ const openAddModal = async () => {
   if (result.success) {
     const currentId = props.setor.id;
     const existingIds = (props.setor.distribuidores_relacionados || []).map(
-      (r) => r.setor_fornecedor_id,
+      (r) => r.setor_distribuidor_id,
     );
     availableSetores.value = result.data.filter(
       (s) => s.id !== currentId && !existingIds.includes(s.id) && s.estoque,
@@ -432,8 +432,9 @@ const formatarData = (date) => {
                     <div>
                       <div class="font-bold text-slate-800 text-sm">
                         {{
+                          rel.distribuidor?.nome ||
+                          rel.distribuidor?.razao_social ||
                           rel.fornecedor?.nome ||
-                          rel.fornecedor?.razao_social ||
                           "Distribuidor"
                         }}
                       </div>
@@ -442,7 +443,7 @@ const formatarData = (date) => {
                           variant="outline"
                           class="text-[10px] h-4 px-1.5 uppercase font-bold tracking-wider"
                         >
-                          {{ rel.tipo_produto || rel.fornecedor?.tipo || "-" }}
+                          {{ rel.tipo_produto || rel.distribuidor?.tipo || rel.fornecedor?.tipo || "-" }}
                         </Badge>
                       </div>
                     </div>
