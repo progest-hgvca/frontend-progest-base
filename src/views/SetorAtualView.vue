@@ -253,7 +253,7 @@ onUnmounted(() => {
               </TabsTrigger>
 
               <TabsTrigger
-                v-if="!isSolicitante && setor.estoque"
+                v-if="setor.estoque"
                 value="estoque"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
@@ -305,7 +305,7 @@ onUnmounted(() => {
             </TabsContent>
 
             <TabsContent value="estoque" class="mt-0">
-              <TabEstoque @reload-estoque="carregarDadosOperacionais" />
+              <TabEstoque :readOnly="isSolicitante" @reload-estoque="carregarDadosOperacionais" />
             </TabsContent>
 
             <TabsContent value="movimentacoes" class="mt-0">

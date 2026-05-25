@@ -35,7 +35,7 @@
                       <span class="d-none d-sm-block"> Visão Geral</span>
                     </a>
                   </li>
-                  <li class="nav-item" v-if="setor.estoque">
+                  <li class="nav-item" v-if="setor.estoque && !isSolicitante">
                     <a
                       class="nav-link"
                       :class="{ active: activeTab === 'estoque' }"
@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, provide, watch } from "vue";
+import { ref, onMounted, onUnmounted, provide, watch, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import TemplateAdmin from "@/views/roleAdmin/TemplateAdmin.vue";
@@ -100,6 +100,18 @@ const store = useStore();
 const setor = ref({});
 const loading = ref(true);
 const activeTab = ref("overview");
+
+const isSolicitante = computed(() => {
+  const user = store.state.user;
+  if (!user) return false;
+  const list = store.state.listUsuariosSetor || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
+    const perfil = (u.perfil || u.pivot?.perfil || "").toString().toLowerCase();
+    return userId === user.id && perfil.includes("solicitante");
+  });
+  return !!found;
+});
 
 // Dados compartilhados via provide
 const estoqueItems = ref([]);

@@ -24,9 +24,20 @@ const props = defineProps({
 
 const store = useStore();
 const user = computed(() => store.state.user || {});
-const isAdmin = computed(() => {
-  if (user.value.email === "admin@admin.com") return true;
-  return !!user.value.is_admin;
+const canAddEntrada = computed(() => {
+  if (user.value.email?.toLowerCase() === "admin@admin.com") return true;
+  if (user.value.is_admin) return true;
+
+  const list = store.state.listUsuariosSetor || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
+    const perfil = (u.perfil || u.pivot?.perfil || "").toString().toLowerCase();
+    return (
+      userId === user.value.id &&
+      (perfil.includes("admin") || perfil.includes("gerente") || perfil.includes("almoxarife"))
+    );
+  });
+  return !!found;
 });
 const parentData = inject("setorAtualData", {
   entradasItems: [],
@@ -84,7 +95,7 @@ const handleEntradaRegistrada = async () => {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-end gap-6">
       <Button
-        v-if="isAdmin"
+        v-if="canAddEntrada"
         @click="dialogEntradaOpen = true"
         class="gap-2 shadow-lg shadow-primary/20"
       >
