@@ -141,9 +141,9 @@ const carregarDadosOperacionais = async () => {
 const updateHeader = () => {
   const titles = {
     overview: {
-      title: "Visão Geral da Unidade",
+      title: "Visão Geral do Polo",
       subtitle:
-        "Informações detalhadas sobre a unidade de atendimento e gestão.",
+        "Informações detalhadas sobre o polo de atendimento e gestão.",
     },
     estoque: {
       title: "Gestão de Estoque Local",
@@ -152,7 +152,7 @@ const updateHeader = () => {
     },
     movimentacoes: {
       title: "Movimentações e Requisições",
-      subtitle: "Histórico completo de entradas e saídas entre unidades.",
+      subtitle: "Histórico completo de entradas e saídas entre setores.",
     },
     entrada: {
       title: "Protocolos de Entrada",
@@ -161,7 +161,7 @@ const updateHeader = () => {
     usuarios: {
       title: "Equipe e Permissões",
       subtitle:
-        "Gerencie quem tem acesso e quais as permissões nesta unidade específica.",
+        "Gerencie quem tem acesso e quais as permissões neste setor específico.",
     },
   };
   const headerInfo = titles[activeTab.value] || titles.overview;
@@ -232,7 +232,7 @@ onUnmounted(() => {
         <div class="flex flex-col items-center gap-4">
           <LoadingSpinner size="lg" />
           <p class="text-slate-500 font-medium animate-pulse">
-            Carregando unidade...
+            Carregando polo...
           </p>
         </div>
       </div>
@@ -334,9 +334,9 @@ onUnmounted(() => {
         <div class="p-6 bg-white rounded-full shadow-sm mb-4">
           <AlertTriangleIcon class="w-12 h-12 text-amber-500" />
         </div>
-        <h5 class="text-slate-800 font-bold text-lg">Unidade não encontrada</h5>
+        <h5 class="text-slate-800 font-bold text-lg">Polo não encontrado</h5>
         <p class="text-slate-500 text-sm max-w-xs text-center mt-2">
-          Não foi possível carregar os detalhes desta unidade. Por favor,
+          Não foi possível carregar os detalhes deste polo. Por favor,
           verifique se você tem permissão de acesso.
         </p>
         <Button @click="router.push('/setores')" variant="outline" class="mt-6">

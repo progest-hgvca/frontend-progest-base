@@ -29,7 +29,7 @@
                   <input type="date" v-model="filters.date_to" class="form-control" />
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label">Unidade</label>
+                  <label class="form-label">Polo</label>
                   <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
                     <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>

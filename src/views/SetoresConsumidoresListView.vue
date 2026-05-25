@@ -54,7 +54,7 @@
                       <div>
                         <h5 class="font-bold text-lg mb-1">{{ setor.nome }}</h5>
                         <p class="text-sm text-muted-foreground">
-                          {{ setor.unidade?.nome || "Unidade não informada" }}
+                          {{ setor.polo?.nome || "Polo não informado" }}
                         </p>
                       </div>
                     </div>
@@ -236,7 +236,7 @@ const navigateToSetor = (setorId) => {
 onMounted(() => {
   store.commit("setPageHeader", {
     title: "Setores Consumidores",
-    subtitle: "Visualize e gerencie as unidades que recebem suprimentos.",
+    subtitle: "Visualize e gerencie os polos e setores que recebem suprimentos.",
   });
   loadSetoresConsumidores();
 });

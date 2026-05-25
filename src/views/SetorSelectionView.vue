@@ -72,7 +72,7 @@
             Acesso ao Sistema
           </CardTitle>
           <CardDescription class="text-center">
-            Selecione a unidade e o setor para continuar
+            Selecione o polo e o setor para continuar
           </CardDescription>
         </CardHeader>
 
@@ -84,23 +84,23 @@
                 for="unidade-select"
                 class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Unidade <span class="text-red-600">*</span>
+                Polo <span class="text-red-600">*</span>
               </label>
               <Select
-                v-model="unidadeSelecionada"
+                v-model="poloSelecionado"
                 @update:modelValue="onPoloChange"
               >
                 <SelectTrigger id="unidade-select" class="h-10">
-                  <SelectValue placeholder="-- Selecione uma unidade --" />
+                  <SelectValue placeholder="-- Selecione um polo --" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem
-                      v-for="unidade in unidades"
-                      :key="unidade.id"
-                      :value="unidade.id.toString()"
+                      v-for="polo in polos"
+                      :key="polo.id"
+                      :value="polo.id.toString()"
                     >
-                      {{ unidade.nome }}
+                      {{ polo.nome }}
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -117,14 +117,14 @@
               </label>
               <Select
                 v-model="setorSelecionado"
-                :disabled="!unidadeSelecionada"
+                :disabled="!poloSelecionado"
               >
                 <SelectTrigger id="setor-select" class="h-10">
                   <SelectValue
                     :placeholder="
-                      unidadeSelecionada
+                      poloSelecionado
                         ? '-- Selecione um setor --'
-                        : 'Selecione primeiro a unidade'
+                        : 'Selecione primeiro o polo'
                     "
                   />
                 </SelectTrigger>
@@ -151,7 +151,7 @@
               class="bg-blue-50 border border-blue-200 rounded-md p-4"
             >
               <p class="text-sm text-gray-700">
-                <strong>Unidade:</strong> {{ getSetorSelecionado.unidade.nome }}
+                <strong>Polo:</strong> {{ getSetorSelecionado.polo.nome }}
               </p>
               <p class="text-sm text-gray-700 mt-1">
                 <strong>Setor:</strong> {{ getSetorSelecionado.nome }}
@@ -219,27 +219,27 @@ const router = useRouter();
 const store = useStore();
 
 const setores = ref([]);
-const unidadeSelecionada = ref("");
+const poloSelecionado = ref("");
 const setorSelecionado = ref("");
 const loading = ref(true);
 const loadingEntrada = ref(false);
 const errorMessage = ref("");
 const erroValidacao = ref("");
 
-const unidades = computed(() => {
+const polos = computed(() => {
   const map = new Map();
   setores.value.forEach((s) => {
-    if (s.unidade && !map.has(s.unidade.id)) {
-      map.set(s.unidade.id, s.unidade);
+    if (s.polo && !map.has(s.polo.id)) {
+      map.set(s.polo.id, s.polo);
     }
   });
   return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
 });
 
 const setoresFiltrados = computed(() => {
-  if (!unidadeSelecionada.value) return [];
+  if (!poloSelecionado.value) return [];
   return setores.value
-    .filter((s) => s.polo_id == unidadeSelecionada.value)
+    .filter((s) => s.polo_id == poloSelecionado.value)
     .sort((a, b) => a.nome.localeCompare(b.nome));
 });
 
@@ -280,10 +280,10 @@ const carregarSetores = async () => {
       console.log("✓ Setores carregados com sucesso:", resultado.data.length);
       setores.value = resultado.data;
 
-      // Auto-selecionar unidade se houver apenas uma
-      if (unidades.value.length === 1) {
-        unidadeSelecionada.value = unidades.value[0].id.toString();
-        // Disparar lógica de mudança de unidade (isso vai auto-selecionar o setor se houver apenas um também)
+      // Auto-selecionar polo se houver apenas um
+      if (polos.value.length === 1) {
+        poloSelecionado.value = polos.value[0].id.toString();
+        // Disparar lógica de mudança de polo (isso vai auto-selecionar o setor se houver apenas um também)
         onPoloChange();
       }
     } else if (!resultado.success) {

@@ -133,7 +133,7 @@
                                   <thead class="table-secondary">
                                     <tr>
                                       <th>Setor</th>
-                                      <th>Unidade</th>
+                                      <th>Polo</th>
                                       <th>Tipo</th>
                                       <th>Perfil</th>
                                       <th>Data Vínculo</th>

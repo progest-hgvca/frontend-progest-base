@@ -18,7 +18,7 @@
             <div class="card-body">
               <div class="row g-2">
                 <div class="col-md-3">
-                  <label class="form-label">Unidade</label>
+                  <label class="form-label">Polo</label>
                   <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
                     <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>
