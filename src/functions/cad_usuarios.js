@@ -237,7 +237,7 @@ var listTiposVinculo = (content, url = null) => {
     });
 };
 
-var listUnidades = (content, url = null) => {
+var listPolos = (content, url = null) => {
   return content.$axios
     .post(
       url == null ? "/setores/list" : url,
@@ -255,7 +255,7 @@ var listUnidades = (content, url = null) => {
     })
     .catch((error) => {
       console.error("Erro ao carregar unidades:", error);
-      content.$store.commit("setListUnidades", []);
+      content.$store.commit("setListPolos", []);
       throw error;
     });
 };
@@ -296,7 +296,7 @@ var exportFunctions = {
   toggleData: toggleData,
   EDIT_PERFIL: EDIT_PERFIL,
   listTiposVinculo: listTiposVinculo,
-  listUnidades: listUnidades,
+  listPolos: listPolos,
 };
 
 export default exportFunctions;

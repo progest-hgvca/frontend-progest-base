@@ -5,7 +5,7 @@
 /**
  * Lista todas as entradas de estoque
  * @param {Object} content - Contexto do componente Vue (this)
- * @param {Object} filters - Filtros opcionais (nota_fiscal, unidade_id, fornecedor_id)
+ * @param {Object} filters - Filtros opcionais (nota_fiscal, polo_id, fornecedor_id)
  * @param {Number} perPage - Itens por página (padrão 15)
  * @param {Number} page - Número da página (padrão 1)
  */

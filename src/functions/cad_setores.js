@@ -558,13 +558,13 @@ var getSetorDetail = (content, setorId) => {
     )
     .then((response) => {
       if (response.data.status) {
-        // Dados completos já vêm do backend, incluindo fornecedores_relacionados
+        // Dados completos já vêm do backend, incluindo distribuidores_relacionados
         const setorData = response.data.data;
 
         console.log("✓ Detalhes do setor carregados:", setorData.nome);
         console.log(
           "✓ Fornecedores relacionados:",
-          setorData.fornecedores_relacionados?.length || 0
+          setorData.distribuidores_relacionados?.length || 0
         );
 
         // Armazenar detalhes do setor no Vuex
@@ -589,10 +589,10 @@ var getSetorDetail = (content, setorId) => {
 };
 
 // Adicionar fornecedor a um setor
-export const addFornecedor = async (setorSolicitanteId, setorFornecedorId) => {
+export const addDistribuidor = async (setorSolicitanteId, setorFornecedorId) => {
   try {
     const response = await axios.post(
-      `${API_URL}/setores/addFornecedor`,
+      `${API_URL}/setores/addDistribuidor`,
       {
         setor_solicitante_id: setorSolicitanteId,
         setor_fornecedor_id: setorFornecedorId,
@@ -623,10 +623,10 @@ export const addFornecedor = async (setorSolicitanteId, setorFornecedorId) => {
 };
 
 // Remover fornecedor de um setor
-export const removeFornecedor = async (id) => {
+export const removeDistribuidor = async (id) => {
   try {
     const response = await axios.post(
-      `${API_URL}/setores/removeFornecedor`,
+      `${API_URL}/setores/removeDistribuidor`,
       { id },
       {
         headers: {
@@ -664,8 +664,8 @@ var exportFunctions = {
   atualizarSetor: atualizarSetor,
   deleteSetor: deleteSetor,
   getSetorDetail: getSetorDetail,
-  addFornecedor: addFornecedor,
-  removeFornecedor: removeFornecedor,
+  addDistribuidor: addDistribuidor,
+  removeDistribuidor: removeDistribuidor,
 };
 
 export default exportFunctions;

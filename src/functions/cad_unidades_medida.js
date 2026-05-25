@@ -85,9 +85,9 @@ var listAll = (content, url = null) => {
           };
         });
 
-        content.$store.commit("setListUnidadesMedida", enrichedUnidades);
+        content.$store.commit("SET_listUnidadesMedida", enrichedUnidades);
       } else {
-        content.$store.commit("setListUnidadesMedida", []);
+        content.$store.commit("SET_listUnidadesMedida", []);
       }
 
       content.$store.commit("setisSearching", false);
@@ -95,7 +95,7 @@ var listAll = (content, url = null) => {
     .catch((error) => {
       console.error("Erro na chamada da API listAll:", error);
       content.$store.commit("setisSearching", false);
-      content.$store.commit("setListUnidadesMedida", []);
+      content.$store.commit("SET_listUnidadesMedida", []);
     });
 };
 

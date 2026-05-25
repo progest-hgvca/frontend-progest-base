@@ -82,14 +82,14 @@ var listAll = (content, url = null) => {
           }));
 
           content.$store.commit("setListPolos", enriched);
-          content.$store.commit("setListUnidades", enriched);
+          content.$store.commit("setListPolos", enriched);
         } else {
           content.$store.commit("setListPolos", []);
-          content.$store.commit("setListUnidades", []);
+          content.$store.commit("setListPolos", []);
         }
       } else {
         content.$store.commit("setListPolos", []);
-        content.$store.commit("setListUnidades", []);
+        content.$store.commit("setListPolos", []);
       }
       content.$store.commit("setisSearching", false);
     })
@@ -97,7 +97,7 @@ var listAll = (content, url = null) => {
       console.error("Erro ao listar unidades:", error);
       content.$store.commit("setisSearching", false);
       content.$store.commit("setListPolos", []);
-      content.$store.commit("setListUnidades", []);
+      content.$store.commit("setListPolos", []);
     });
 };
 

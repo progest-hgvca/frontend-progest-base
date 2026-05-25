@@ -72,7 +72,7 @@ export default createStore({
     listGrupoProdutos: [],
     listFornecedores: [],
     listPolos: [],
-    listUnidades: [],
+    listPolos: [],
     listPerfis: [],
     listTiposVinculo: [],
 
@@ -279,19 +279,19 @@ export default createStore({
     setListGrupoProdutos(state, grupos) {
       state.listGrupoProdutos = grupos;
     },
-    setListUnidadesMedida(state, unidadesMedida) {
+    SET_listUnidadesMedida(state, unidadesMedida) {
       state.listUnidadesMedida = unidadesMedida;
     },
-    setListUnidades(state, unidades) {
-      state.listUnidades = unidades || [];
+    setListPolos(state, unidades) {
+      state.listPolos = unidades || [];
     },
     setListFornecedores(state, fornecedores) {
       state.listFornecedores = fornecedores;
     },
     setListPolos(state, polos) {
       state.listPolos = polos;
-      // também atualizar listUnidades para manter compatibilidade com código novo
-      state.listUnidades = polos;
+      // também atualizar listPolos para manter compatibilidade com código novo
+      state.listPolos = polos;
     },
     setListPerfis(state, perfis) {
       state.listPerfis = perfis;
@@ -414,11 +414,11 @@ export default createStore({
     getListUsers: (state) => state.listUsers,
     getListTiposUsuario: (state) => state.listTiposUsuario,
     getListProdutos: (state) => state.listProdutos,
-    getListUnidadesMedida: (state) => state.listUnidadesMedida,
+    GET_listUnidadesMedida: (state) => state.listUnidadesMedida,
     getListGrupoProdutos: (state) => state.listGrupoProdutos,
     getListFornecedores: (state) => state.listFornecedores,
     getListPolos: (state) => state.listPolos,
-    getListUnidades: (state) => state.listUnidades,
+    getListPolos: (state) => state.listPolos,
     getListPerfis: (state) => state.listPerfis,
     getListTiposVinculo: (state) => state.listTiposVinculo,
 
