@@ -80,25 +80,6 @@
           <span class="menu-text">Usuários</span>
         </router-link>
 
-        <router-link
-          v-if="!hasSetorFornecedor"
-          class="menu-item"
-          to="/produtos"
-          title="Produtos"
-        >
-          <span class="material-icons menu-icon">inventory</span>
-          <span class="menu-text">Produtos</span>
-        </router-link>
-
-        <router-link
-          v-if="!hasSetorFornecedor"
-          class="menu-item"
-          to="/fornecedores"
-          title="Fornecedores"
-        >
-          <span class="material-icons menu-icon">business_center</span>
-          <span class="menu-text">Fornecedores</span>
-        </router-link>
 
         <!-- Submenu: Cadastros -->
         <div v-if="!hasSetorFornecedor" class="submenu-section">
@@ -122,6 +103,26 @@
             <div v-show="submenuOpen" class="submenu-items">
               <router-link
                 v-if="!hasSetorFornecedor"
+                class="submenu-item"
+                to="/produtos"
+                title="Produtos"
+              >
+                <span class="material-icons menu-icon">inventory</span>
+                <span class="menu-text">Produtos</span>
+              </router-link>
+
+              <router-link
+                v-if="!hasSetorFornecedor"
+                class="submenu-item"
+                to="/fornecedores"
+                title="Fornecedores"
+              >
+                <span class="material-icons menu-icon">business_center</span>
+                <span class="menu-text">Fornecedores</span>
+              </router-link>
+
+              <router-link
+                v-if="!hasSetorFornecedor && isAdminUser"
                 class="submenu-item"
                 to="/polos"
                 title="Polos"
