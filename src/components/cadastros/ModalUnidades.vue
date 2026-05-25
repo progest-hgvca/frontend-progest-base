@@ -32,7 +32,7 @@ const localData = ref({
   status: "A",
   tipo: "Material",
   estoque: false,
-  unidade_id: "",
+  polo_id: "",
   nome: "",
   descricao: "",
 });
@@ -46,7 +46,7 @@ const isModalOpen = computed({
 });
 
 const unidadesList = computed(() => {
-  const list = store.state.listUnidades || {};
+  const list = store.state.listPolos || {};
   return Array.isArray(list.data) ? list.data : [];
 });
 
@@ -57,8 +57,8 @@ watch(
       localData.value = JSON.parse(JSON.stringify(newValue));
       if (!localData.value.status) localData.value.status = "A";
       if (!localData.value.tipo) localData.value.tipo = "Material";
-      if (localData.value.unidade_id)
-        localData.value.unidade_id = localData.value.unidade_id.toString();
+      if (localData.value.polo_id)
+        localData.value.polo_id = localData.value.polo_id.toString();
     }
   },
   { deep: true, immediate: true },
@@ -164,7 +164,7 @@ const handleSave = () => {
           >
             <BuildingIcon class="w-3 h-3" /> Polo / Unidade Superior
           </Label>
-          <Select v-model="localData.unidade_id">
+          <Select v-model="localData.polo_id">
             <SelectTrigger
               class="h-12 border-slate-200 rounded-2xl bg-slate-50/30"
             >

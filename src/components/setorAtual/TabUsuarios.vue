@@ -57,9 +57,13 @@ const handleDesvincular = async (usuarioId) => {
     return;
 
   try {
-    await axios.delete(`/usuarios-setor/${usuarioId}`, {
-      headers: { Authorization: "Bearer " + store.getters.getUserToken },
-    });
+    await axios.post(
+      "/usuarioSetor/delete",
+      { usuario_id: usuarioId, setor_id: props.setorId },
+      {
+        headers: { Authorization: "Bearer " + store.getters.getUserToken },
+      }
+    );
     toast({ title: "Sucesso", description: "Usuário removido da unidade." });
     location.reload();
   } catch (e) {

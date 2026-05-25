@@ -38,9 +38,9 @@
           <span class="menu-text">{{ setorAtualNome }}</span>
         </router-link>
 
-        <router-link class="menu-item" to="/itens" title="Itens">
+        <router-link class="menu-item" to="/pedidos" title="Pedidos">
           <span class="material-icons menu-icon">inventory_2</span>
-          <span class="menu-text">Itens</span>
+          <span class="menu-text">Pedidos</span>
         </router-link>
       </template>
 
@@ -53,6 +53,11 @@
         >
           <span class="material-icons menu-icon">apartment</span>
           <span class="menu-text">{{ setorAtualNome }}</span>
+        </router-link>
+
+        <router-link class="menu-item" to="/pedidos" title="Pedidos">
+          <span class="material-icons menu-icon">inventory_2</span>
+          <span class="menu-text">Pedidos</span>
         </router-link>
 
         <router-link
@@ -118,11 +123,11 @@
               <router-link
                 v-if="!hasSetorFornecedor"
                 class="submenu-item"
-                to="/unidades"
-                title="Unidades"
+                to="/polos"
+                title="Polos"
               >
                 <span class="material-icons menu-icon">map</span>
-                <span class="menu-text">Unidades</span>
+                <span class="menu-text">Polos</span>
               </router-link>
 
               <router-link
@@ -283,8 +288,8 @@ const hasSetorFornecedor = computed(() => {
     setorDetails &&
     (setorDetails.setor_fornecedor ||
       setorDetails.setor_fornecedor_id ||
-      (setorDetails.fornecedores_relacionados &&
-        setorDetails.fornecedores_relacionados.length > 0))
+      (setorDetails.distribuidores_relacionados &&
+        setorDetails.distribuidores_relacionados.length > 0))
   );
 });
 

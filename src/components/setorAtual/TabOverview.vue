@@ -28,8 +28,8 @@ import {
 } from "@/components/ui/select";
 import {
   listarSetores,
-  addFornecedor,
-  removeFornecedor,
+  addDistribuidor,
+  removeDistribuidor,
   buscarSetorPorId,
 } from "@/functions/cad_setores";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -97,7 +97,7 @@ const openAddModal = async () => {
   const result = await listarSetores();
   if (result.success) {
     const currentId = props.setor.id;
-    const existingIds = (props.setor.fornecedores_relacionados || []).map(
+    const existingIds = (props.setor.distribuidores_relacionados || []).map(
       (r) => r.setor_fornecedor_id,
     );
     availableSetores.value = result.data.filter(
@@ -115,7 +115,7 @@ const openAddModal = async () => {
 const handleAddFornecedor = async () => {
   if (!selectedFornecedorId.value) return;
   loadingAdd.value = true;
-  const result = await addFornecedor(
+  const result = await addDistribuidor(
     props.setor.id,
     selectedFornecedorId.value,
   );
@@ -137,7 +137,7 @@ const handleAddFornecedor = async () => {
 };
 
 const handleRemoveFornecedor = async (relationId) => {
-  const result = await removeFornecedor(relationId);
+  const result = await removeDistribuidor(relationId);
   if (result.success) {
     toast({
       title: "Sucesso",
@@ -412,13 +412,13 @@ const formatarData = (date) => {
           <CardContent class="pb-6">
             <div
               v-if="
-                setor.fornecedores_relacionados &&
-                setor.fornecedores_relacionados.length > 0
+                setor.distribuidores_relacionados &&
+                setor.distribuidores_relacionados.length > 0
               "
               class="space-y-3"
             >
               <div
-                v-for="rel in setor.fornecedores_relacionados"
+                v-for="rel in setor.distribuidores_relacionados"
                 :key="rel.id"
                 class="group p-4 bg-white border rounded-xl hover:border-primary/30 transition-all hover:bg-slate-50/50"
               >

@@ -28,7 +28,7 @@ const localData = ref({
   descricao: "",
   estoque: false,
   tipo: "Material",
-  unidade_id: "",
+  polo_id: "",
 });
 const fornecedores = ref([]);
 const selectedSetorId = ref("");
@@ -41,8 +41,8 @@ const isModalOpen = computed({
 });
 
 const unidadesList = computed(() => {
-  // Garante a compatibilidade caso a store use listPolos ou listUnidades
-  const list = store.state.listUnidades || store.state.listPolos || {};
+  // Garante a compatibilidade caso a store use listPolos ou listPolos
+  const list = store.state.listPolos || store.state.listPolos || {};
   return Array.isArray(list.data) ? list.data : [];
 });
 
@@ -67,12 +67,12 @@ watch(
     if (newValue) {
       localData.value = JSON.parse(JSON.stringify(newValue));
       if (!localData.value.status) localData.value.status = "A";
-      if (localData.value.unidade_id)
-        localData.value.unidade_id = localData.value.unidade_id.toString();
+      if (localData.value.polo_id)
+        localData.value.polo_id = localData.value.polo_id.toString();
 
       // Popular fornecedores com validação melhorada do legado
       const rel =
-        newValue.fornecedores_relacionados || newValue.fornecedores || [];
+        newValue.distribuidores_relacionados || newValue.fornecedores || [];
         
       fornecedores.value = rel.map((r) => {
         const fObj = r.fornecedor || r.fornecedor_relacionado || {};
@@ -141,7 +141,7 @@ const adicionarFornecedor = () => {
   }
 };
 
-const removeFornecedor = (index) => {
+const removeDistribuidor = (index) => {
   fornecedores.value.splice(index, 1);
 };
 </script>
@@ -188,7 +188,7 @@ const removeFornecedor = (index) => {
 
         <div class="space-y-2">
           <Label>Unidade Administrativa</Label>
-          <Select v-model="localData.unidade_id">
+          <Select v-model="localData.polo_id">
             <SelectTrigger
               ><SelectValue placeholder="Selecione a unidade"
             /></SelectTrigger>
@@ -267,7 +267,7 @@ const removeFornecedor = (index) => {
             <Button
               variant="ghost"
               size="icon"
-              @click="removeFornecedor(idx)"
+              @click="removeDistribuidor(idx)"
               class="h-8 w-8 text-destructive hover:text-destructive"
             >
               <Trash2Icon class="h-4 w-4" />
