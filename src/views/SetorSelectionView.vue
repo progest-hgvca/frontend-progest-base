@@ -88,7 +88,7 @@
               </label>
               <Select
                 v-model="unidadeSelecionada"
-                @update:modelValue="onUnidadeChange"
+                @update:modelValue="onPoloChange"
               >
                 <SelectTrigger id="unidade-select" class="h-10">
                   <SelectValue placeholder="-- Selecione uma unidade --" />
@@ -239,11 +239,11 @@ const unidades = computed(() => {
 const setoresFiltrados = computed(() => {
   if (!unidadeSelecionada.value) return [];
   return setores.value
-    .filter((s) => s.unidade_id == unidadeSelecionada.value)
+    .filter((s) => s.polo_id == unidadeSelecionada.value)
     .sort((a, b) => a.nome.localeCompare(b.nome));
 });
 
-const onUnidadeChange = () => {
+const onPoloChange = () => {
   setorSelecionado.value = "";
   erroValidacao.value = "";
 
@@ -284,7 +284,7 @@ const carregarSetores = async () => {
       if (unidades.value.length === 1) {
         unidadeSelecionada.value = unidades.value[0].id.toString();
         // Disparar lógica de mudança de unidade (isso vai auto-selecionar o setor se houver apenas um também)
-        onUnidadeChange();
+        onPoloChange();
       }
     } else if (!resultado.success) {
       console.warn("⚠️ Falha na API ao carregar setores");

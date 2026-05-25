@@ -42,17 +42,17 @@ const varsModalData = {
   descricao: "",
   estoque: false,
   tipo: "Material",
-  unidade_id: "",
+  polo_id: "",
 };
 
 const searchQuery = ref("");
 const filtroStatus = ref("ALL");
 const filtroTipo = ref("ALL");
 const filtroEstoque = ref("ALL");
-const filtroUnidade = ref("ALL");
+const filtroPolo = ref("ALL");
 
 const unidadesList = computed(() => {
-  const list = store.state.listUnidades || {};
+  const list = store.state.listPolos || {};
   return Array.isArray(list.data) ? list.data : [];
 });
 
@@ -73,9 +73,9 @@ const setoresFiltrados = computed(() => {
       filtroEstoque.value === "ALL" ||
       (filtroEstoque.value === "true") === !!setor.estoque;
     const unidadeMatch =
-      filtroUnidade.value === "ALL" ||
-      setor.unidade?.id == filtroUnidade.value ||
-      setor.unidade_id == filtroUnidade.value;
+      filtroPolo.value === "ALL" ||
+      setor.unidade?.id == filtroPolo.value ||
+      setor.polo_id == filtroPolo.value;
 
     return (
       searchMatch && statusMatch && tipoMatch && estoqueMatch && unidadeMatch
@@ -201,7 +201,7 @@ onMounted(carregarSetores);
               <div class="w-1 h-3 bg-primary/40 rounded-full"></div>
               Polo / Unidade Regional
             </label>
-            <Select v-model="filtroUnidade">
+            <Select v-model="filtroPolo">
               <SelectTrigger
                 class="bg-slate-50 border-none h-11 text-xs truncate rounded-xl"
                 ><SelectValue
@@ -367,7 +367,7 @@ onMounted(carregarSetores);
             filtroStatus = 'ALL';
             filtroTipo = 'ALL';
             filtroEstoque = 'ALL';
-            filtroUnidade = 'ALL';
+            filtroPolo = 'ALL';
           "
           variant="outline"
           class="mt-10 rounded-full px-8 py-6 border-slate-200 hover:bg-slate-50 font-black text-xs uppercase tracking-widest"

@@ -19,7 +19,7 @@
               <div class="row g-2">
                 <div class="col-md-3">
                   <label class="form-label">Unidade</label>
-                  <select v-model.number="filters.unidade_id" class="form-select" @change="onUnidadeChange">
+                  <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
                     <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>
                   </select>
@@ -229,7 +229,7 @@ export default {
   data() {
     return {
       filters: {
-        unidade_id: '',
+        polo_id: '',
         setor_id: '',
         grupo_produto_id: '',
       },
@@ -261,15 +261,15 @@ export default {
       return [];
     },
     setoresFiltrados() {
-      if (!this.filters.unidade_id) return this.setores;
-      return this.setores.filter(s => s.unidade_id == this.filters.unidade_id);
+      if (!this.filters.polo_id) return this.setores;
+      return this.setores.filter(s => s.polo_id == this.filters.polo_id);
     },
     gruposProdutos() {
       return this.$store.state.listGrupoProdutos || [];
     }
   },
   methods: {
-    onUnidadeChange() {
+    onPoloChange() {
       this.filters.setor_id = '';
     },
     toggleRow(itemId) {
@@ -279,7 +279,7 @@ export default {
       this.loading = true;
       try {
         const payloadFilters = {};
-        if (this.filters.unidade_id) payloadFilters.unidade_id = this.filters.unidade_id;
+        if (this.filters.polo_id) payloadFilters.polo_id = this.filters.polo_id;
         if (this.filters.setor_id) payloadFilters.setor_id = this.filters.setor_id;
         if (this.filters.grupo_produto_id) payloadFilters.grupo_produto_id = this.filters.grupo_produto_id;
 
@@ -320,7 +320,7 @@ export default {
       }
     },
     resetFilters() {
-      this.filters.unidade_id = '';
+      this.filters.polo_id = '';
       this.filters.setor_id = '';
       this.filters.grupo_produto_id = '';
       this.loadEstoque();

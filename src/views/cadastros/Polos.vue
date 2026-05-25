@@ -13,7 +13,7 @@ import functions from "@/functions/cad_unidades_polos.js";
 const store = useStore();
 const { proxy } = getCurrentInstance();
 
-const titleModal = "Gestão de Unidades";
+const titleModal = "Gestão de Polos";
 const varsModalData = {
   status: "A",
   nome: "",
@@ -21,7 +21,7 @@ const varsModalData = {
 
 const columns = [
   { key: "id", label: "#", align: "center", sortable: true },
-  { key: "nome", label: "Unidade / Polo", sortable: true },
+  { key: "nome", label: "Polo", sortable: true },
   { key: "status", label: "Status", align: "center", sortable: true },
 ];
 
@@ -30,13 +30,13 @@ const searchQuery = ref("");
 const sortBy = ref("nome");
 const sortDir = ref("asc");
 
-const listUnidades = computed(() => {
-  const data = store.state.listUnidades;
+const listPolos = computed(() => {
+  const data = store.state.listPolos;
   return data?.data || data || [];
 });
 
 const pagination = computed(() => {
-  const list = store.state.listUnidades;
+  const list = store.state.listPolos;
   if (list && list.current_page) {
     return {
       current_page: list.current_page,
@@ -131,7 +131,7 @@ onMounted(listAll);
         <div class="p-8 flex-1 flex flex-col">
           <DataTable
             :columns="columns"
-            :data="listUnidades"
+            :data="listPolos"
             :loading="store.state.isSearching"
             :pagination="pagination"
             @search="handleSearch"
@@ -143,7 +143,7 @@ onMounted(listAll);
           >
             <template #actions>
               <LinkModal01
-                label="CADASTRAR UNIDADE"
+                label="CADASTRAR POLO"
                 :titleModal="titleModal"
                 :varsModalData="varsModalData"
                 class="shrink-0"
@@ -202,12 +202,12 @@ onMounted(listAll);
                   <h3
                     class="text-slate-900 font-black text-xl tracking-tight leading-none"
                   >
-                    Nenhuma unidade operacional
+                    Nenhum polo operacional
                   </h3>
                   <p
                     class="text-slate-500 text-sm mt-3 leading-relaxed font-medium"
                   >
-                    Você ainda não definiu polos ou unidades centrais de
+                    Você ainda não definiu polos ou centrais de
                     distribuição para sua rede.
                   </p>
                 </div>

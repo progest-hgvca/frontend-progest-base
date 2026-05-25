@@ -27,7 +27,7 @@
                 </div>
                 <div class="col-md-2">
                   <label class="form-label">Unidade</label>
-                  <select v-model.number="filters.unidade_id" class="form-select" @change="onUnidadeChange">
+                  <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
                     <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>
                   </select>
@@ -152,7 +152,7 @@ export default {
       filters: {
         date_from: hoje,
         date_to: hoje,
-        unidade_id: '',
+        polo_id: '',
         setor_id: '',
       },
       entries: [],
@@ -179,10 +179,10 @@ export default {
       return [];
     },
     setoresFiltrados() {
-      if (!this.filters.unidade_id) {
+      if (!this.filters.polo_id) {
         return this.setores;
       }
-      return this.setores.filter(s => s.unidade_id == this.filters.unidade_id);
+      return this.setores.filter(s => s.polo_id == this.filters.polo_id);
     }
   },
   methods: {
@@ -196,7 +196,7 @@ export default {
     toggleRow(entradaId) {
       this.expandedRows[entradaId] = !this.expandedRows[entradaId];
     },
-    onUnidadeChange() {
+    onPoloChange() {
       this.filters.setor_id = '';
     },
     formatFornecedor(fornecedor) {
@@ -214,7 +214,7 @@ export default {
         const payloadFilters = {};
         if (this.filters.date_from) payloadFilters.date_from = this.filters.date_from;
         if (this.filters.date_to) payloadFilters.date_to = this.filters.date_to;
-        if (this.filters.unidade_id) payloadFilters.unidade_id = this.filters.unidade_id;
+        if (this.filters.polo_id) payloadFilters.polo_id = this.filters.polo_id;
         if (this.filters.setor_id) payloadFilters.setor_id = this.filters.setor_id;
 
         const result = await functionsRelatorios.listEntradasReport(this, payloadFilters);
@@ -239,7 +239,7 @@ export default {
       const hoje = this.getTodayDate();
       this.filters.date_from = hoje;
       this.filters.date_to = hoje;
-      this.filters.unidade_id = '';
+      this.filters.polo_id = '';
       this.filters.setor_id = '';
       this.loadEntries();
     },

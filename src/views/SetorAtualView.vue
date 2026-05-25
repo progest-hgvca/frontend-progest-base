@@ -273,8 +273,8 @@ onUnmounted(() => {
               <TabsTrigger
                 v-if="
                   !isSolicitante &&
-                  (!setor.fornecedores_relacionados ||
-                    setor.fornecedores_relacionados.length === 0)
+                  (!setor.distribuidores_relacionados ||
+                    setor.distribuidores_relacionados.length === 0)
                 "
                 value="entrada"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"

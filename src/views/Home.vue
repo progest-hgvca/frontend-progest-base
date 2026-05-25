@@ -267,7 +267,7 @@ onMounted(loadDashboardData);
               </CardHeader>
               <CardContent class="p-4 flex flex-col gap-3">
                 <Button
-                  @click="navigateTo('/itens')"
+                  @click="navigateTo('/pedidos')"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
                   <div
