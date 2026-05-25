@@ -89,7 +89,12 @@ axios.interceptors.response.use(
     } else if (error.response && error.response.status === 401) {
       // 2. Sessão Expirada (Token Inválido)
       feedback.warning("A sua sessão expirou. Por favor, faça login novamente.", "Sessão Expirada");
-      // Aqui poderia adicionar: store.commit('clearAuth'); router.push('/login');
+      
+      // Limpa dados de autenticação e redireciona para login
+      store.commit("clearUserToken");
+      store.commit("setUser", null);
+      setorCookie.clearSector();
+      router.push("/login");
 
     } else if (error.response && error.response.data && error.response.data.message) {
       // 3. Outros erros enviados pelo backend
