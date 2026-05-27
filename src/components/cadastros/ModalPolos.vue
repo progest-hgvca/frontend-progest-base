@@ -20,6 +20,7 @@ const { proxy } = getCurrentInstance();
 const localData = ref({
   id: null,
   nome: "",
+  sigla: "",
   status: "A",
 });
 
@@ -59,7 +60,10 @@ const handleSave = () => {
     $axios: proxy.$axios,
     $store: store,
     $toastr: proxy.$toastr,
-    modalData: localData.value,
+    modalData: {
+      ...localData.value,
+      sigla: localData.value.sigla?.trim().toUpperCase() || null,
+    },
     onSuccess: () => {
       store.commit("setModalOpen", false);
     },
@@ -71,9 +75,7 @@ const handleSave = () => {
 <template>
   <CadastroDialog
     v-model:open="isModalOpen"
-    :title="
-      modalFunction === 'ADD' ? 'Cadastrar Unidade' : 'Editar Unidade'
-    "
+    :title="modalFunction === 'ADD' ? 'Cadastrar Polo' : 'Editar Polo'"
   >
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 py-2">
       <div class="space-y-2 md:col-span-2">
@@ -81,12 +83,25 @@ const handleSave = () => {
         <Input
           id="nome"
           v-model="localData.nome"
-          placeholder="Digite o nome da unidade"
+          placeholder="Digite o nome do polo"
           :class="{ 'border-red-500 focus-visible:ring-red-500': hasError('nome') }"
         />
         <p v-if="hasError('nome')" class="text-xs text-destructive mt-1">
           {{ getError("nome") }}
         </p>
+      </div>
+
+      <div class="space-y-2 md:col-span-1">
+        <Label for="sigla">Sigla</Label>
+        <Input
+          id="sigla"
+          v-model="localData.sigla"
+          placeholder="Ex: UPA, HG"
+          maxlength="10"
+          class="uppercase"
+          :class="{ 'border-red-500 focus-visible:ring-red-500': hasError('sigla') }"
+        />
+        <p class="text-[10px] text-slate-400">Máx. 10 caracteres. Usada para identificar setores homônimos.</p>
       </div>
 
       <div class="space-y-2 md:col-span-1">
