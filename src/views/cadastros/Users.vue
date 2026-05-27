@@ -5,6 +5,7 @@ import LinkModal01 from "@/components/layouts/LinkModal01.vue";
 import TemplateAdmin from "@/views/roleAdmin/TemplateAdmin.vue";
 import ModalUser01 from "@/components/cadastros/ModalUser01.vue";
 import ModalUserView from "@/components/cadastros/ModalUserView.vue";
+import ModalGestaoVinculos from "@/components/cadastros/ModalGestaoVinculos.vue";
 import DataTable from "@/components/ui/data-table/DataTable.vue";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,6 +23,7 @@ import {
   FingerprintIcon,
   FilterIcon,
   BriefcaseIcon,
+  LinkIcon,
 } from "lucide-vue-next";
 import functions from "@/functions/cad_usuarios.js";
 
@@ -157,6 +159,15 @@ const handlePaginate = (page) => {
 // Modal de visualização
 const isViewModalOpen = ref(false);
 const viewingUser = ref({});
+
+// Modal de gestão de vínculos
+const isVinculosModalOpen = ref(false);
+const vinculosUser = ref({});
+
+const handleVinculos = (item) => {
+  vinculosUser.value = item;
+  isVinculosModalOpen.value = true;
+};
 
 const handleView = (item) => {
   functions.listData({
@@ -329,6 +340,17 @@ onMounted(listAllUsers);
               </div>
             </template>
 
+            <!-- Botão Extra: Gerenciar Vínculos de Setor -->
+            <template #row-extra-actions="{ item }">
+              <button
+                @click.stop="handleVinculos(item)"
+                class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+                title="Gerenciar Vínculos de Setor"
+              >
+                <LinkIcon class="w-4 h-4" />
+              </button>
+            </template>
+
             <!-- Empty State -->
             <template #empty>
               <div
@@ -366,6 +388,10 @@ onMounted(listAllUsers);
       <ModalUserView
         v-model:open="isViewModalOpen"
         :user="viewingUser"
+      />
+      <ModalGestaoVinculos
+        v-model:open="isVinculosModalOpen"
+        :usuario="vinculosUser"
       />
     </div>
   </TemplateAdmin>
