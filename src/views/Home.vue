@@ -44,6 +44,8 @@ const stats = ref({
   pendentesEntrada: 0,
   pendentesSaida: 0,
   abaixoMinimo: 0,
+  pedidosEntreguesMes: 0,
+  itensSolicitadosMes: 0,
 });
 
 const alerts = ref([]);
@@ -111,8 +113,41 @@ const loadDashboardData = async () => {
     (m) => m.setor_origem_id == setorId && m.status_solicitacao === "P",
   ).length;
 
+  // Estatísticas específicas para setores sem estoque (consumidores)
+  if (!setorAtual.value.estoque) {
+    const dataAtual = new Date();
+    const mesAtual = dataAtual.getMonth();
+    const anoAtual = dataAtual.getFullYear();
+
+    const movsMes = movimentacoes.filter((m) => {
+      const dataMov = new Date(m.created_at);
+      return (
+        m.setor_destino_id == setorId &&
+        dataMov.getMonth() === mesAtual &&
+        dataMov.getFullYear() === anoAtual
+      );
+    });
+
+    stats.value.pedidosEntreguesMes = movsMes.filter((m) =>
+      ["C", "E"].includes(m.status_solicitacao) || m.status_solicitacao === null
+    ).length;
+
+    stats.value.itensSolicitadosMes = movsMes.reduce(
+      (acc, m) => acc + (m.itens ? m.itens.length : 0),
+      0
+    );
+  }
+
+  // Lista de solicitações recentes (para ambos, prioriza pendentes)
+  const isConsumer = !setorAtual.value.estoque;
   recentRequests.value = movimentacoes
-    .filter((m) => m.status_solicitacao === "P")
+    .filter((m) => {
+      if (isConsumer) {
+        // Se for consumidor, quer ver o histórico das próprias requisições
+        return m.setor_destino_id == setorId;
+      }
+      return m.status_solicitacao === "P";
+    })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 5);
 
@@ -156,8 +191,8 @@ onMounted(loadDashboardData);
       </div>
 
       <template v-else>
-        <!-- Info Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Info Cards para Setores com Estoque -->
+        <div v-if="setorAtual.estoque" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card
             class="border-none shadow-sm bg-white hover:shadow-md transition-all group"
           >
@@ -255,6 +290,81 @@ onMounted(loadDashboardData);
           </Card>
         </div>
 
+        <!-- Info Cards para Setores Sem Estoque (Consumidores) -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card
+            class="border-none shadow-sm bg-white hover:shadow-md transition-all group"
+          >
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-slate-500 mb-1">
+                    Pedidos Pendentes
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors"
+                  >
+                    {{ stats.pendentesEntrada }}
+                  </h3>
+                </div>
+                <div
+                  class="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300"
+                >
+                  <ClockIcon class="w-6 h-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            class="border-none shadow-sm bg-white hover:shadow-md transition-all group"
+          >
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-slate-500 mb-1">
+                    Pedidos Entregues (Mês)
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors"
+                  >
+                    {{ stats.pedidosEntreguesMes }}
+                  </h3>
+                </div>
+                <div
+                  class="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300"
+                >
+                  <PackageCheckIcon class="w-6 h-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            class="border-none shadow-sm bg-white hover:shadow-md transition-all group"
+          >
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-slate-500 mb-1">
+                    Itens Solicitados (Mês)
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors"
+                  >
+                    {{ stats.itensSolicitadosMes }}
+                  </h3>
+                </div>
+                <div
+                  class="p-3 bg-primary/10 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300"
+                >
+                  <ShoppingCartIcon class="w-6 h-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Quick Actions -->
           <div class="lg:col-span-1 flex flex-col gap-6">
@@ -341,8 +451,8 @@ onMounted(loadDashboardData);
 
           <!-- Main Dashboard Sections -->
           <div class="lg:col-span-2 flex flex-col gap-6">
-            <!-- Alerts Section -->
-            <Card class="border-none shadow-sm overflow-hidden">
+            <!-- Alerts Section (Somente com Estoque) -->
+            <Card v-if="setorAtual.estoque" class="border-none shadow-sm overflow-hidden">
               <CardHeader
                 class="flex flex-row items-center justify-between border-b bg-slate-50/50 py-4"
               >
@@ -419,7 +529,7 @@ onMounted(loadDashboardData);
               >
                 <CardTitle class="text-lg flex items-center gap-2">
                   <ClockIcon class="w-5 h-5 text-indigo-500" />
-                  Solicitações Pendentes
+                  {{ setorAtual.estoque ? 'Solicitações Pendentes' : 'Meus Pedidos Recentes' }}
                 </CardTitle>
                 <Button
                   variant="ghost"
@@ -462,16 +572,32 @@ onMounted(loadDashboardData);
                           class="font-semibold text-slate-800 text-sm leading-tight"
                         >
                           #{{ req.id }} -
-                          {{
-                            req.setor_origem_id == store.state.setorAtualId
-                              ? "Dest: " +
-                                (req.setor_destino?.nome || "Unidade")
-                              : "Orig: " + (req.setor_origem?.nome || "Unidade")
-                          }}
+                          <span v-if="setorAtual.estoque">
+                            {{
+                              req.setor_origem_id == store.state.setorAtualId
+                                ? "Dest: " +
+                                  (req.setor_destino?.nome || "Unidade")
+                                : "Orig: " + (req.setor_origem?.nome || "Unidade")
+                            }}
+                          </span>
+                          <span v-else>
+                            Orig: {{ req.setor_origem?.nome || "Unidade" }}
+                          </span>
                         </p>
-                        <p class="text-[10px] text-slate-400 font-bold">
-                          {{ req.itens?.length }} itens • Criado em
-                          {{ formatarData(req.created_at) }}
+                        <p class="text-[10px] text-slate-400 font-bold mt-1 flex items-center gap-2">
+                          <span>{{ req.itens?.length || 0 }} itens</span>
+                          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <span>Criado em {{ formatarData(req.created_at) }}</span>
+                          <span class="w-1 h-1 rounded-full bg-slate-300" v-if="!setorAtual.estoque"></span>
+                          <Badge v-if="!setorAtual.estoque" variant="outline" 
+                            :class="{
+                              'text-amber-600 border-amber-200 bg-amber-50': req.status_solicitacao === 'P',
+                              'text-emerald-600 border-emerald-200 bg-emerald-50': ['C', 'E'].includes(req.status_solicitacao),
+                              'text-blue-600 border-blue-200 bg-blue-50': !['P', 'C', 'E'].includes(req.status_solicitacao)
+                            }" 
+                            class="text-[9px] font-black tracking-widest px-1.5 py-0">
+                            {{ req.status_solicitacao === 'P' ? 'PENDENTE' : (['C', 'E'].includes(req.status_solicitacao) ? 'ENTREGUE' : 'EM ANDAMENTO') }}
+                          </Badge>
                         </p>
                       </div>
                     </div>
@@ -488,7 +614,7 @@ onMounted(loadDashboardData);
                     <ClockIcon class="w-6 h-6" />
                   </div>
                   <p class="text-slate-500 text-sm font-medium">
-                    Nenhuma solicitação pendente.
+                    {{ setorAtual.estoque ? 'Nenhuma solicitação pendente.' : 'Nenhum pedido recente.' }}
                   </p>
                 </div>
               </CardContent>
