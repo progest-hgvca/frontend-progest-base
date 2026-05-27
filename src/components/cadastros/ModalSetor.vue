@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Trash2Icon, PlusIcon } from "lucide-vue-next";
-import Funcoes from "@/functions/cad_setores.js";
-import cadPolos from "@/functions/cad_unidades_polos.js";
+import apiSetores from "@/functions/cad_setores.js";
+import apiPolos from "@/functions/cad_unidades_polos.js";
+import { formatarNomeSetor } from "@/utils/formatters.js";
 
 const props = defineProps(["idModal", "functions"]);
 const store = useStore();
@@ -30,7 +31,7 @@ const localData = ref({
   tipo: "Material",
   polo_id: "",
 });
-const fornecedores = ref([]);
+const distribuidores = ref([]);
 const selectedSetorId = ref("");
 
 const modalDataStore = computed(() => store.state.modalData.modalData);
@@ -40,10 +41,10 @@ const isModalOpen = computed({
   set: (value) => store.commit("setModalOpen", value),
 });
 
-const unidadesList = computed(() => {
-  // Garante a compatibilidade caso a store use listPolos ou listPolos
-  const list = store.state.listPolos || store.state.listPolos || {};
-  return Array.isArray(list.data) ? list.data : [];
+const polosList = computed(() => {
+  const list = store.state.listPolos;
+  if (Array.isArray(list)) return list;
+  return Array.isArray(list?.data) ? list.data : [];
 });
 
 const allSetores = computed(() => {
@@ -55,8 +56,8 @@ const allSetores = computed(() => {
 });
 
 const setoresDisponiveis = computed(() => {
-  const usados = fornecedores.value
-    .map((f) => f.setor_distribuidor_id)
+  const usados = distribuidores.value
+    .map((d) => d.setor_distribuidor_id)
     .filter(Boolean);
   return allSetores.value.filter((s) => !usados.includes(s.id));
 });
@@ -74,16 +75,16 @@ watch(
       const rel =
         newValue.distribuidores_relacionados || newValue.fornecedores || [];
         
-      fornecedores.value = rel.map((r) => {
+      distribuidores.value = rel.map((r) => {
         // O backend retorna a chave 'distribuidor', não 'fornecedor'
-        const fObj = r.distribuidor || r.fornecedor || r.fornecedor_relacionado || {};
+        const dObj = r.distribuidor || r.fornecedor || r.fornecedor_relacionado || {};
         return {
           id: r.id,
-          setor_distribuidor_id: r.setor_distribuidor_id || fObj.id || null,
+          setor_distribuidor_id: r.setor_distribuidor_id || dObj.id || null,
           nome:
-            fObj.nome ||
-            fObj.razao_social_nome ||
-            fObj.razao_social ||
+            dObj.nome ||
+            dObj.razao_social_nome ||
+            dObj.razao_social ||
             "Setor Distribuidor",
         };
       });
@@ -97,10 +98,10 @@ onMounted(() => {
 });
 
 const ensureAuxData = () => {
-  if (unidadesList.value.length === 0)
-    cadPolos.listAll({ $axios: proxy.$axios, $store: store });
+  if (polosList.value.length === 0)
+    apiPolos.listAll({ $axios: proxy.$axios, $store: store });
   if (allSetores.value.length === 0)
-    Funcoes.listAll({ $axios: proxy.$axios, $store: store });
+    apiSetores.listAll({ $axios: proxy.$axios, $store: store });
 };
 
 const handleSave = () => {
@@ -109,13 +110,13 @@ const handleSave = () => {
 
   const modalCopy = JSON.parse(JSON.stringify(localData.value));
   
-  // Trata e limpa os fornecedores antes de salvar (trazido da versão legada)
+  // Trata e limpa os distribuidores antes de salvar
   // Enviar como 'distribuidores' com 'setor_distribuidor_id' para casar com o backend
-  modalCopy.distribuidores = fornecedores.value
-    .filter((f) => f.setor_distribuidor_id)
-    .map((f) => ({
-      id: f.id || undefined,
-      setor_distribuidor_id: f.setor_distribuidor_id,
+  modalCopy.distribuidores = distribuidores.value
+    .filter((d) => d.setor_distribuidor_id)
+    .map((d) => ({
+      id: d.id || undefined,
+      setor_distribuidor_id: d.setor_distribuidor_id,
     }));
 
   const content = {
@@ -132,10 +133,10 @@ const handleSave = () => {
   setTimeout(() => { loading.value = false; }, 500);
 };
 
-const adicionarFornecedor = () => {
+const adicionarDistribuidor = () => {
   const setor = allSetores.value.find((s) => s.id == selectedSetorId.value);
   if (setor) {
-    fornecedores.value.push({
+    distribuidores.value.push({
       setor_distribuidor_id: setor.id,
       nome: setor.nome,
     });
@@ -144,7 +145,7 @@ const adicionarFornecedor = () => {
 };
 
 const removeDistribuidor = (index) => {
-  fornecedores.value.splice(index, 1);
+  distribuidores.value.splice(index, 1);
 };
 </script>
 
@@ -189,18 +190,18 @@ const removeDistribuidor = (index) => {
         </div>
 
         <div class="space-y-2">
-          <Label>Unidade Administrativa</Label>
+          <Label>Polo</Label>
           <Select v-model="localData.polo_id">
             <SelectTrigger
-              ><SelectValue placeholder="Selecione a unidade"
+              ><SelectValue placeholder="Selecione o polo"
             /></SelectTrigger>
             <SelectContent>
               <SelectItem
-                v-for="u in unidadesList"
+                v-for="u in polosList"
                 :key="u.id"
                 :value="u.id.toString()"
               >
-                {{ u.nome }}
+              {{ u.sigla ? `${u.sigla} — ${u.nome}` : u.nome }}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -245,14 +246,14 @@ const removeDistribuidor = (index) => {
                 :key="s.id"
                 :value="s.id.toString()"
               >
-                {{ s.nome }} ({{ s.tipo }})
+                {{ formatarNomeSetor(s) }} ({{ s.tipo }})
               </SelectItem>
             </SelectContent>
           </Select>
           <Button
             variant="outline"
             size="icon"
-            @click="adicionarFornecedor"
+            @click="adicionarDistribuidor"
             :disabled="!selectedSetorId"
           >
             <PlusIcon class="h-4 w-4" />
@@ -261,11 +262,11 @@ const removeDistribuidor = (index) => {
 
         <div class="space-y-2 max-h-[150px] overflow-y-auto pr-1">
           <div
-            v-for="(f, idx) in fornecedores"
+            v-for="(d, idx) in distribuidores"
             :key="idx"
             class="flex items-center justify-between p-2 bg-white border rounded-md shadow-sm animate-in fade-in slide-in-from-left-2"
           >
-            <span class="text-sm font-medium">{{ f.nome }}</span>
+            <span class="text-sm font-medium">{{ d.nome }}</span>
             <Button
               variant="ghost"
               size="icon"
@@ -276,7 +277,7 @@ const removeDistribuidor = (index) => {
             </Button>
           </div>
           <p
-            v-if="fornecedores.length === 0"
+            v-if="distribuidores.length === 0"
             class="text-xs text-muted-foreground italic text-center py-2"
           >
             Nenhum distribuidor vinculado.

@@ -57,7 +57,7 @@ const emit = defineEmits(["navigate", "editar-setor", "excluir-setor"]);
 // State for Add Modal
 const isAddModalOpen = ref(false);
 const availableSetores = ref([]);
-const selectedFornecedorId = ref("");
+const selectedDistribuidorId = ref("");
 const loadingAdd = ref(false);
 
 const isAdminUser = computed(() => {
@@ -91,7 +91,7 @@ const isSolicitante = computed(() => {
 
 const openAddModal = async () => {
   isAddModalOpen.value = true;
-  selectedFornecedorId.value = "";
+  selectedDistribuidorId.value = "";
   loadingAdd.value = false;
 
   const result = await listarSetores();
@@ -112,12 +112,12 @@ const openAddModal = async () => {
   }
 };
 
-const handleAddFornecedor = async () => {
-  if (!selectedFornecedorId.value) return;
+const handleAddDistribuidor = async () => {
+  if (!selectedDistribuidorId.value) return;
   loadingAdd.value = true;
   const result = await addDistribuidor(
     props.setor.id,
-    selectedFornecedorId.value,
+    selectedDistribuidorId.value,
   );
   if (result.success) {
     toast({
@@ -136,7 +136,7 @@ const handleAddFornecedor = async () => {
   loadingAdd.value = false;
 };
 
-const handleRemoveFornecedor = async (relationId) => {
+const handleRemoveDistribuidor = async (relationId) => {
   const result = await removeDistribuidor(relationId);
   if (result.success) {
     toast({
@@ -373,7 +373,7 @@ const formatarData = (date) => {
                   <div class="py-6 space-y-4">
                     <div class="space-y-2">
                       <Label>Setor Distribuidor</Label>
-                      <Select v-model="selectedFornecedorId">
+                      <Select v-model="selectedDistribuidorId">
                         <SelectTrigger
                           ><SelectValue placeholder="Selecione um setor..."
                         /></SelectTrigger>
@@ -394,8 +394,8 @@ const formatarData = (date) => {
                       >Cancelar</Button
                     >
                     <Button
-                      @click="handleAddFornecedor"
-                      :disabled="!selectedFornecedorId || loadingAdd"
+                      @click="handleAddDistribuidor"
+                      :disabled="!selectedDistribuidorId || loadingAdd"
                       class="gap-2"
                     >
                       <PlusIcon v-if="!loadingAdd" class="w-4 h-4" />
@@ -454,7 +454,7 @@ const formatarData = (date) => {
                     variant="ghost"
                     size="icon"
                     class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-all"
-                    @click="handleRemoveFornecedor(rel.id)"
+                    @click="handleRemoveDistribuidor(rel.id)"
                     title="Remover distribuidor"
                   >
                     <Trash2Icon class="w-4 h-4" />

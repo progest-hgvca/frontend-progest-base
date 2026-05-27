@@ -23,10 +23,11 @@ import {
 } from "lucide-vue-next";
 import functionsProdutos from "@/functions/cad_produtos.js";
 import functionsMovimentacao from "@/functions/cad_movimentacao.js";
+import { formatarNomeSetor } from "@/utils/formatters.js";
 
 const props = defineProps({
   unidadeAtual: { type: Object, default: () => ({}) },
-  fornecedoresRelacionados: { type: Array, default: () => [] },
+  distribuidoresRelacionados: { type: Array, default: () => [] },
 });
 
 const store = useStore();
@@ -52,12 +53,12 @@ const form = ref({
   itens: [],
 });
 
-const selectedFornecedorRelId = ref("");
+const selectedDistribuidorRelId = ref("");
 const produtoSelecionadoId = ref("");
 const quantidadeSolicitada = ref(1);
 const loading = ref(false);
 
-const pesquisaFornecedorRel = ref("");
+const pesquisaDistribuidorRel = ref("");
 const pesquisaProdutoRel = ref("");
 
 const user = computed(() => store.state.user);
@@ -66,11 +67,11 @@ const produtosDisponiveis = computed(() => {
   return Array.isArray(storeList) ? storeList : storeList?.data || [];
 });
 
-const fornecedoresRelacionadosFiltrados = computed(() => {
-  const term = pesquisaFornecedorRel.value.toLowerCase();
-  if (!term) return props.fornecedoresRelacionados;
-  return props.fornecedoresRelacionados.filter((rel) => {
-    const nome = rel.fornecedor?.nome || rel.id.toString();
+const distribuidoresRelacionadosFiltrados = computed(() => {
+  const term = pesquisaDistribuidorRel.value.toLowerCase();
+  if (!term) return props.distribuidoresRelacionados;
+  return props.distribuidoresRelacionados.filter((rel) => {
+    const nome = rel.distribuidor?.nome || rel.id.toString();
     const tipo = rel.tipo_produto || "";
     return (
       nome.toLowerCase().includes(term) || tipo.toLowerCase().includes(term)
@@ -114,11 +115,11 @@ watch(isOpen, (newVal) => {
     if (props.unidadeAtual?.id)
       form.value.setor_destino_id = props.unidadeAtual.id;
 
-    // Auto-selecionar se houver apenas um fornecedor
-    if (props.fornecedoresRelacionados.length === 1) {
-      const f = props.fornecedoresRelacionados[0];
-      selectedFornecedorRelId.value = f.id.toString();
-      onFornecedorChange(f.id.toString());
+    // Auto-selecionar se houver apenas um distribuidor
+    if (props.distribuidoresRelacionados.length === 1) {
+      const f = props.distribuidoresRelacionados[0];
+      selectedDistribuidorRelId.value = f.id.toString();
+      onDistribuidorChange(f.id.toString());
     }
   }
 });
@@ -133,13 +134,13 @@ const resetForm = () => {
     status_solicitacao: "P",
     itens: [],
   };
-  selectedFornecedorRelId.value = "";
+  selectedDistribuidorRelId.value = "";
   produtoSelecionadoId.value = "";
   quantidadeSolicitada.value = 1;
 };
 
-const onFornecedorChange = (id) => {
-  const rel = props.fornecedoresRelacionados.find(
+const onDistribuidorChange = (id) => {
+  const rel = props.distribuidoresRelacionados.find(
     (r) => r.id.toString() === id,
   );
   if (rel) {
@@ -219,8 +220,8 @@ const enviar = async (status) => {
         <div class="space-y-2">
           <Label>Setor de Origem (Quem fornece)</Label>
           <Select
-            v-model="selectedFornecedorRelId"
-            @update:modelValue="onFornecedorChange"
+            v-model="selectedDistribuidorRelId"
+            @update:modelValue="onDistribuidorChange"
           >
             <SelectTrigger
               ><SelectValue placeholder="Selecione o fornecedor"
@@ -231,20 +232,20 @@ const enviar = async (status) => {
                 @keydown.stop
               >
                 <Input
-                  v-model="pesquisaFornecedorRel"
+                  v-model="pesquisaDistribuidorRel"
                   placeholder="Pesquisar fornecedor..."
                   class="h-8 shadow-sm text-sm"
                 />
               </div>
               <SelectItem
-                v-for="rel in fornecedoresRelacionadosFiltrados"
+                v-for="rel in distribuidoresRelacionadosFiltrados"
                 :key="rel.id"
                 :value="rel.id.toString()"
               >
-                {{ rel.tipo_produto }} — {{ rel.fornecedor?.nome || rel.id }}
+                {{ rel.tipo_produto }} — {{ formatarNomeSetor(rel.distribuidor) || rel.id }}
               </SelectItem>
               <div
-                v-if="fornecedoresRelacionadosFiltrados.length === 0"
+                v-if="distribuidoresRelacionadosFiltrados.length === 0"
                 class="py-6 text-center text-sm text-muted-foreground"
               >
                 Nenhum fornecedor encontrado.

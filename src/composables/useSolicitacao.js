@@ -5,7 +5,7 @@ import { useStore } from "vuex";
 // Estado global reativo (fora do composable para persistir entre componentes)
 const tipoSelecionado = ref(null);
 const itensPedido = ref([]);
-const fornecedorSelecionado = ref(null);
+const distribuidorSelecionado = ref(null);
 
 // Carregar do localStorage na inicialização
 const savedState = localStorage.getItem("solicitacaoState");
@@ -14,7 +14,7 @@ if (savedState) {
     const parsed = JSON.parse(savedState);
     tipoSelecionado.value = parsed.tipo || null;
     itensPedido.value = parsed.itens || [];
-    fornecedorSelecionado.value = parsed.fornecedor || null;
+    distribuidorSelecionado.value = parsed.distribuidor || parsed.fornecedor || null;
   } catch (e) {
     console.error("Erro ao carregar estado da solicitação:", e);
   }
@@ -22,14 +22,14 @@ if (savedState) {
 
 // Salvar no localStorage quando mudar
 watch(
-  [tipoSelecionado, itensPedido, fornecedorSelecionado],
+  [tipoSelecionado, itensPedido, distribuidorSelecionado],
   () => {
     localStorage.setItem(
       "solicitacaoState",
       JSON.stringify({
         tipo: tipoSelecionado.value,
         itens: itensPedido.value,
-        fornecedor: fornecedorSelecionado.value,
+        distribuidor: distribuidorSelecionado.value,
       })
     );
   },
@@ -42,7 +42,7 @@ export function useSolicitacao() {
   // Refs exportadas
   const tipo = computed(() => tipoSelecionado.value);
   const itens = computed(() => itensPedido.value);
-  const fornecedor = computed(() => fornecedorSelecionado.value);
+  const distribuidor = computed(() => distribuidorSelecionado.value);
 
   // Contadores
   const quantidadeProdutos = computed(() => itensPedido.value.length);
@@ -53,49 +53,49 @@ export function useSolicitacao() {
   // Setor atual do usuário
   const setorAtual = computed(() => store.state.setorDetails);
 
-  // Fornecedores disponíveis para o setor atual
-  const fornecedoresDisponiveis = computed(() => {
+  // Distribuidores disponíveis para o setor atual
+  const distribuidoresDisponiveis = computed(() => {
     const details = store.state.setorDetails;
     if (!details) return [];
 
     // distribuidores_relacionados é um array com objetos que têm setor_distribuidor_id
     const relacionamentos = details.distribuidores_relacionados || [];
 
-    console.log("🔍 Fornecedores relacionados raw:", relacionamentos);
+    console.log("🔍 Distribuidores relacionados raw:", relacionamentos);
 
     const result = relacionamentos
       .filter((rel) => {
         // Garantir que temos um ID válido
-        const fornecedorId =
+        const distribuidorId =
           rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id || rel.id;
-        return fornecedorId != null;
+        return distribuidorId != null;
       })
       .map((rel) => {
-        // Tentar múltiplas formas de obter o ID do setor fornecedor
-        const fornecedorId = rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id;
-        const fornecedorNome =
+        // Tentar múltiplas formas de obter o ID do distribuidor
+        const distribuidorId = rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id;
+        const distribuidorNome =
           rel.distribuidor?.nome ||
           rel.fornecedor?.nome ||
           rel.setor_fornecedor?.nome ||
           rel.nome ||
-          `Setor ${fornecedorId}`;
+          `Setor ${distribuidorId}`;
 
-        console.log("📦 Mapeando fornecedor:", {
+        console.log("📦 Mapeando distribuidor:", {
           rel,
-          fornecedorId,
-          fornecedorNome,
+          distribuidorId,
+          distribuidorNome,
         });
 
         // IMPORTANTE: ...rel PRIMEIRO para que id e nome não sejam sobrescritos
         return {
           ...rel,
-          id: fornecedorId,
-          nome: fornecedorNome,
+          id: distribuidorId,
+          nome: distribuidorNome,
           tipo: rel.tipo_produto || null,
         };
       });
 
-    console.log("✅ Fornecedores mapeados:", result);
+    console.log("✅ Distribuidores mapeados:", result);
     return result;
   });
 
@@ -149,24 +149,24 @@ export function useSolicitacao() {
     }
   };
 
-  const setFornecedor = (fornecedorId) => {
-    fornecedorSelecionado.value = fornecedorId;
+  const setDistribuidor = (distribuidorId) => {
+    distribuidorSelecionado.value = distribuidorId;
   };
 
   const limparPedido = () => {
     itensPedido.value = [];
-    fornecedorSelecionado.value = null;
+    distribuidorSelecionado.value = null;
   };
 
   const limparTudo = () => {
     tipoSelecionado.value = null;
     itensPedido.value = [];
-    fornecedorSelecionado.value = null;
+    distribuidorSelecionado.value = null;
     localStorage.removeItem("solicitacaoState");
   };
 
   const getPedidoParaEnvio = (observacao = "") => {
-    if (!fornecedorSelecionado.value || itensPedido.value.length === 0) {
+    if (!distribuidorSelecionado.value || itensPedido.value.length === 0) {
       return null;
     }
 
@@ -180,7 +180,7 @@ export function useSolicitacao() {
 
     return {
       usuario_id: userId,
-      setor_origem_id: Number(fornecedorSelecionado.value),
+      setor_origem_id: Number(distribuidorSelecionado.value),
       setor_destino_id: Number(setorDestinoId),
       tipo: "S", // Solicitação
       status_solicitacao: "P", // Pendente
@@ -196,18 +196,18 @@ export function useSolicitacao() {
     // Estado
     tipo,
     itens,
-    fornecedor,
+    distribuidor,
     quantidadeProdutos,
     totalItens,
     setorAtual,
-    fornecedoresDisponiveis,
+    distribuidoresDisponiveis,
 
     // Funções
     setTipo,
     addItem,
     removeItem,
     updateQuantidade,
-    setFornecedor,
+    setDistribuidor,
     limparPedido,
     limparTudo,
     getPedidoParaEnvio,
