@@ -51,9 +51,10 @@ const filtroTipo = ref("ALL");
 const filtroEstoque = ref("ALL");
 const filtroPolo = ref("ALL");
 
-const unidadesList = computed(() => {
-  const list = store.state.listPolos || {};
-  return Array.isArray(list.data) ? list.data : [];
+const polosList = computed(() => {
+  const list = store.state.listPolos;
+  if (Array.isArray(list)) return list;
+  return Array.isArray(list?.data) ? list.data : [];
 });
 
 const setoresFiltrados = computed(() => {
@@ -209,7 +210,7 @@ onMounted(carregarSetores);
               <SelectContent>
                 <SelectItem value="ALL">Todas as Unidades</SelectItem>
                 <SelectItem
-                  v-for="u in unidadesList"
+                  v-for="u in polosList"
                   :key="u.id"
                   :value="u.id.toString()"
                 >
