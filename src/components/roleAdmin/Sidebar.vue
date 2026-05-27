@@ -161,6 +161,16 @@
               </router-link>
 
               <router-link
+                v-if="isAdminUser"
+                class="submenu-item"
+                to="/setores"
+                title="Setores"
+              >
+                <span class="material-icons menu-icon">apartment</span>
+                <span class="menu-text">Setores</span>
+              </router-link>
+
+              <router-link
                 v-if="!hasSetorFornecedor"
                 class="submenu-item"
                 to="/grupoProduto"

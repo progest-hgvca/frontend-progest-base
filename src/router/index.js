@@ -23,6 +23,7 @@ import UnidadesMedida from "../views/cadastros/UnidadesMedida.vue";
 import Fornecedores from "../views/cadastros/Fornecedores.vue";
 import GrupoProduto from "../views/cadastros/GrupoProduto.vue";
 import Polos from "../views/cadastros/Polos.vue";
+import Setores from "../views/cadastros/Setores.vue";
 import Perfis from "../views/cadastros/Perfis.vue";
 import CategoriasProdutos from "../views/cadastros/CategoriasProdutos.vue";
 import Estoque from "@/views/cadastros/Estoque.vue";
@@ -122,6 +123,12 @@ const router = createRouter({
       path: "/polos",
       name: "polos",
       component: Polos,
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
+    },
+    {
+      path: "/setores",
+      name: "setores",
+      component: Setores,
       meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
