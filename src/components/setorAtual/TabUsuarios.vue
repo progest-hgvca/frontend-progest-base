@@ -49,7 +49,9 @@ const getPerfilBadge = (perfil) => {
   if (p.includes("admin"))
     return { label: "Administrador", variant: "destructive" };
   if (p.includes("gerente")) return { label: "Gerente", variant: "default" };
-  return { label: "Solicitante", variant: "secondary" };
+  if (p.includes("almoxarife")) return { label: "Almoxarife", variant: "default" };
+  if (p.includes("solicitante")) return { label: "Solicitante", variant: "secondary" };
+  return { label: p || "Desconhecido", variant: "secondary" };
 };
 
 const handleDesvincular = async (usuarioId) => {
