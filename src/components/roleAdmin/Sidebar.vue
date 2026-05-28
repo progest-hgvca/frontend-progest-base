@@ -49,7 +49,7 @@
         </router-link>
 
         <router-link class="menu-item" to="/pedidos" title="Pedidos">
-          <span class="material-icons menu-icon">inventory_2</span>
+          <span class="material-icons menu-icon">shopping_cart</span>
           <span class="menu-text">Pedidos</span>
         </router-link>
       </template>
@@ -85,7 +85,7 @@
         </router-link>
 
         <router-link class="menu-item" to="/pedidos" title="Pedidos">
-          <span class="material-icons menu-icon">inventory_2</span>
+          <span class="material-icons menu-icon">shopping_cart</span>
           <span class="menu-text">Pedidos</span>
         </router-link>
 
@@ -117,7 +117,7 @@
             @click="toggleSubmenu"
             title="Mais Cadastros"
           >
-            <span class="material-icons menu-icon">settings</span>
+            <span class="material-icons menu-icon">add_circle_outline</span>
             <span class="menu-text">Cadastros</span>
             <span
               class="material-icons expand-icon"
@@ -136,7 +136,7 @@
                 to="/produtos"
                 title="Produtos"
               >
-                <span class="material-icons menu-icon">inventory</span>
+                <span class="material-icons menu-icon">category</span>
                 <span class="menu-text">Produtos</span>
               </router-link>
 
@@ -166,7 +166,7 @@
                 to="/setores"
                 title="Setores"
               >
-                <span class="material-icons menu-icon">apartment</span>
+                <span class="material-icons menu-icon">domain</span>
                 <span class="menu-text">Setores</span>
               </router-link>
 
