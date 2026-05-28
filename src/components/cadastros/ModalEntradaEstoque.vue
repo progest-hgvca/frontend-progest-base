@@ -336,20 +336,33 @@
             </div>
             <div class="col-lg-4 col-md-6">
               <Label for="novoProdutoUnidade"> Unidade de medida </Label>
-              <Select v-model="novoProduto.unidade_medida_id">
-                <SelectTrigger id="novoProdutoUnidade" class="w-full">
-                  <SelectValue placeholder="Selecionar unidade" />
-                </SelectTrigger>
-                <SelectContent class="z-[9999]">
-                  <SelectItem
-                    v-for="unidade in unidadesMedidaDisponiveis"
-                    :key="unidade.id"
-                    :value="unidade.id"
-                  >
-                    {{ unidade.nome }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <div class="flex gap-2">
+                <div class="flex-1">
+                  <Select v-model="novoProduto.unidade_medida_id">
+                    <SelectTrigger id="novoProdutoUnidade" class="w-full">
+                      <SelectValue placeholder="Selecionar unidade" />
+                    </SelectTrigger>
+                    <SelectContent class="z-[9999]">
+                      <SelectItem
+                        v-for="unidade in unidadesMedidaDisponiveis"
+                        :key="unidade.id"
+                        :value="unidade.id"
+                      >
+                        {{ unidade.nome }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  type="button"
+                  @click="toggleUnidadeMedidaForm"
+                  title="Cadastrar nova unidade"
+                >
+                  <i class="mdi mdi-plus"></i>
+                </Button>
+              </div>
             </div>
             <div class="col-md-3">
               <Label for="novoProdutoStatus"> Status </Label>
@@ -364,13 +377,13 @@
               </Select>
             </div>
             <div class="col-md-3">
-              <Label for="novoProdutoCodigoSimpras"> Código SIMPRAS </Label>
+              <Label for="novoProdutoCodigoSimpas"> Código SIMPAS </Label>
               <Input
-                id="novoProdutoCodigoSimpras"
-                v-model="novoProduto.codigo_simpras"
+                id="novoProdutoCodigoSimpas"
+                v-model="novoProduto.codigo_simpas"
                 type="text"
                 class="text-uppercase"
-                placeholder="Ex: 10301012"
+                placeholder="Ex: ABC-123.45"
               />
             </div>
             <div class="col-md-3">
@@ -379,7 +392,7 @@
                 id="novoProdutoCodigoBarras"
                 v-model="novoProduto.codigo_barras"
                 type="text"
-                placeholder="EAN (opcional)"
+                placeholder="Ex: 7891234567890"
               />
             </div>
             <div class="col-md-3">
@@ -444,6 +457,71 @@
                       <template v-if="!salvandoGrupoProdutoInline">
                         <i class="mdi mdi-check"></i>
                         <span>Salvar grupo</span>
+                      </template>
+                      <template v-else>
+                        <span
+                          class="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Salvando...</span>
+                      </template>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="showUnidadeMedidaForm" class="col-12">
+              <div class="p-3 border rounded bg-white">
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-4">
+                    <Label class="text-sm" for="novaUnidadeMedidaNome">
+                      Nome da unidade
+                      <span class="text-danger">*</span>
+                    </Label>
+                    <Input
+                      id="novaUnidadeMedidaNome"
+                      v-model="novaUnidadeMedida.nome"
+                      type="text"
+                      class="text-uppercase"
+                      placeholder="Ex: CAIXA"
+                    />
+                  </div>
+                  <div class="col-md-3">
+                    <Label class="text-sm" for="novaUnidadeMedidaQtd">
+                      Qtd.
+                      <span class="text-danger">*</span>
+                    </Label>
+                    <Input
+                      id="novaUnidadeMedidaQtd"
+                      v-model="novaUnidadeMedida.quantidade_unidade_minima"
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 1"
+                    />
+                  </div>
+                  <div class="col-md-5 d-flex justify-content-end gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      @click="cancelarUnidadeMedidaForm"
+                    >
+                      <i class="mdi mdi-close"></i>
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      type="button"
+                      @click="salvarUnidadeMedidaInline"
+                      :disabled="
+                        salvandoUnidadeMedidaInline || !novaUnidadeMedida.nome
+                      "
+                    >
+                      <template v-if="!salvandoUnidadeMedidaInline">
+                        <i class="mdi mdi-check"></i>
+                        <span>Salvar unidade</span>
                       </template>
                       <template v-else>
                         <span
@@ -677,7 +755,7 @@ export default {
         unidade_medida_id: "",
         status: "A",
         grupo_produto_id: "",
-        codigo_simpras: "",
+        codigo_simpas: "",
         marca: "",
         codigo_barras: "",
       },
@@ -685,6 +763,11 @@ export default {
       novoGrupoProduto: {
         nome: "",
         tipo: "Material",
+      },
+      showUnidadeMedidaForm: false,
+      novaUnidadeMedida: {
+        nome: "",
+        quantidade_unidade_minima: 1,
       },
       produtosCustom: [],
       gruposCustom: [],
@@ -698,6 +781,7 @@ export default {
       salvandoFornecedorInline: false,
       salvandoProdutoInline: false,
       salvandoGrupoProdutoInline: false,
+      salvandoUnidadeMedidaInline: false,
       pesquisaFornecedor: "",
       pesquisaProduto: "",
     };
@@ -944,7 +1028,7 @@ export default {
           unidade_medida_id: "",
           status: "A",
           grupo_produto_id: "",
-          codigo_simpras: "",
+          codigo_simpas: "",
           marca: "",
           codigo_barras: "",
         };
@@ -953,6 +1037,8 @@ export default {
           nome: "",
           tipo: "Material",
         };
+        this.showUnidadeMedidaForm = false;
+        this.novaUnidadeMedida = { nome: "" };
       }
     },
     toggleGrupoProdutoForm() {
@@ -971,11 +1057,12 @@ export default {
         unidade_medida_id: "",
         status: "A",
         grupo_produto_id: "",
-        codigo_simpras: "",
+        codigo_simpas: "",
         marca: "",
         codigo_barras: "",
       };
       this.cancelarGrupoProdutoForm();
+      this.cancelarUnidadeMedidaForm();
     },
     cancelarGrupoProdutoForm() {
       this.showGrupoProdutoForm = false;
@@ -1036,6 +1123,58 @@ export default {
         this.salvandoGrupoProdutoInline = false;
       }
     },
+    toggleUnidadeMedidaForm() {
+      this.showUnidadeMedidaForm = !this.showUnidadeMedidaForm;
+      if (this.showUnidadeMedidaForm) {
+        this.novaUnidadeMedida = { nome: "", quantidade_unidade_minima: 1 };
+      }
+    },
+    cancelarUnidadeMedidaForm() {
+      this.showUnidadeMedidaForm = false;
+      this.novaUnidadeMedida = { nome: "", quantidade_unidade_minima: 1 };
+    },
+    async salvarUnidadeMedidaInline() {
+      if (this.salvandoUnidadeMedidaInline) return;
+
+      if (!this.novaUnidadeMedida.nome || !this.novaUnidadeMedida.quantidade_unidade_minima) {
+        this.notificar("Informe o nome e a quantidade da unidade", "error");
+        return;
+      }
+
+      const payload = {
+        unidadeMedida: {
+          nome: this.novaUnidadeMedida.nome,
+          quantidade_unidade_minima: parseFloat(this.novaUnidadeMedida.quantidade_unidade_minima),
+          status: "A",
+        },
+      };
+
+      this.salvandoUnidadeMedidaInline = true;
+
+      try {
+        const response = await this.$axios.post("/unidadeMedida/add", payload, {
+          headers: {
+            Authorization: "Bearer " + this.$store.getters.getUserToken,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.data?.status && response.data.data?.id) {
+          const unidade = response.data.data;
+          this.novoProduto.unidade_medida_id = unidade.id;
+          this.notificar("Unidade de medida cadastrada com sucesso", "success");
+          cadUnidadesMedida.listAll(this);
+          this.cancelarUnidadeMedidaForm();
+        } else {
+          this.notificar("Não foi possível cadastrar a unidade.", "error");
+        }
+      } catch (error) {
+        this.notificar("Erro ao cadastrar unidade de medida.", "error");
+        console.error("Erro ao cadastrar unidade inline", error);
+      } finally {
+        this.salvandoUnidadeMedidaInline = false;
+      }
+    },
     async salvarProdutoInline() {
       if (this.salvandoProdutoInline) return;
 
@@ -1055,7 +1194,7 @@ export default {
           unidade_medida_id: this.novoProduto.unidade_medida_id,
           status: this.novoProduto.status || "A",
           grupo_produto_id: this.novoProduto.grupo_produto_id || null,
-          codigo_simpras: this.novoProduto.codigo_simpras || "",
+          codigo_simpas: this.novoProduto.codigo_simpas || "",
           codigo_barras: this.novoProduto.codigo_barras || "",
           marca: this.novoProduto.marca || "",
         },
@@ -1086,7 +1225,7 @@ export default {
             unidade_medida_id: "",
             status: "A",
             grupo_produto_id: "",
-            codigo_simpras: "",
+            codigo_simpas: "",
             marca: "",
             codigo_barras: "",
           };
@@ -1317,11 +1456,12 @@ export default {
         unidade_medida_id: "",
         status: "A",
         grupo_produto_id: "",
-        codigo_simpras: "",
+        codigo_simpas: "",
         marca: "",
         codigo_barras: "",
       };
       this.cancelarGrupoProdutoForm();
+      this.cancelarUnidadeMedidaForm();
     },
     notificar(mensagem, tipo = "info") {
       if (this.$toastr) {
