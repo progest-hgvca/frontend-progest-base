@@ -121,7 +121,7 @@
                                     <th>Qtd. Solicitada</th>
                                     <th>Qtd. Liberada</th>
                                     <th>Produto</th>
-                                    <th>Cód. SIMPRAS</th>
+                                    <th>Cód. simpas</th>
                                     <th>Cód. Barras</th>
                                     <th>Lote</th>
                                   </tr>
@@ -138,7 +138,7 @@
                                       <span class="badge" :class="item.quantidade_liberada === item.quantidade_solicitada ? 'bg-success' : 'bg-warning'">{{ item.quantidade_liberada || item.quantidade }}</span>
                                     </td>
                                     <td class="fw-semibold">{{ item.produto?.nome || `Produto #${item.produto_id}` }}</td>
-                                    <td class="text-muted small">{{ item.produto?.codigo_simpras || '-' }}</td>
+                                    <td class="text-muted small">{{ item.produto?.codigo_simpas || '-' }}</td>
                                     <td class="text-muted small">{{ item.produto?.codigo_barras || '-' }}</td>
                                     <td class="text-muted small">{{ item.lote || '-' }}</td>
                                   </tr>
@@ -324,7 +324,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['ID','Data/Hora','Tipo','Solicitante','Aprovador','Setor Origem','Setor Destino','Status','Qtd.Solicitada','Qtd.Liberada','Produto','Cód.SIMPRAS','Cód.Barras','Lote','Observação']);
+      data.push(['ID','Data/Hora','Tipo','Solicitante','Aprovador','Setor Origem','Setor Destino','Status','Qtd.Solicitada','Qtd.Liberada','Produto','Cód.simpas','Cód.Barras','Lote','Observação']);
       
       // Dados
       for (const m of this.movimentacoes) {
@@ -342,7 +342,7 @@ export default {
               item.quantidade_solicitada || item.quantidade || '',
               item.quantidade_liberada || item.quantidade || '',
               item.produto?.nome || `Produto #${item.produto_id}`,
-              item.produto?.codigo_simpras || '',
+              item.produto?.codigo_simpas || '',
               item.produto?.codigo_barras || '',
               item.lote || '',
               m.observacao || ''
@@ -387,7 +387,7 @@ export default {
         { wch: 12 }, // Qtd.Solicitada
         { wch: 12 }, // Qtd.Liberada
         { wch: 30 }, // Produto
-        { wch: 15 }, // Cód.SIMPRAS
+        { wch: 15 }, // Cód.simpas
         { wch: 15 }, // Cód.Barras
         { wch: 15 }, // Lote
         { wch: 30 }  // Observação
@@ -427,7 +427,7 @@ export default {
               item.quantidade_solicitada || item.quantidade || '',
               item.quantidade_liberada || item.quantidade || '',
               item.produto?.nome || `Produto #${item.produto_id}`,
-              item.produto?.codigo_simpras || '',
+              item.produto?.codigo_simpas || '',
               item.lote || ''
             ]);
           });
@@ -452,7 +452,7 @@ export default {
       // Gerar tabela
       autoTable(doc, {
         startY: 28,
-        head: [['ID', 'Data/Hora', 'Tipo', 'Solicitante', 'Origem', 'Destino', 'Status', 'Qtd.Sol.', 'Qtd.Lib.', 'Produto', 'Cod.SIMPRAS', 'Lote']],
+        head: [['ID', 'Data/Hora', 'Tipo', 'Solicitante', 'Origem', 'Destino', 'Status', 'Qtd.Sol.', 'Qtd.Lib.', 'Produto', 'Cod. SIMPAS', 'Lote']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [13, 110, 253], fontSize: 8, fontStyle: 'bold' },

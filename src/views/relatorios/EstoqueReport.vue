@@ -75,7 +75,7 @@
                       <tr>
                         <th style="width: 50px;"></th>
                         <th>Produto</th>
-                        <th style="width: 120px;">Cód. SIMPRAS</th>
+                        <th style="width: 120px;">Cód. simpas</th>
                         <th style="width: 120px;">Cód. Barras</th>
                         <th style="width: 100px;">Unid. Medida</th>
                         <th>Grupo</th>
@@ -98,7 +98,7 @@
                           <td>
                             <strong>{{ item.produto?.nome || '-' }}</strong>
                           </td>
-                          <td>{{ item.produto?.codigo_simpras || '-' }}</td>
+                          <td>{{ item.produto?.codigo_simpas || '-' }}</td>
                           <td>{{ item.produto?.codigo_barras || '-' }}</td>
                           <td>{{ item.produto?.unidadeMedida?.nome || '-' }}</td>
                           <td>
@@ -388,7 +388,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['Produto', 'Cód.SIMPRAS', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Setor / Unidade', 'Localização', 'Qtd Atual', 'Qtd Mínima', 'Status', 'Lote', 'Qtd Lote', 'Fabricação', 'Vencimento', 'Dias p/ Vencer', 'Status Lote']);
+      data.push(['Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Setor / Unidade', 'Localização', 'Qtd Atual', 'Qtd Mínima', 'Status', 'Lote', 'Qtd Lote', 'Fabricação', 'Vencimento', 'Dias p/ Vencer', 'Status Lote']);
       
       // Dados
       for (const item of this.estoque) {
@@ -396,7 +396,7 @@ export default {
           item.lotes_info.lotes.forEach((lote, idx) => {
             data.push([
               idx === 0 ? item.produto?.nome || '-' : '',
-              idx === 0 ? (item.produto?.codigo_simpras || '') : '',
+              idx === 0 ? (item.produto?.codigo_simpas || '') : '',
               idx === 0 ? (item.produto?.codigo_barras || '') : '',
               idx === 0 ? (item.produto?.unidadeMedida?.nome || '') : '',
               idx === 0 ? (item.produto?.grupoProduto?.nome || '') : '',
@@ -416,7 +416,7 @@ export default {
         } else {
           data.push([
             item.produto?.nome || '-',
-            item.produto?.codigo_simpras || '',
+            item.produto?.codigo_simpas || '',
             item.produto?.codigo_barras || '',
             item.produto?.unidadeMedida?.nome || '',
             item.produto?.grupoProduto?.nome || '',
@@ -443,7 +443,7 @@ export default {
       // Ajustar largura das colunas
       const colWidths = [
         { wch: 35 }, // Produto
-        { wch: 15 }, // Cód.SIMPRAS
+        { wch: 15 }, // Cód.simpas
         { wch: 15 }, // Cód.Barras
         { wch: 12 }, // Unid.Medida
         { wch: 20 }, // Grupo
@@ -491,7 +491,7 @@ export default {
           item.lotes_info.lotes.forEach((lote, idx) => {
             tableData.push([
               idx === 0 ? (item.produto?.nome || '-') : '',
-              idx === 0 ? (item.produto?.codigo_simpras || '') : '',
+              idx === 0 ? (item.produto?.codigo_simpas || '') : '',
               idx === 0 ? this.getSetorCompleto(item.setor) : '',
               idx === 0 ? item.quantidade_atual : '',
               idx === 0 ? item.quantidade_minima : '',
@@ -506,7 +506,7 @@ export default {
         } else {
           tableData.push([
             item.produto?.nome || '-',
-            item.produto?.codigo_simpras || '',
+            item.produto?.codigo_simpas || '',
             this.getSetorCompleto(item.setor),
             item.quantidade_atual,
             item.quantidade_minima,
@@ -530,7 +530,7 @@ export default {
         bodyStyles: { fontSize: 6 },
         columnStyles: {
           0: { cellWidth: 50 },  // Produto
-          1: { cellWidth: 15 },  // Cod.SIMPRAS
+          1: { cellWidth: 15 },  // Cod. SIMPAS
           2: { cellWidth: 45 },  // Setor/Unidade
           3: { cellWidth: 12 },  // Qtd
           4: { cellWidth: 12 },  // Min

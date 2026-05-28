@@ -93,7 +93,7 @@
                                   <tr>
                                     <th style="width: 100px;">Quantidade</th>
                                     <th>Produto</th>
-                                    <th style="width: 120px;">Cód. SIMPRAS</th>
+                                    <th style="width: 120px;">Cód. simpas</th>
                                     <th style="width: 120px;">Cód. Barras</th>
                                     <th style="width: 100px;">Lote</th>
                                     <th style="width: 110px;">Fabricação</th>
@@ -109,7 +109,7 @@
                                       <span class="badge bg-secondary">{{ item.quantidade }}</span>
                                     </td>
                                     <td class="fw-semibold">{{ item.produto?.nome || `Produto #${item.produto_id}` }}</td>
-                                    <td class="text-muted small">{{ item.produto?.codigo_simpras || '-' }}</td>
+                                    <td class="text-muted small">{{ item.produto?.codigo_simpas || '-' }}</td>
                                     <td class="text-muted small">{{ item.produto?.codigo_barras || '-' }}</td>
                                     <td class="text-muted small">{{ item.lote || '-' }}</td>
                                     <td class="text-muted small">{{ formatDate(item.data_fabricacao) }}</td>
@@ -257,7 +257,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['ID','Data','Nota Fiscal','Fornecedor','Setor','Qtd','Produto','Cód.SIMPRAS','Cód.Barras','Lote','Fabricação','Vencimento']);
+      data.push(['ID','Data','Nota Fiscal','Fornecedor','Setor','Qtd','Produto','Cód.simpas','Cód.Barras','Lote','Fabricação','Vencimento']);
       
       // Dados
       for (const e of this.entries) {
@@ -271,7 +271,7 @@ export default {
               e.setor?.nome || '',
               item.quantidade || '',
               item.produto?.nome || `Produto #${item.produto_id}`,
-              item.produto?.codigo_simpras || '',
+              item.produto?.codigo_simpas || '',
               item.produto?.codigo_barras || '',
               item.lote || '',
               this.formatDate(item.data_fabricacao),
@@ -310,7 +310,7 @@ export default {
         { wch: 20 }, // Setor
         { wch: 8 },  // Qtd
         { wch: 30 }, // Produto
-        { wch: 15 }, // Cód.SIMPRAS
+        { wch: 15 }, // Cód.simpas
         { wch: 15 }, // Cód.Barras
         { wch: 15 }, // Lote
         { wch: 12 }, // Fabricação
@@ -348,7 +348,7 @@ export default {
               idx === 0 ? (e.setor?.nome || '-') : '',
               item.quantidade || '',
               item.produto?.nome || `Produto #${item.produto_id}`,
-              item.produto?.codigo_simpras || '',
+              item.produto?.codigo_simpas || '',
               item.produto?.codigo_barras || '',
               item.lote || '',
               this.formatDate(item.data_fabricacao),
@@ -376,7 +376,7 @@ export default {
       // Gerar tabela
       autoTable(doc, {
         startY: 28,
-        head: [['ID', 'Data', 'NF', 'Fornecedor', 'Setor', 'Qtd', 'Produto', 'Cod.SIMPRAS', 'Cod.Barras', 'Lote', 'Fabric.', 'Venc.']],
+        head: [['ID', 'Data', 'NF', 'Fornecedor', 'Setor', 'Qtd', 'Produto', 'Cod. SIMPAS', 'Cod.Barras', 'Lote', 'Fabric.', 'Venc.']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [13, 110, 253], fontSize: 8, fontStyle: 'bold' },

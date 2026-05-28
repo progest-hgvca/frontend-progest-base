@@ -112,9 +112,9 @@
                           <div>
                             <strong class="produto-nome">{{ produtoItem.produto.nome }}</strong>
                             <div class="produto-meta">
-                              <span v-if="produtoItem.produto.codigo_simpras" class="me-3">
+                              <span v-if="produtoItem.produto.codigo_simpas" class="me-3">
                                 <span class="material-icons align-middle" style="font-size: 14px;">barcode</span>
-                                {{ produtoItem.produto.codigo_simpras }}
+                                {{ produtoItem.produto.codigo_simpas }}
                               </span>
                               <span v-if="produtoItem.produto.codigo_barras" class="me-3">
                                 <span class="material-icons align-middle" style="font-size: 14px;">qr_code</span>
@@ -346,7 +346,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['Data', 'Total Produtos Dia', 'Qtd Total Dia', 'Produto', 'Cód.SIMPRAS', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Qtd Produto', 'ID Mov.', 'Qtd Mov.', 'Setor Origem', 'Setor Destino', 'Data/Hora', 'Observação']);
+      data.push(['Data', 'Total Produtos Dia', 'Qtd Total Dia', 'Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Qtd Produto', 'ID Mov.', 'Qtd Mov.', 'Setor Origem', 'Setor Destino', 'Data/Hora', 'Observação']);
       
       // Dados com estrutura hierárquica achatada
       for (const dia of this.saidasPorData) {
@@ -358,7 +358,7 @@ export default {
                 movIdx === 0 ? dia.total_produtos : '',
                 movIdx === 0 ? dia.quantidade_total_dia : '',
                 movIdx === 0 ? produtoItem.produto.nome : '',
-                movIdx === 0 ? (produtoItem.produto.codigo_simpras || '') : '',
+                movIdx === 0 ? (produtoItem.produto.codigo_simpas || '') : '',
                 movIdx === 0 ? (produtoItem.produto.codigo_barras || '') : '',
                 movIdx === 0 ? produtoItem.produto.unidade_medida : '',
                 movIdx === 0 ? produtoItem.produto.grupo_produto : '',
@@ -377,7 +377,7 @@ export default {
               dia.total_produtos,
               dia.quantidade_total_dia,
               produtoItem.produto.nome,
-              produtoItem.produto.codigo_simpras || '',
+              produtoItem.produto.codigo_simpas || '',
               produtoItem.produto.codigo_barras || '',
               produtoItem.produto.unidade_medida,
               produtoItem.produto.grupo_produto,
@@ -404,7 +404,7 @@ export default {
         { wch: 12 }, // Total Produtos Dia
         { wch: 12 }, // Qtd Total Dia
         { wch: 35 }, // Produto
-        { wch: 15 }, // Cód.SIMPRAS
+        { wch: 15 }, // Cód.simpas
         { wch: 15 }, // Cód.Barras
         { wch: 12 }, // Unid.Medida
         { wch: 20 }, // Grupo
@@ -447,7 +447,7 @@ export default {
                 movIdx === 0 ? this.formatDate(dia.data) : '',
                 movIdx === 0 ? dia.quantidade_total_dia : '',
                 movIdx === 0 ? produtoItem.produto.nome : '',
-                movIdx === 0 ? (produtoItem.produto.codigo_simpras || '') : '',
+                movIdx === 0 ? (produtoItem.produto.codigo_simpas || '') : '',
                 movIdx === 0 ? produtoItem.quantidade_total : '',
                 mov.movimentacao_id || '',
                 mov.quantidade || '',
@@ -461,7 +461,7 @@ export default {
               this.formatDate(dia.data),
               dia.quantidade_total_dia,
               produtoItem.produto.nome,
-              produtoItem.produto.codigo_simpras || '',
+              produtoItem.produto.codigo_simpas || '',
               produtoItem.quantidade_total,
               'Sem mov.',
               '',
@@ -476,7 +476,7 @@ export default {
       // Gerar tabela
       autoTable(doc, {
         startY: 28,
-        head: [['Data', 'Qtd Dia', 'Produto', 'Cod.SIMPRAS', 'Qtd Prod', 'ID Mov', 'Qtd', 'Origem', 'Destino', 'Data/Hora']],
+        head: [['Data', 'Qtd Dia', 'Produto', 'Cod. SIMPAS', 'Qtd Prod', 'ID Mov', 'Qtd', 'Origem', 'Destino', 'Data/Hora']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [13, 110, 253], fontSize: 8, fontStyle: 'bold' },
@@ -485,7 +485,7 @@ export default {
           0: { cellWidth: 20 },  // Data
           1: { cellWidth: 18 },  // Qtd Dia
           2: { cellWidth: 50 },  // Produto
-          3: { cellWidth: 25 },  // Cod.SIMPRAS
+          3: { cellWidth: 25 },  // Cod. SIMPAS
           4: { cellWidth: 18 },  // Qtd Prod
           5: { cellWidth: 15 },  // ID Mov
           6: { cellWidth: 15 },  // Qtd

@@ -115,7 +115,7 @@
                                       <th style="width: 90px;">Qtd. Solicitada</th>
                                       <th style="width: 90px;">Qtd. Liberada</th>
                                       <th>Produto</th>
-                                      <th style="width: 120px;">Cód. SIMPRAS</th>
+                                      <th style="width: 120px;">Cód. simpas</th>
                                       <th style="width: 120px;">Cód. Barras</th>
                                       <th style="width: 100px;">Lote</th>
                                       <th style="width: 110px;">Fabricação</th>
@@ -134,7 +134,7 @@
                                         <span class="badge bg-success">{{ item.quantidade_liberada || 0 }}</span>
                                       </td>
                                       <td class="fw-semibold">{{ item.produto?.nome || `Produto #${item.produto_id}` }}</td>
-                                      <td class="text-muted small">{{ item.produto?.codigo_simpras || '-' }}</td>
+                                      <td class="text-muted small">{{ item.produto?.codigo_simpas || '-' }}</td>
                                       <td class="text-muted small">{{ item.produto?.codigo_barras || '-' }}</td>
                                       <td class="text-muted small">{{ item.lote || '-' }}</td>
                                       <td class="text-muted small">{{ formatDate(item.data_fabricacao) }}</td>
@@ -304,7 +304,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['ID','Data','Setor Origem','Unidade Origem','Setor Destino','Unidade Destino','Status','Qtd.Sol.','Qtd.Lib.','Produto','Cód.SIMPRAS','Cód.Barras','Lote','Fabricação','Vencimento']);
+      data.push(['ID','Data','Setor Origem','Unidade Origem','Setor Destino','Unidade Destino','Status','Qtd.Sol.','Qtd.Lib.','Produto','Cód.simpas','Cód.Barras','Lote','Fabricação','Vencimento']);
       
       // Dados
       for (const e of this.exits) {
@@ -321,7 +321,7 @@ export default {
               item.quantidade_solicitada || '',
               item.quantidade_liberada || '',
               item.produto?.nome || `Produto #${item.produto_id}`,
-              item.produto?.codigo_simpras || '',
+              item.produto?.codigo_simpas || '',
               item.produto?.codigo_barras || '',
               item.lote || '',
               this.formatDate(item.data_fabricacao),
@@ -366,7 +366,7 @@ export default {
         { wch: 10 }, // Qtd.Sol.
         { wch: 10 }, // Qtd.Lib.
         { wch: 30 }, // Produto
-        { wch: 15 }, // Cód.SIMPRAS
+        { wch: 15 }, // Cód.simpas
         { wch: 15 }, // Cód.Barras
         { wch: 15 }, // Lote
         { wch: 12 }, // Fabricação
@@ -405,7 +405,7 @@ export default {
               item.quantidade_solicitada || '',
               item.quantidade_liberada || '',
               item.produto?.nome || `Produto #${item.produto_id}`,
-              item.produto?.codigo_simpras || '',
+              item.produto?.codigo_simpas || '',
               item.lote || '',
               this.formatDate(item.data_vencimento)
             ]);
@@ -430,7 +430,7 @@ export default {
       // Gerar tabela
       autoTable(doc, {
         startY: 28,
-        head: [['ID', 'Data', 'Setor Origem', 'Setor Destino', 'Status', 'Qtd.Sol', 'Qtd.Lib', 'Produto', 'Cod.SIMPRAS', 'Lote', 'Venc.']],
+        head: [['ID', 'Data', 'Setor Origem', 'Setor Destino', 'Status', 'Qtd.Sol', 'Qtd.Lib', 'Produto', 'Cod. SIMPAS', 'Lote', 'Venc.']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [13, 110, 253], fontSize: 8, fontStyle: 'bold' },
@@ -444,7 +444,7 @@ export default {
           5: { cellWidth: 15 },  // Qtd.Sol
           6: { cellWidth: 15 },  // Qtd.Lib
           7: { cellWidth: 50 },  // Produto
-          8: { cellWidth: 22 },  // Cod.SIMPRAS
+          8: { cellWidth: 22 },  // Cod. SIMPAS
           9: { cellWidth: 20 },  // Lote
           10: { cellWidth: 18 }  // Venc.
         },
