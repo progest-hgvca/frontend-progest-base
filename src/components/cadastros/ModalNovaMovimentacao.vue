@@ -40,7 +40,7 @@
                 >
                   <Input
                     v-model="pesquisaFornecedor"
-                    placeholder="Pesquisar fornecedor..."
+                    placeholder="Pesquisar distribuidor..."
                     class="h-8 shadow-sm text-sm"
                   />
                 </div>
@@ -55,7 +55,7 @@
                   v-if="fornecedoresFiltrados.length === 0"
                   class="py-6 text-center text-sm text-muted-foreground"
                 >
-                  Nenhum fornecedor encontrado.
+                  Nenhum distribuidor encontrado.
                 </div>
               </SelectContent>
             </Select>
@@ -458,7 +458,7 @@ export default {
       this.loadingFornecedores = true;
       try {
         const response = await axios.post(
-          "/setores/listFornecedoresParaSetor",
+          "/setores/listDistribuidoresParaSetor",
           { setor_id: this.setorId },
           {
             headers: {
@@ -474,7 +474,7 @@ export default {
           this.fornecedoresDisponiveis = [];
         }
       } catch (error) {
-        console.error("Erro ao carregar fornecedores:", error);
+        console.error("Erro ao carregar distribuidores:", error);
         this.fornecedoresDisponiveis = [];
       } finally {
         this.loadingFornecedores = false;

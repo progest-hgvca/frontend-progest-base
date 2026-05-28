@@ -72,34 +72,34 @@
               class="h-6 border-l border-muted-foreground/30 hidden md:block"
             ></div>
 
-            <!-- Setor Fornecedor (primeiro) -->
+            <!-- Setor Distribuidor (primeiro) -->
             <div class="flex-shrink-0 w-[220px]">
               <label class="text-xs text-muted-foreground block mb-1"
                 >Setor Distribuidor</label
               >
               <Select
-                v-model="fornecedorLocal"
-                @update:modelValue="handleFornecedorChange"
+                v-model="distribuidorLocal"
+                @update:modelValue="handleDistribuidorChange"
               >
                 <SelectTrigger class="w-full">
                   <SelectValue placeholder="Selecione o setor distribuidor" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
-                    v-for="forn in fornecedoresDisponiveis"
-                    :key="forn.id"
-                    :value="String(forn.id)"
+                    v-for="dist in distribuidoresDisponiveis"
+                    :key="dist.id"
+                    :value="String(dist.id)"
                   >
-                    {{ forn.nome }}
+                    {{ dist.nome }}
                   </SelectItem>
                 </SelectContent>
               </Select>
               <p
-                v-if="fornecedoresDisponiveis.length === 0"
+                v-if="distribuidoresDisponiveis.length === 0"
                 class="text-xs text-muted-foreground mt-1"
               >
                 <i class="mdi mdi-alert-circle text-yellow-500 mr-1"></i>
-                Nenhum fornecedor configurado.
+                Nenhum distribuidor configurado.
               </p>
             </div>
 
@@ -224,7 +224,7 @@
         </Button>
         <Button
           @click="finalizarPedido"
-          :disabled="submitting || fornecedoresDisponiveis.length === 0"
+          :disabled="submitting || distribuidoresDisponiveis.length === 0"
           class="flex items-center gap-2"
         >
           <LoadingSpinner v-if="submitting" size="sm" class="mr-2" />
@@ -261,14 +261,14 @@ const { toast } = useToast();
 const {
   tipo,
   itens,
-  fornecedor,
+  distribuidor,
   quantidadeProdutos,
   totalItens,
   setorAtual,
-  fornecedoresDisponiveis,
+  distribuidoresDisponiveis,
   updateQuantidade,
   removeItem,
-  setFornecedor,
+  setDistribuidor,
   limparPedido,
   getPedidoParaEnvio,
 } = useSolicitacao();
@@ -276,15 +276,15 @@ const {
 const loading = ref(false);
 const submitting = ref(false);
 const observacao = ref("");
-const fornecedorLocal = ref(fornecedor.value ? String(fornecedor.value) : null);
+const distribuidorLocal = ref(distribuidor.value ? String(distribuidor.value) : null);
 
 // Sync com composable
-watch(fornecedor, (newVal) => {
-  fornecedorLocal.value = newVal ? String(newVal) : null;
+watch(distribuidor, (newVal) => {
+  distribuidorLocal.value = newVal ? String(newVal) : null;
 });
 
-const handleFornecedorChange = (value) => {
-  setFornecedor(value ? Number(value) : null);
+const handleDistribuidorChange = (value) => {
+  setDistribuidor(value ? Number(value) : null);
 };
 
 const incrementarQuantidade = (produtoId) => {
@@ -306,10 +306,10 @@ const adicionarMaisItens = () => {
 };
 
 const finalizarPedido = async () => {
-  if (!fornecedorLocal.value) {
+  if (!distribuidorLocal.value) {
     toast({
       title: "Atenção",
-      description: "Por favor, selecione o setor fornecedor.",
+      description: "Por favor, selecione o setor distribuidor.",
       variant: "destructive",
     });
     return;
@@ -324,13 +324,13 @@ const finalizarPedido = async () => {
     return;
   }
 
-  // Garantir que fornecedor está setado
-  setFornecedor(Number(fornecedorLocal.value));
+  // Garantir que distribuidor está setado
+  setDistribuidor(Number(distribuidorLocal.value));
 
   const pedidoData = getPedidoParaEnvio(observacao.value);
 
   console.log("🚀 Finalizando pedido...");
-  console.log("📋 fornecedorLocal.value:", fornecedorLocal.value);
+  console.log("📋 distribuidorLocal.value:", distribuidorLocal.value);
   console.log("📦 pedidoData:", pedidoData);
 
   if (!pedidoData) {
@@ -359,7 +359,7 @@ const finalizarPedido = async () => {
       // Limpar pedido após sucesso
       limparPedido();
       observacao.value = "";
-      fornecedorLocal.value = null;
+      distribuidorLocal.value = null;
 
       // Navegar para histórico após 1.5 segundos
       setTimeout(() => {

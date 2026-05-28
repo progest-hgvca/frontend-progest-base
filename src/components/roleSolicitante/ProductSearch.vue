@@ -107,11 +107,11 @@
                       {{ getUnidadeMedida(product) }}
                     </span>
                     <span
-                      v-if="product.codigo_simpras"
+                      v-if="product.codigo_simpas"
                       class="flex items-center gap-1"
                     >
                       <i class="mdi mdi-barcode"></i>
-                      {{ product.codigo_simpras }}
+                      {{ product.codigo_simpas }}
                     </span>
                     <!-- Already added indicator - inline -->
                     <Badge
@@ -229,7 +229,7 @@ const filteredProducts = computed(() => {
     (p) =>
       p.nome?.toLowerCase().includes(query) ||
       p.marca?.toLowerCase().includes(query) ||
-      p.codigo_simpras?.toLowerCase().includes(query)
+      p.codigo_simpas?.toLowerCase().includes(query)
   );
 });
 
