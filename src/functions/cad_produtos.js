@@ -7,7 +7,7 @@ var ADD_UP = (content, funcao) => {
     produto: {
       nome: content.modalData.nome,
       marca: content.modalData.marca || "",
-      codigo_simpras: content.modalData.codigo_simpras || "",
+      codigo_simpas: content.modalData.codigo_simpas || "",
       codigo_barras: content.modalData.codigo_barras || "",
       grupo_produto_id: content.modalData.grupo_produto_id,
       unidade_medida_id: content.modalData.unidade_medida_id,

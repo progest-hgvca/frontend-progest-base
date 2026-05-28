@@ -146,10 +146,10 @@ const close = () => emit("update:open", false);
               <p
                 class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold"
               >
-                Código SIMPRAS
+                Código SIMPAS
               </p>
               <p class="text-sm text-slate-700 font-mono font-bold">
-                {{ item.codigo_simpras || "Não informado" }}
+                {{ item.codigo_simpas || "Não informado" }}
               </p>
             </div>
           </div>

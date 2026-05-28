@@ -270,7 +270,7 @@ var listEstoqueUnidade = (content, unidadeId) => {
                   nome: "Paracetamol 500mg",
                   nome_completo: "Paracetamol 500mg - Genérico",
                   marca: "Genérico",
-                  codigo_simpras: "MED001",
+                  codigo_simpas: "MED001",
                   codigo_barras: "1234567890123",
                   status: "A",
                   grupo_produto: {
@@ -297,7 +297,7 @@ var listEstoqueUnidade = (content, unidadeId) => {
                   nome: "Dipirona 500mg",
                   nome_completo: "Dipirona 500mg - Marca XYZ",
                   marca: "Marca XYZ",
-                  codigo_simpras: "MED002",
+                  codigo_simpas: "MED002",
                   codigo_barras: "1234567890124",
                   status: "A",
                   grupo_produto: {
@@ -324,7 +324,7 @@ var listEstoqueUnidade = (content, unidadeId) => {
                   nome: "Aspirina 100mg",
                   nome_completo: "Aspirina 100mg - Bayer",
                   marca: "Bayer",
-                  codigo_simpras: "MED003",
+                  codigo_simpas: "MED003",
                   codigo_barras: "1234567890125",
                   status: "A",
                   grupo_produto: {

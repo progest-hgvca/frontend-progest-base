@@ -31,7 +31,7 @@ const varsModalData = {
   status: "A",
   nome: "",
   marca: "",
-  codigo_simpras: "",
+  codigo_simpas: "",
   codigo_barras: "",
   grupo_produto_id: "",
   unidade_medida_id: "",

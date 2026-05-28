@@ -24,7 +24,7 @@ const localData = ref({
   status: "A",
   grupo_produto_id: "",
   unidade_medida_id: "",
-  codigo_simpras: "",
+  codigo_simpas: "",
   codigo_barras: "",
 });
 
@@ -165,13 +165,13 @@ const handleCodigoBarrasInput = (event) => {
   }
 };
 
-// Limitar código SIMPRAS a 20 caracteres alfanuméricos
-const handleCodigoSimprasInput = (event) => {
-  const raw = event.target.value.replace(/[^A-Za-z0-9\-\.]/g, "");
+// Limitar código SIMPAS a 20 caracteres alfanuméricos
+const handleSimpasInput = (event) => {
+  let raw = event.target.value.toUpperCase();
   if (raw.length > 20) {
-    localData.value.codigo_simpras = raw.substring(0, 20);
+    localData.value.codigo_simpas = raw.substring(0, 20);
   } else {
-    localData.value.codigo_simpras = raw;
+    localData.value.codigo_simpas = raw;
   }
 };
 
@@ -400,27 +400,31 @@ const handleSave = () => {
       <!-- Códigos -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-2">
-          <Label for="simpras">
-            Código SIMPRAS
-            <span class="text-[10px] text-slate-400 ml-1">(máx. 20, alfanumérico)</span>
+          <Label for="simpas">
+            Código SIMPAS
+            <span class="text-muted small fw-normal">(opcional)</span>
           </Label>
-          <Input
-            id="simpras"
-            v-model="localData.codigo_simpras"
-            maxlength="20"
-            placeholder="Ex: ABC-123.45"
-            :class="{
-              'border-red-500 focus-visible:ring-red-500':
-                hasError('codigo_simpras'),
-            }"
-            @input="handleCodigoSimprasInput"
-          />
-          <p
-            v-if="hasError('codigo_simpras')"
-            class="text-xs text-destructive mt-1"
-          >
-            {{ getError("codigo_simpras") }}
-          </p>
+          <div class="relative">
+            <Input
+              id="simpas"
+              v-model="localData.codigo_simpas"
+              @input="handleSimpasInput"
+              placeholder="Ex: ABC-123.45"
+              :class="[
+                {
+                  'border-red-500 focus-visible:ring-red-500':
+                    hasError('codigo_simpas'),
+                },
+                'uppercase-input',
+              ]"
+            />
+            <span
+              v-if="hasError('codigo_simpas')"
+              class="text-xs text-red-500 absolute -bottom-5 left-0"
+            >
+              {{ getError("codigo_simpas") }}
+            </span>
+          </div>
         </div>
         <div class="space-y-2">
           <Label for="barras">
