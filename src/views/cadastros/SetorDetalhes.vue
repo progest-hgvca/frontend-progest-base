@@ -202,7 +202,7 @@ onMounted(carregarSetor);
 
       <!-- Main Content -->
       <div v-else-if="setor.id" class="flex-1 flex flex-col gap-6">
-        <Tabs v-model="activeTab" class="w-full flex flex-col gap-6">
+        <Tabs v-model="activeTab" @update:modelValue="changeTab" class="w-full flex flex-col gap-6">
           <div
             class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex self-start"
           >
@@ -212,7 +212,7 @@ onMounted(carregarSetor);
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
                 <InfoIcon class="w-4 h-4" />
-                <span>Overview</span>
+                <span>Visão Geral</span>
               </TabsTrigger>
 
               <TabsTrigger
@@ -224,21 +224,7 @@ onMounted(carregarSetor);
                 <span>Estoque</span>
               </TabsTrigger>
 
-              <TabsTrigger
-                value="movimentacoes"
-                class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
-              >
-                <ArrowLeftRightIcon class="w-4 h-4" />
-                <span>Movimentações</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="entrada"
-                class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
-              >
-                <DownloadIcon class="w-4 h-4" />
-                <span>Entrada</span>
-              </TabsTrigger>
+              <!-- Operacionais removidas para Admin Global -->
 
               <TabsTrigger
                 value="usuarios"
@@ -265,16 +251,7 @@ onMounted(carregarSetor);
               <TabEstoque @reload-estoque="carregarDadosOperacionais" />
             </TabsContent>
 
-            <TabsContent value="movimentacoes" class="mt-0 outline-none">
-              <TabMovimentacoes :setorId="setor.id" />
-            </TabsContent>
-
-            <TabsContent value="entrada" class="mt-0 outline-none">
-              <TabEntrada
-                :setorId="setor.id"
-                @reload-estoque="carregarDadosOperacionais"
-              />
-            </TabsContent>
+            <!-- Operacionais removidas para Admin Global -->
 
             <TabsContent value="usuarios" class="mt-0 outline-none">
               <TabUsuarios :setorId="setor.id" />

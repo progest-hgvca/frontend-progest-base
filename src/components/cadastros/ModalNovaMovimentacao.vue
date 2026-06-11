@@ -4,7 +4,7 @@
       <DialogHeader class="text-start">
         <DialogTitle class="flex gap-2">
           <i class="mdi mdi-file-document-edit-outline text-primary"></i>
-          Nova Requisição
+          {{ rascunho ? 'Editar Rascunho' : 'Nova Requisição' }}
         </DialogTitle>
         <DialogDescription>
           Preencha os dados e os itens. Você pode salvar como rascunho ou
@@ -270,7 +270,7 @@
           >
             <template v-if="!loadingRascunho">
               <i class="mdi mdi-content-save-outline me-1"></i>
-              Salvar rascunho
+              {{ rascunho ? 'Atualizar Rascunho' : 'Salvar rascunho' }}
             </template>
             <template v-else>
               <span class="spinner-border spinner-border-sm me-1"></span>
@@ -363,6 +363,11 @@ export default {
       type: String,
       default: "",
     },
+    // Rascunho existente para edição
+    rascunho: {
+      type: Object,
+      default: null,
+    },
   },
   data() {
     return {
@@ -436,8 +441,13 @@ export default {
   watch: {
     open(newVal) {
       if (newVal) {
-        this.carregarFornecedores();
-        this.resetForm();
+        this.carregarFornecedores().then(() => {
+          if (this.rascunho) {
+            this.preencherFormComRascunho();
+          } else {
+            this.resetForm();
+          }
+        });
       }
     },
   },
@@ -567,7 +577,44 @@ export default {
     },
 
     async salvarRascunho() {
-      await this.enviarMovimentacao("C"); // C = rascunho
+      if (this.rascunho) {
+        // Modo edição: atualizar rascunho existente
+        await this.atualizarRascunho();
+      } else {
+        await this.enviarMovimentacao("C"); // C = rascunho novo
+      }
+    },
+
+    async atualizarRascunho() {
+      if (!this.form.setorOrigemId || this.form.itens.length === 0) return;
+      this.loadingRascunho = true;
+      this.loading = true;
+      try {
+        const payload = {
+          setor_origem_id: parseInt(this.form.setorOrigemId),
+          observacao: this.form.observacao || "",
+          itens: this.form.itens.map((item) => ({
+            produto_id: item.produtoId,
+            quantidade_solicitada: item.quantidade,
+          })),
+        };
+        const response = await axios.post(
+          `/movimentacao/${this.rascunho.id}/update-rascunho`,
+          payload,
+          { headers: { Authorization: "Bearer " + this.$store.getters.getUserToken } }
+        );
+        if (response.data?.status) {
+          this.$emit("registrado");
+          this.fecharModal();
+        } else {
+          console.error("Erro ao atualizar rascunho:", response.data?.message);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar rascunho:", error);
+      } finally {
+        this.loading = false;
+        this.loadingRascunho = false;
+      }
     },
 
     async finalizarSolicitacao() {
@@ -652,6 +699,32 @@ export default {
       this.erros = {};
       this.tipoSetorOrigem = null;
       this.produtosDisponiveis = [];
+    },
+
+    async preencherFormComRascunho() {
+      if (!this.rascunho) return;
+      // Definir setor origem
+      this.form.setorOrigemId = String(this.rascunho.setor_origem_id || this.rascunho.setorOrigem?.id || "");
+      this.form.observacao = this.rascunho.observacao || "";
+
+      // Carregar produtos do tipo do fornecedor
+      if (this.form.setorOrigemId) {
+        const fornecedor = this.fornecedoresDisponiveis.find(
+          (f) => String(f.id) === String(this.form.setorOrigemId)
+        );
+        if (fornecedor) {
+          this.tipoSetorOrigem = fornecedor.tipo;
+          await this.carregarProdutosPorTipo(fornecedor.tipo);
+        }
+      }
+
+      // Popular itens a partir dos itens do rascunho
+      this.form.itens = (this.rascunho.itens || []).map((it) => ({
+        produtoId: it.produto_id || it.produto?.id,
+        produtoNome: it.produto?.nome || it.produto?.nome_completo || `Produto #${it.produto_id}`,
+        produtoMarca: it.produto?.marca || "",
+        quantidade: it.quantidade_solicitada,
+      }));
     },
 
     fecharModal() {

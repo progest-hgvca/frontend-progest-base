@@ -254,7 +254,7 @@ onMounted(listAllUsers);
                 </Select>
               </div>
               <LinkModal01
-                label="NOVO COLABORADOR"
+                label="CADASTRAR USUÁRIO"
                 :titleModal="titleModal"
                 :varsModalData="varsModalData"
                 class="shrink-0"

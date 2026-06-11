@@ -109,6 +109,11 @@ const isSolicitante = computed(() => {
   return !!found;
 });
 
+const isCAF = computed(() => {
+  const nome = setor.value?.nome?.toUpperCase() || "";
+  return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
+});
+
 // Watchers
 watch(isSolicitante, (val) => {
   if (val && !["overview"].includes(activeTab.value))
@@ -174,17 +179,19 @@ watch(activeTab, () => {
 
 const loadSetorDetails = async () => {
   loading.value = true;
-  const details = store.state.setorDetails;
-  if (details?.id) {
-    const result = await functionsSetor.buscarSetorPorId(details.id);
+  const currentId = store.state.setorAtualId;
+  
+  if (currentId) {
+    const result = await functionsSetor.buscarSetorPorId(currentId);
     if (result.success) {
       store.commit("setSetorDetails", result.data);
       setor.value = result.data;
     } else {
-      setor.value = details;
+      setor.value = store.state.setorDetails || {};
     }
     await carregarDadosOperacionais();
   }
+  
   loading.value = false;
   if (route.query.tab) activeTab.value = route.query.tab;
   updateHeader();
@@ -262,7 +269,7 @@ onUnmounted(() => {
               </TabsTrigger>
 
               <TabsTrigger
-                v-if="!isSolicitante"
+                v-if="!isSolicitante && !isAdminUser"
                 value="movimentacoes"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
@@ -271,11 +278,7 @@ onUnmounted(() => {
               </TabsTrigger>
 
               <TabsTrigger
-                v-if="
-                  !isSolicitante &&
-                  (!setor.distribuidores_relacionados ||
-                    setor.distribuidores_relacionados.length === 0)
-                "
+                v-if="isCAF && !isSolicitante && !isAdminUser"
                 value="entrada"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
@@ -289,7 +292,7 @@ onUnmounted(() => {
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
                 <UsersIcon class="w-4 h-4" />
-                <span class="hidden sm:inline">Usuários</span>
+                <span class="hidden sm:inline">Equipe</span>
               </TabsTrigger>
             </TabsList>
           </div>

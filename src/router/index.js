@@ -92,44 +92,44 @@ const router = createRouter({
       path: "/produtos",
       name: "produtos",
       component: Produtos,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
     },
     {
       path: "/pedidos",
       name: "pedidos",
       component: PedidosView,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, forbiddenForGlobalAdmin: true, forbiddenForCAF: true },
     },
     /* categoriasProdutos removed in favor of grupoProduto */
     {
       path: "/grupoProduto",
       name: "grupoProduto",
       component: GrupoProduto,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
     },
     {
       path: "/unidadesMedida",
       name: "unidadesMedida",
       component: UnidadesMedida,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
     },
     {
       path: "/fornecedores",
       name: "fornecedores",
       component: Fornecedores,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
     },
     {
       path: "/polos",
       name: "polos",
       component: Polos,
-      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
+      meta: { requiresAuth: true, requiresSector: true, globalAdminOnly: true },
     },
     {
       path: "/setores",
       name: "setores",
       component: Setores,
-      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
+      meta: { requiresAuth: true, requiresSector: true, globalAdminOnly: true },
     },
     {
       path: "/historico",
@@ -361,6 +361,50 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
 
+    // Define se o usuário logado é o administrador global do sistema
+    const isGlobalAdmin = store.state.user && (store.state.user.email === "admin@admin.com" || !!store.state.user.is_admin);
+
+    // ------------------------------------------------------------------
+    // Guard 1.5: verificar globalAdminOnly
+    // ------------------------------------------------------------------
+    if (to.meta && to.meta.globalAdminOnly && !isGlobalAdmin) {
+      next("/setor-atual");
+      return;
+    }
+
+    // ------------------------------------------------------------------
+    // Guard 1.6: verificar rootSectorOnly (ex: Produtos, Fornecedores)
+    // ------------------------------------------------------------------
+    if (to.meta && to.meta.rootSectorOnly) {
+      const setorDetalhe = store.state.setorDetails || {};
+      const hasFornecedor = !!setorDetalhe.setor_pai_id || !!setorDetalhe.polo_id;
+      if (hasFornecedor) {
+        next("/setor-atual");
+        return;
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Guard 1.7: verificar forbiddenForGlobalAdmin
+    // ------------------------------------------------------------------
+    if (to.meta && to.meta.forbiddenForGlobalAdmin && isGlobalAdmin) {
+      next("/setor-atual");
+      return;
+    }
+
+    // ------------------------------------------------------------------
+    // Guard 1.8: verificar forbiddenForCAF
+    // ------------------------------------------------------------------
+    if (to.meta && to.meta.forbiddenForCAF) {
+      const setorDetalhe = store.state.setorDetails || {};
+      const nome = (setorDetalhe.nome || "").toUpperCase();
+      const isCAF = nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
+      if (isCAF) {
+        next("/setor-atual");
+        return;
+      }
+    }
+
     // ------------------------------------------------------------------
     // Guard 2: verificar perfil necessário para rotas com meta.roles
     // ------------------------------------------------------------------
@@ -397,7 +441,7 @@ router.beforeEach(async (to, from, next) => {
           .toString()
           .toLowerCase();
 
-        if (!to.meta.roles.includes(perfilAtual)) {
+        if (!to.meta.roles.includes(perfilAtual) && !isGlobalAdmin) {
           next("/setor-atual");
           return;
         }

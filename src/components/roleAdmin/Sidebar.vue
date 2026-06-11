@@ -76,6 +76,7 @@
         </router-link>
 
         <router-link
+          v-if="!isAdminUser"
           class="menu-item"
           to="/setor-atual?tab=movimentacoes"
           title="Movimentações"
@@ -84,7 +85,22 @@
           <span class="menu-text">Movimentações</span>
         </router-link>
 
-        <router-link class="menu-item" to="/pedidos" title="Pedidos">
+        <router-link
+          v-if="isCAF && (isAdminPerfil || isAlmoxarifePerfil) && !isAdminUser"
+          class="menu-item"
+          to="/setor-atual?tab=entrada"
+          title="Registrar Entrada"
+        >
+          <span class="material-icons menu-icon">arrow_circle_down</span>
+          <span class="menu-text">Registrar Entrada</span>
+        </router-link>
+
+        <router-link 
+          v-if="!isCAF && !isAdminUser"
+          class="menu-item" 
+          to="/pedidos" 
+          title="Pedidos"
+        >
           <span class="material-icons menu-icon">shopping_cart</span>
           <span class="menu-text">Pedidos</span>
         </router-link>
@@ -99,19 +115,8 @@
           <span class="menu-text">Setores Consumidores</span>
         </router-link>
 
-        <router-link
-          v-if="isAdminUser"
-          class="menu-item"
-          to="/users"
-          title="Usuários"
-        >
-          <span class="material-icons menu-icon">group</span>
-          <span class="menu-text">Usuários</span>
-        </router-link>
-
-
         <!-- Submenu: Cadastros -->
-        <div v-if="!hasSetorFornecedor" class="submenu-section">
+        <div v-if="!hasSetorFornecedor || isAdminPerfil || isAdminUser" class="submenu-section">
           <button
             class="menu-item submenu-toggle"
             @click="toggleSubmenu"
@@ -189,13 +194,22 @@
                 <span class="material-icons menu-icon">straighten</span>
                 <span class="menu-text">Unidades de Medida</span>
               </router-link>
+              <router-link
+                v-if="isAdminPerfil || isAdminUser"
+                class="submenu-item"
+                to="/users"
+                title="Usuários"
+              >
+                <span class="material-icons menu-icon">group</span>
+                <span class="menu-text">Usuários</span>
+              </router-link>
             </div>
           </transition>
         </div>
       </template>
 
       <!-- Submenu: Relatórios (visível apenas para admin e almoxarife) -->
-      <div class="submenu-section" v-if="isAdminPerfil || isAlmoxarifePerfil">
+      <div class="submenu-section" v-if="isAdminPerfil || isAlmoxarifePerfil || isAdminUser">
         <button
           class="menu-item submenu-toggle"
           @click="toggleRelatoriosSubmenu"
@@ -404,6 +418,12 @@ const isSolicitante = computed(() => {
 const setorAtualNome = computed(() => {
   const setorDetails = store.state.setorDetails;
   return setorDetails?.nome || "Setor Atual";
+});
+
+// Verifica se o setor atual é a CAF
+const isCAF = computed(() => {
+  const nome = setorAtualNome.value.toUpperCase();
+  return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
 });
 
 // Obter o nome da unidade do setor atual
@@ -687,6 +707,9 @@ watch(
         opacity: 1;
       }
     }
+    .submenu-items .submenu-item {
+      padding-left: 2rem;
+    }
   }
 
   /* Submenu Section */
@@ -715,15 +738,25 @@ watch(
       flex-direction: column;
       gap: 0.25rem;
       padding: 0.25rem 0;
-      margin-left: 1rem;
+      margin-left: 0;
 
       .submenu-item {
         @extend .menu-item;
-        padding-left: 1.5rem;
         height: 40px;
         font-size: 0.9rem;
         color: rgba(255, 255, 255, 0.8);
         cursor: pointer;
+        justify-content: flex-start;
+        padding: 0 1rem;
+
+        .menu-icon {
+          font-size: 0.9rem !important;
+          min-width: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
 
         &:hover {
           background: rgba(255, 255, 255, 0.12);

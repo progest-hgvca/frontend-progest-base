@@ -35,6 +35,9 @@ import {
   FileTextIcon,
   AlertCircleIcon,
   TruckIcon,
+  PencilIcon,
+  SendIcon,
+  Trash2Icon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -45,6 +48,14 @@ const props = defineProps({
 
 const store = useStore();
 const { toast } = useToast();
+
+// Nome do setor atual (para exibir no modal de aprovação)
+const setorNome = computed(() => store.state.setorDetails?.nome || "Setor Atual");
+
+const isCAF = computed(() => {
+  const nome = setorNome.value?.toUpperCase() || "";
+  return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
+});
 
 const parentData = inject("setorAtualData", {
   movimentacoesItems: [],
@@ -61,6 +72,16 @@ const dialogCancelamentoOpen = ref(false);
 const movimentacaoParaCancelar = ref(null);
 const loadingCancelamento = ref(false);
 const previewLotesData = ref([]);
+
+// Estado para gestão de rascunhos
+const rascunhoParaEditar = ref(null);
+const dialogEditarRascunhoOpen = ref(false);
+const dialogEnviarRascunhoOpen = ref(false);
+const rascunhoParaEnviar = ref(null);
+const loadingEnvioRascunho = ref(false);
+const dialogExcluirRascunhoOpen = ref(false);
+const rascunhoParaExcluir = ref(null);
+const loadingExcluirRascunho = ref(false);
 
 // Filters
 const filterTipo = ref("todos");
@@ -153,7 +174,8 @@ const abrirModalAprovacao = async (mov) => {
     ]);
 
     let estoqueMap = {};
-    if (estoqueResponse.status === "fulfilled" && estoqueResponse.value.data.success && estoqueResponse.value.data.data.estoque) {
+    // A API retorna 'status' (não 'success') como flag de sucesso
+    if (estoqueResponse.status === "fulfilled" && estoqueResponse.value.data.status && estoqueResponse.value.data.data?.estoque) {
       estoqueResponse.value.data.data.estoque.forEach((e) => {
         estoqueMap[e.produto?.id || e.produto_id] = e.quantidade_atual;
       });
@@ -267,6 +289,58 @@ const cancelarMovimentacao = async () => {
     loadingCancelamento.value = false;
   }
 };
+
+// Ações de rascunho
+const abrirEditarRascunho = (mov) => {
+  rascunhoParaEditar.value = mov;
+  dialogEditarRascunhoOpen.value = true;
+};
+
+const confirmarEnvioRascunho = (mov) => {
+  rascunhoParaEnviar.value = mov;
+  dialogEnviarRascunhoOpen.value = true;
+};
+
+const enviarRascunho = async () => {
+  loadingEnvioRascunho.value = true;
+  try {
+    await axios.post(
+      `/movimentacao/${rascunhoParaEnviar.value.id}/process`,
+      { status: "P" },
+      { headers: { Authorization: "Bearer " + store.getters.getUserToken } },
+    );
+    toast({ title: "Enviado!", description: "Rascunho promovido para Pendente com sucesso." });
+    dialogEnviarRascunhoOpen.value = false;
+    location.reload();
+  } catch (e) {
+    toast({ title: "Erro", description: "Falha ao enviar rascunho.", variant: "destructive" });
+  } finally {
+    loadingEnvioRascunho.value = false;
+  }
+};
+
+const confirmarExclusaoRascunho = (mov) => {
+  rascunhoParaExcluir.value = mov;
+  dialogExcluirRascunhoOpen.value = true;
+};
+
+const excluirRascunho = async () => {
+  loadingExcluirRascunho.value = true;
+  try {
+    await axios.post(
+      `/movimentacao/${rascunhoParaExcluir.value.id}/delete`,
+      {},
+      { headers: { Authorization: "Bearer " + store.getters.getUserToken } },
+    );
+    toast({ title: "Excluído", description: "Rascunho excluído com sucesso." });
+    dialogExcluirRascunhoOpen.value = false;
+    location.reload();
+  } catch (e) {
+    toast({ title: "Erro", description: "Falha ao excluir rascunho.", variant: "destructive" });
+  } finally {
+    loadingExcluirRascunho.value = false;
+  }
+};
 </script>
 
 <template>
@@ -274,6 +348,7 @@ const cancelarMovimentacao = async () => {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-end gap-6">
       <Button
+        v-if="!isCAF"
         @click="dialogMovimentacaoOpen = true"
         class="gap-2 shadow-lg shadow-primary/20"
       >
@@ -359,6 +434,11 @@ const cancelarMovimentacao = async () => {
                 Destino
               </th>
               <th
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+              >
+                Solicitante
+              </th>
+              <th
                 class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px]"
               >
                 Itens
@@ -429,6 +509,12 @@ const cancelarMovimentacao = async () => {
               >
                 {{ mov.setor_destino?.nome || mov.setorDestino?.nome || "-" }}
               </td>
+              <td class="py-4 px-6">
+                <div class="flex items-center gap-1.5">
+                  <UserIcon class="w-3.5 h-3.5 text-slate-400" />
+                  <span class="text-[11px] font-bold text-slate-700 capitalize">{{ mov.usuario?.name || 'Sistema' }}</span>
+                </div>
+              </td>
               <td class="py-4 px-6 text-center">
                 <Badge variant="outline" class="font-black bg-white">{{
                   mov.itens?.length || 0
@@ -443,34 +529,74 @@ const cancelarMovimentacao = async () => {
                 </Badge>
               </td>
               <td class="py-4 px-6 text-right space-x-1">
+                <!-- Ver detalhes (sempre visível) -->
                 <Button
                   variant="ghost"
                   size="icon"
                   @click="verDetalhes(mov)"
                   class="h-8 w-8 text-slate-400 hover:text-primary"
+                  title="Ver detalhes"
                 >
                   <EyeIcon class="w-4 h-4" />
                 </Button>
 
+                <!-- Aprovar (saída Pendente) -->
                 <Button
                   v-if="isSaida(mov) && mov.status_solicitacao === 'P'"
                   variant="ghost"
                   size="icon"
                   @click="abrirModalAprovacao(mov)"
                   class="h-8 w-8 text-emerald-600 hover:bg-emerald-50"
+                  title="Aprovar movimentação"
                 >
                   <CheckCircle2Icon class="w-4 h-4" />
                 </Button>
 
+                <!-- Cancelar solicitação (entrada Pendente) -->
                 <Button
                   v-if="isEntrada(mov) && mov.status_solicitacao === 'P'"
                   variant="ghost"
                   size="icon"
                   @click="confirmarCancelamento(mov)"
                   class="h-8 w-8 text-destructive hover:bg-destructive/10"
+                  title="Cancelar solicitação"
                 >
                   <XCircleIcon class="w-4 h-4" />
                 </Button>
+
+                <!-- Ações de Rascunho (entrada, destino = setor atual) -->
+                <template v-if="isEntrada(mov) && mov.status_solicitacao === 'C'">
+                  <!-- Editar rascunho -->
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="abrirEditarRascunho(mov)"
+                    class="h-8 w-8 text-amber-500 hover:bg-amber-50"
+                    title="Editar rascunho"
+                  >
+                    <PencilIcon class="w-4 h-4" />
+                  </Button>
+                  <!-- Enviar (promover para Pendente) -->
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="confirmarEnvioRascunho(mov)"
+                    class="h-8 w-8 text-emerald-500 hover:bg-emerald-50"
+                    title="Enviar solicitação"
+                  >
+                    <SendIcon class="w-4 h-4" />
+                  </Button>
+                  <!-- Excluir rascunho -->
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="confirmarExclusaoRascunho(mov)"
+                    class="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    title="Excluir rascunho"
+                  >
+                    <Trash2Icon class="w-4 h-4" />
+                  </Button>
+                </template>
               </td>
             </tr>
           </tbody>
@@ -497,6 +623,16 @@ const cancelarMovimentacao = async () => {
     <ModalNovaMovimentacao
       v-model:open="dialogMovimentacaoOpen"
       :setorId="setorId"
+      :setorNome="setorNome"
+    />
+
+    <!-- Modal Editar Rascunho -->
+    <ModalNovaMovimentacao
+      v-model:open="dialogEditarRascunhoOpen"
+      :setorId="setorId"
+      :setorNome="setorNome"
+      :rascunho="rascunhoParaEditar"
+      @registrado="() => location.reload()"
     />
 
     <!-- Details View -->
@@ -542,7 +678,7 @@ const cancelarMovimentacao = async () => {
                   {{ movimentacaoSelecionada?.setor_origem?.nome || "-" }}
                 </p>
                 <p class="text-xs text-slate-500 flex items-center gap-1">
-                  <UserIcon class="w-3 h-3" /> Responsável pela Unidade
+                  <UserIcon class="w-3 h-3" /> Setor de Origem (Fornecedor)
                 </p>
               </div>
             </div>
@@ -560,8 +696,8 @@ const cancelarMovimentacao = async () => {
                   {{ movimentacaoSelecionada?.setor_destino?.nome || "-" }}
                 </p>
                 <p class="text-xs text-slate-500 flex items-center gap-1">
-                  <UserIcon class="w-3 h-3" /> Solicitado por:
-                  {{ movimentacaoSelecionada?.usuario?.name || "N/A" }}
+                  <UserIcon class="w-3 h-3" /> Responsável pela solicitação:
+                  <strong class="text-slate-700 ml-1">{{ movimentacaoSelecionada?.usuario?.name || "N/A" }}</strong>
                 </p>
               </div>
             </div>
@@ -648,8 +784,12 @@ const cancelarMovimentacao = async () => {
           <h2 class="text-xl font-black uppercase tracking-tighter">
             Análise de Solicitação
           </h2>
-          <p class="text-emerald-100/80 text-xs font-bold">
-            Unidade: {{ setorNome }}
+          <p class="text-emerald-100/80 text-xs font-bold flex items-center gap-2">
+            Setor Origem: {{ setorNome }}
+            <span class="text-emerald-200/60">•</span>
+            Solicitante: <strong class="text-white">{{ movimentacaoParaAprovar?.usuario?.name || "N/A" }}</strong>
+            <span class="text-emerald-200/60">•</span>
+            Setor Destino: {{ movimentacaoParaAprovar?.setor_destino?.nome || movimentacaoParaAprovar?.setorDestino?.nome || "-" }}
           </p>
         </div>
 
@@ -949,6 +1089,62 @@ const cancelarMovimentacao = async () => {
               :disabled="loadingCancelamento"
               >Voltar</Button
             >
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    <!-- Dialog Enviar Rascunho -->
+    <Dialog v-model:open="dialogEnviarRascunhoOpen">
+      <DialogContent class="max-w-md border-none p-0 overflow-hidden rounded-3xl">
+        <div class="p-8 space-y-6 text-center">
+          <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-600">
+            <SendIcon class="w-10 h-10" />
+          </div>
+          <div class="space-y-2">
+            <h2 class="text-xl font-black text-slate-900">Enviar Solicitação?</h2>
+            <p class="text-sm text-slate-500 leading-relaxed px-4">
+              O rascunho #{{ rascunhoParaEnviar?.id }} será enviado como solicitação
+              pendente para aprovação do setor de origem.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <Button
+              class="h-12 text-sm font-black uppercase tracking-widest shadow-lg shadow-emerald-200 bg-emerald-600 hover:bg-emerald-700"
+              @click="enviarRascunho"
+              :disabled="loadingEnvioRascunho"
+            >
+              {{ loadingEnvioRascunho ? 'Enviando...' : 'Sim, Enviar Solicitação' }}
+            </Button>
+            <Button variant="ghost" class="h-12 font-bold text-slate-400" @click="dialogEnviarRascunhoOpen = false" :disabled="loadingEnvioRascunho">Voltar</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Dialog Excluir Rascunho -->
+    <Dialog v-model:open="dialogExcluirRascunhoOpen">
+      <DialogContent class="max-w-md border-none p-0 overflow-hidden rounded-3xl">
+        <div class="p-8 space-y-6 text-center">
+          <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-2 text-red-600">
+            <Trash2Icon class="w-10 h-10" />
+          </div>
+          <div class="space-y-2">
+            <h2 class="text-xl font-black text-slate-900">Excluir Rascunho?</h2>
+            <p class="text-sm text-slate-500 leading-relaxed px-4">
+              O rascunho #{{ rascunhoParaExcluir?.id }} será excluído permanentemente.
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <Button
+              variant="destructive"
+              class="h-12 text-sm font-black uppercase tracking-widest shadow-lg shadow-red-200"
+              @click="excluirRascunho"
+              :disabled="loadingExcluirRascunho"
+            >
+              {{ loadingExcluirRascunho ? 'Excluindo...' : 'Sim, Excluir Rascunho' }}
+            </Button>
+            <Button variant="ghost" class="h-12 font-bold text-slate-400" @click="dialogExcluirRascunhoOpen = false" :disabled="loadingExcluirRascunho">Voltar</Button>
           </div>
         </div>
       </DialogContent>

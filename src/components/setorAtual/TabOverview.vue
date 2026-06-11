@@ -235,7 +235,7 @@ const formatarData = (date) => {
               </div>
 
               <div
-                v-if="setor.unidade"
+                v-if="setor.polo"
                 class="md:col-span-2 space-y-1 pt-4 border-t border-slate-100"
               >
                 <Label class="text-xs uppercase font-bold text-slate-400"
@@ -247,7 +247,7 @@ const formatarData = (date) => {
                   >
                     <LayoutDashboardIcon class="w-4 h-4 text-slate-500" />
                   </div>
-                  {{ setor.unidade.nome }}
+                  {{ setor.polo.nome }}
                 </div>
               </div>
             </div>
@@ -383,7 +383,7 @@ const formatarData = (date) => {
                             :key="s.id"
                             :value="String(s.id)"
                           >
-                            {{ s.nome }} ({{ s.tipo }})
+                            {{ s.nome }} <template v-if="s.polo">- {{ s.polo.nome }}</template> ({{ s.tipo }})
                           </SelectItem>
                         </SelectContent>
                       </Select>

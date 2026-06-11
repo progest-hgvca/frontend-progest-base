@@ -26,6 +26,7 @@ import {
   Trash2,
   Building2,
   SearchX,
+  Search,
   FilterIcon,
   NavigationIcon,
 } from "lucide-vue-next";
@@ -115,14 +116,15 @@ onMounted(carregarSetores);
         class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden"
       >
         <!-- Toolbar Row (Search + Action) -->
-        <div
-          class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8"
-        >
-          <div class="relative w-full max-w-md">
+        <div class="flex items-center justify-between gap-3 mb-6">
+          <div class="relative w-full max-w-xs">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search class="h-4 w-4 text-slate-400" />
+            </div>
             <Input
               v-model="searchQuery"
-              placeholder="Pesquisar unidade por nome..."
-              class="px-5 h-12 bg-slate-50 border-none rounded-2xl font-medium focus:ring-primary/20 transition-all shadow-inner"
+              placeholder="Pesquisar unidade..."
+              class="h-10 pl-9 pr-4 text-sm bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-primary/20 transition-all shadow-inner w-full"
             />
           </div>
 
@@ -130,7 +132,6 @@ onMounted(carregarSetores);
             label="NOVO SETOR"
             :titleModal="titleModal"
             :varsModalData="varsModalData"
-            class="shrink-0 w-full md:w-auto"
           />
         </div>
 

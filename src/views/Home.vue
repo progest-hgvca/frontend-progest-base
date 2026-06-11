@@ -59,6 +59,11 @@ const isAdmin = computed(() => {
   return !!user.value.is_admin;
 });
 
+const isCAF = computed(() => {
+  const nome = setorAtual.value?.nome?.toUpperCase() || "";
+  return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
+});
+
 const isSolicitante = computed(() => {
   const list = store.state.listUsuariosSetor || [];
   const found = list.find((u) => {
@@ -377,6 +382,7 @@ onMounted(loadDashboardData);
               </CardHeader>
               <CardContent class="p-4 flex flex-col gap-3">
                 <Button
+                  v-if="!isCAF && !isAdmin"
                   @click="navigateTo('/pedidos')"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
@@ -394,7 +400,7 @@ onMounted(loadDashboardData);
                 </Button>
 
                 <Button
-                  v-if="!isSolicitante"
+                  v-if="isCAF && !isSolicitante && !isAdmin"
                   @click="navigateTo('/setor-atual', { tab: 'entrada' })"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
@@ -430,7 +436,7 @@ onMounted(loadDashboardData);
                 </Button>
 
                 <Button
-                  @click="navigateTo('/historico')"
+                  @click="navigateTo('/setor-atual', { tab: 'movimentacoes' })"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
                   <div

@@ -56,20 +56,26 @@ var ADD_UP = (content, funcao) => {
 var listAll = (content, url = null) => {
   content.$store.commit("setisSearching", true);
 
-  // Tentar obter setor_id do store
-  const setorId = content.$store.state.setorAtualId;
+  let fetchUrl = url;
+  if (!fetchUrl) {
+    const setorId =
+      content.$store.state.setorAtualId ||
+      content.$store.state.setorDetails?.id ||
+      null;
 
-  if (!setorId) {
-    console.warn("⚠️ Sem setor ID para listar estoque");
-    content.$store.commit("setisSearching", false);
-    return Promise.resolve({ success: false, data: [] });
+    if (!setorId) {
+      console.warn("⚠️ Sem setor ID para listar estoque (setorAtualId e setorDetails.id estão null)");
+      content.$store.commit("setisSearching", false);
+      return Promise.resolve({ success: false, data: [] });
+    }
+    fetchUrl = `/estoque/setor/${setorId}`;
   }
 
-  console.log("📦 Chamando GET /estoque/setor/" + setorId);
+  console.log("📦 Chamando GET " + fetchUrl);
 
   // Usar GET /estoque/setor/{id} como no módulo antigo
   return content.$axios
-    .get(`/estoque/setor/${setorId}`, {
+    .get(fetchUrl, {
       headers: {
         Authorization: "Bearer " + content.$store.getters.getUserToken,
       },
@@ -77,7 +83,8 @@ var listAll = (content, url = null) => {
     .then((response) => {
       console.log("✅ Resposta estoque:", response.data);
 
-      if (response.data && response.data.success) {
+      // A API retorna 'status' (não 'success') como indicador de sucesso
+      if (response.data && response.data.status) {
         // Estrutura esperada: { success: true, data: { estoque: [...], resumo: {...}, unidade/setor: {...} } }
         const respData = response.data.data || {};
         const estoqueItems = respData.estoque || [];
@@ -218,7 +225,7 @@ var listEstoqueUnidade = (content, unidadeId) => {
       },
     })
     .then((response) => {
-      if (response.data.success) {
+      if (response.data.status) {
         // Log para depuração: inspecionar o payload retornado pelo backend
         try {
           console.debug("listEstoqueUnidade response.data:", response.data);
@@ -389,7 +396,7 @@ var atualizarQuantidadeMinima = (content, estoqueId, quantidadeMinima) => {
       }
     )
     .then((response) => {
-      if (response.data.success) {
+      if (response.data.status) {
         return response.data;
       } else {
         throw new Error(
@@ -443,7 +450,7 @@ var atualizarStatusDisponibilidade = (content, estoqueId, status) => {
       }
     )
     .then((response) => {
-      if (response.data.success) {
+      if (response.data.status) {
         return response.data;
       } else {
         throw new Error(response.data.message || "Erro ao atualizar status");
