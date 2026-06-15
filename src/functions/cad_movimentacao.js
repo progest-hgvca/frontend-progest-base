@@ -2,7 +2,7 @@
  * Funções para gerenciamento de movimentações (solicitações/transferências/saídas)
  */
 
-var listBySetor = (content, setorId, perPage = 50, page = 1) => {
+var listBySetor = (content, setorId, perPage = 5000, page = 1) => {
   if (!setorId) {
     console.warn("listBySetor movimentacao: setorId não fornecido");
     return;

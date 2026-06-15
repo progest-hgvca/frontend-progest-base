@@ -262,7 +262,7 @@ const fetchPedidos = async () => {
 
     const response = await axios.post(
       "/movimentacao/listBySetor",
-      { setor_id: setorId, per_page: 50 },
+      { setor_id: setorId, per_page: 5000 },
       { headers: { Authorization: `Bearer ${token}` } }
     );
 

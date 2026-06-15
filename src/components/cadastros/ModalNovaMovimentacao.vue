@@ -414,7 +414,7 @@ export default {
       return this.produtosDisponiveis
         .filter((p) => {
           return (
-            p.nome.toLowerCase().includes(term) ||
+            (p.nome && p.nome.toLowerCase().includes(term)) ||
             (p.marca && p.marca.toLowerCase().includes(term))
           );
         })

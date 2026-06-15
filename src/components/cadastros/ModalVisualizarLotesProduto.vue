@@ -236,12 +236,11 @@ export default {
       return this.$store.state.listEstoqueLote || [];
     },
     totalQuantidade() {
-      return this.lotes
-        .reduce((total, lote) => {
-          const qtd = parseFloat(lote.quantidade_disponivel) || 0;
-          return total + qtd;
-        }, 0)
-        .toFixed(3);
+      const total = this.lotes.reduce((total, lote) => {
+        const qtd = parseFloat(lote.quantidade_disponivel) || 0;
+        return total + qtd;
+      }, 0);
+      return Number.isInteger(total) ? total.toString() : total.toFixed(3);
     },
     temProduto() {
       return !!(this.produto && this.produto.id);
@@ -291,7 +290,7 @@ export default {
     },
     formatarQuantidade(quantidade) {
       const qtd = parseFloat(quantidade) || 0;
-      return qtd.toFixed(3);
+      return Number.isInteger(qtd) ? qtd.toString() : qtd.toFixed(3);
     },
     getStatusVencimentoTexto(dataVencimento) {
       if (!dataVencimento) return "-";
