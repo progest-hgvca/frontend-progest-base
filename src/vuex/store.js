@@ -72,7 +72,6 @@ export default createStore({
     listGrupoProdutos: [],
     listFornecedores: [],
     listPolos: [],
-    listPolos: [],
     listPerfis: [],
     listTiposVinculo: [],
 
@@ -83,9 +82,6 @@ export default createStore({
     relatorioEntradasPorData: [],
     relatorioEstoque: [],
     relatorioUsuarios: [],
-
-    // Listas auxiliares
-    listTiposVinculo: [],
 
     // UI / Filtros
     searchFilters: [],
@@ -282,22 +278,14 @@ export default createStore({
     SET_listUnidadesMedida(state, unidadesMedida) {
       state.listUnidadesMedida = unidadesMedida;
     },
-    setListPolos(state, unidades) {
-      state.listPolos = unidades || [];
-    },
     setListFornecedores(state, fornecedores) {
       state.listFornecedores = fornecedores;
     },
     setListPolos(state, polos) {
-      state.listPolos = polos;
-      // também atualizar listPolos para manter compatibilidade com código novo
-      state.listPolos = polos;
+      state.listPolos = polos || [];
     },
     setListPerfis(state, perfis) {
       state.listPerfis = perfis;
-    },
-    setListTiposVinculo(state, tipos) {
-      state.listTiposVinculo = tipos;
     },
 
     // Compatibilidade com código legado
@@ -417,7 +405,6 @@ export default createStore({
     GET_listUnidadesMedida: (state) => state.listUnidadesMedida,
     getListGrupoProdutos: (state) => state.listGrupoProdutos,
     getListFornecedores: (state) => state.listFornecedores,
-    getListPolos: (state) => state.listPolos,
     getListPolos: (state) => state.listPolos,
     getListPerfis: (state) => state.listPerfis,
     getListTiposVinculo: (state) => state.listTiposVinculo,

@@ -88,8 +88,19 @@ axios.interceptors.response.use(
 
     } else if (error.response && error.response.status === 401) {
       // 2. Sessão Expirada (Token Inválido)
+      // Não tratar como sessão expirada quando o 401 vem da própria autenticação
+      // (login/register com credenciais inválidas) ou quando já estamos no login.
+      const requestUrl = (error.config && error.config.url) || "";
+      const isAuthRequest = /\/(login|register|logout)\b/.test(requestUrl);
+      const alreadyOnLogin = router.currentRoute.value.path === "/login";
+
+      if (isAuthRequest || alreadyOnLogin) {
+        // Deixa o componente de login exibir a mensagem de credenciais inválidas.
+        return Promise.reject(error);
+      }
+
       feedback.warning("A sua sessão expirou. Por favor, faça login novamente.", "Sessão Expirada");
-      
+
       // Limpa dados de autenticação e redireciona para login
       store.commit("clearUserToken");
       store.commit("setUser", null);

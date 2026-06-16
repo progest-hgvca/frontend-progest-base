@@ -92,7 +92,7 @@ const router = createRouter({
       path: "/produtos",
       name: "produtos",
       component: Produtos,
-      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
+      meta: { requiresAuth: true, requiresSector: true },
     },
     {
       path: "/pedidos",
@@ -105,19 +105,19 @@ const router = createRouter({
       path: "/grupoProduto",
       name: "grupoProduto",
       component: GrupoProduto,
-      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
+      meta: { requiresAuth: true, requiresSector: true },
     },
     {
       path: "/unidadesMedida",
       name: "unidadesMedida",
       component: UnidadesMedida,
-      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
+      meta: { requiresAuth: true, requiresSector: true },
     },
     {
       path: "/fornecedores",
       name: "fornecedores",
       component: Fornecedores,
-      meta: { requiresAuth: true, requiresSector: true, rootSectorOnly: true },
+      meta: { requiresAuth: true, requiresSector: true },
     },
     {
       path: "/polos",
@@ -370,18 +370,6 @@ router.beforeEach(async (to, from, next) => {
     if (to.meta && to.meta.globalAdminOnly && !isGlobalAdmin) {
       next("/setor-atual");
       return;
-    }
-
-    // ------------------------------------------------------------------
-    // Guard 1.6: verificar rootSectorOnly (ex: Produtos, Fornecedores)
-    // ------------------------------------------------------------------
-    if (to.meta && to.meta.rootSectorOnly) {
-      const setorDetalhe = store.state.setorDetails || {};
-      const hasFornecedor = !!setorDetalhe.setor_pai_id || !!setorDetalhe.polo_id;
-      if (hasFornecedor) {
-        next("/setor-atual");
-        return;
-      }
     }
 
     // ------------------------------------------------------------------
