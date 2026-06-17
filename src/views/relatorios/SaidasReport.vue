@@ -29,7 +29,7 @@
                   <label class="form-label">Polo</label>
                   <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
-                    <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>
+                    <option v-for="p in polos" :key="p.id" :value="p.id">{{ p.nome }}</option>
                   </select>
                 </div>
                 <div class="col-md-2">
@@ -77,11 +77,11 @@
                           <td>{{ formatDateTime(e.data_hora || e.created_at) }}</td>
                           <td>
                             <div class="text-dark fw-semibold">{{ e.setor_origem?.nome || '-' }}</div>
-                            <small class="text-muted">{{ e.setor_origem?.unidade?.nome || '' }}</small>
+                            <small class="text-muted">{{ e.setor_origem?.polo?.nome || e.setor_origem?.unidade?.nome || '' }}</small>
                           </td>
                           <td>
                             <div class="text-dark fw-semibold">{{ e.setor_destino?.nome || '-' }}</div>
-                            <small class="text-muted">{{ e.setor_destino?.unidade?.nome || '' }}</small>
+                            <small class="text-muted">{{ e.setor_destino?.polo?.nome || e.setor_destino?.unidade?.nome || '' }}</small>
                           </td>
                           <td>
                             <span class="badge" :class="getStatusClass(e.status_solicitacao)">
@@ -192,7 +192,7 @@ export default {
     this.loadExits();
   },
   computed: {
-    unidades() {
+    polos() {
       return this.$store.state.listPolos || [];
     },
     setores() {
@@ -304,7 +304,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['ID','Data','Setor Origem','Unidade Origem','Setor Destino','Unidade Destino','Status','Qtd.Sol.','Qtd.Lib.','Produto','Cód.simpas','Cód.Barras','Lote','Fabricação','Vencimento']);
+      data.push(['ID','Data','Setor Origem','Polo Origem','Setor Destino','Polo Destino','Status','Qtd.Sol.','Qtd.Lib.','Produto','Cód.simpas','Cód.Barras','Lote','Fabricação','Vencimento']);
       
       // Dados
       for (const e of this.exits) {
@@ -314,9 +314,9 @@ export default {
               e.id,
               this.formatDateTime(e.data_hora || e.created_at),
               e.setor_origem?.nome || '',
-              e.setor_origem?.unidade?.nome || '',
+              e.setor_origem?.polo?.nome || e.setor_origem?.unidade?.nome || '',
               e.setor_destino?.nome || '',
-              e.setor_destino?.unidade?.nome || '',
+              e.setor_destino?.polo?.nome || e.setor_destino?.unidade?.nome || '',
               this.getStatusLabel(e.status_solicitacao),
               item.quantidade_solicitada || '',
               item.quantidade_liberada || '',
@@ -333,9 +333,9 @@ export default {
             e.id,
             this.formatDateTime(e.data_hora || e.created_at),
             e.setor_origem?.nome || '',
-            e.setor_origem?.unidade?.nome || '',
+            e.setor_origem?.polo?.nome || e.setor_origem?.unidade?.nome || '',
             e.setor_destino?.nome || '',
-            e.setor_destino?.unidade?.nome || '',
+            e.setor_destino?.polo?.nome || e.setor_destino?.unidade?.nome || '',
             this.getStatusLabel(e.status_solicitacao),
             '',
             '',
@@ -359,9 +359,9 @@ export default {
         { wch: 8 },  // ID
         { wch: 16 }, // Data
         { wch: 25 }, // Setor Origem
-        { wch: 25 }, // Unidade Origem
+        { wch: 25 }, // Polo Origem
         { wch: 25 }, // Setor Destino
-        { wch: 25 }, // Unidade Destino
+        { wch: 25 }, // Polo Destino
         { wch: 12 }, // Status
         { wch: 10 }, // Qtd.Sol.
         { wch: 10 }, // Qtd.Lib.

@@ -95,7 +95,7 @@
                   <div class="report-content">
                     <h6 class="fw-bold mb-1">Relatório de Estoque</h6>
                     <p class="text-muted small mb-2">
-                      Visualize produtos, quantidades disponíveis, valores e status do estoque por unidade e setor
+                      Visualize produtos, quantidades disponíveis, valores e status do estoque por polo e setor
                     </p>
                     <div class="report-meta">
                       <span class="badge bg-success-subtle text-success me-2">

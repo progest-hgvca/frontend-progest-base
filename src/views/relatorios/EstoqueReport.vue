@@ -21,7 +21,7 @@
                   <label class="form-label">Polo</label>
                   <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
-                    <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>
+                    <option v-for="p in polos" :key="p.id" :value="p.id">{{ p.nome }}</option>
                   </select>
                 </div>
                 <div class="col-md-3">
@@ -83,7 +83,7 @@
                         <th style="width: 120px;" class="text-end">Quantidade</th>
                         <th style="width: 100px;" class="text-end">Mínimo</th>
                         <th style="width: 100px;">Status</th>
-                        <th style="width: 250px;">Setor / Unidade</th>
+                        <th style="width: 250px;">Setor / Polo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -251,7 +251,7 @@ export default {
     this.loadEstoque();
   },
   computed: {
-    unidades() {
+    polos() {
       return this.$store.state.listPolos || [];
     },
     setores() {
@@ -374,7 +374,7 @@ export default {
     getSetorCompleto(setor) {
       if (!setor) return '-';
       const nomeSetor = setor.nome || '-';
-      const nomeUnidade = setor.unidade?.nome;
+      const nomeUnidade = setor.polo?.nome || setor.unidade?.nome;
       
       if (nomeUnidade) {
         return `${nomeSetor} - ${nomeUnidade}`;
@@ -388,7 +388,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Setor / Unidade', 'Localização', 'Qtd Atual', 'Qtd Mínima', 'Status', 'Lote', 'Qtd Lote', 'Fabricação', 'Vencimento', 'Dias p/ Vencer', 'Status Lote']);
+      data.push(['Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Setor / Polo', 'Localização', 'Qtd Atual', 'Qtd Mínima', 'Status', 'Lote', 'Qtd Lote', 'Fabricação', 'Vencimento', 'Dias p/ Vencer', 'Status Lote']);
       
       // Dados
       for (const item of this.estoque) {
@@ -447,7 +447,7 @@ export default {
         { wch: 15 }, // Cód.Barras
         { wch: 12 }, // Unid.Medida
         { wch: 20 }, // Grupo
-        { wch: 40 }, // Setor / Unidade
+        { wch: 40 }, // Setor / Polo
         { wch: 15 }, // Localização
         { wch: 10 }, // Qtd Atual
         { wch: 10 }, // Qtd Mínima
@@ -523,7 +523,7 @@ export default {
       // Gerar tabela
       autoTable(doc, {
         startY: this.totalizadores.total_itens > 0 ? 32 : 26,
-        head: [['Produto', 'Cod.SIM', 'Setor/Unidade', 'Qtd', 'Min', 'Status', 'Lote', 'Q.Lote', 'Venc.', 'Dias', 'St.Lote']],
+        head: [['Produto', 'Cod.SIM', 'Setor/Polo', 'Qtd', 'Min', 'Status', 'Lote', 'Q.Lote', 'Venc.', 'Dias', 'St.Lote']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [25, 135, 84], fontSize: 7, fontStyle: 'bold' },
@@ -531,7 +531,7 @@ export default {
         columnStyles: {
           0: { cellWidth: 50 },  // Produto
           1: { cellWidth: 15 },  // Cod. SIMPAS
-          2: { cellWidth: 45 },  // Setor/Unidade
+          2: { cellWidth: 45 },  // Setor/Polo
           3: { cellWidth: 12 },  // Qtd
           4: { cellWidth: 12 },  // Min
           5: { cellWidth: 15 },  // Status

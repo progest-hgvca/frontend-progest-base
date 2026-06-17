@@ -175,7 +175,7 @@ const carregarDadosDoSetor = async (setorId) => {
         };
 
         try {
-          // Usar a função de listar por unidade do cad_estoque
+          // Usar a função de listar por polo/unidade do cad_estoque
           // IMPORTANTE: Capturar o retorno pois functionsEstoque.listEstoqueUnidade sobrescreve a propriedade no contexto
           // em vez de atualizar o .value da ref, quebrando a reatividade se confiarmos apenas no context.
           const result = await functionsEstoque.listEstoqueUnidade(
@@ -187,7 +187,7 @@ const carregarDadosDoSetor = async (setorId) => {
             const data = result.data;
             estoqueItems.value = data.estoque || [];
             resumoEstoque.value = data.resumo || {};
-            setorEstoque.value = data.unidade || data.setor || {};
+            setorEstoque.value = data.polo || data.unidade || data.setor || {};
           }
 
           console.log(

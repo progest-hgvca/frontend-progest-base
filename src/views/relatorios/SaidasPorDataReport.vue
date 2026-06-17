@@ -32,7 +32,7 @@
                   <label class="form-label">Polo</label>
                   <select v-model.number="filters.polo_id" class="form-select" @change="onPoloChange">
                     <option :value="''">Todas</option>
-                    <option v-for="u in unidades" :key="u.id" :value="u.id">{{ u.nome }}</option>
+                    <option v-for="p in polos" :key="p.id" :value="p.id">{{ p.nome }}</option>
                   </select>
                 </div>
                 <div class="col-md-2">
@@ -221,7 +221,7 @@ export default {
     this.loadSaidasPorData();
   },
   computed: {
-    unidades() {
+    polos() {
       return this.$store.state.listPolos || [];
     },
     setores() {

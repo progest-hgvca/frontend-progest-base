@@ -52,7 +52,7 @@ const handleSave = () => {
   store.commit("setModalErrors", {});
 
   if (!localData.value.nome) {
-    proxy.$toastr?.e("Por favor, preencha o nome da unidade.");
+    proxy.$toastr?.e("Por favor, preencha o nome do polo.");
     return;
   }
 

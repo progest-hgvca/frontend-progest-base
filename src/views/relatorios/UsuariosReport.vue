@@ -142,7 +142,7 @@
                                   <tbody>
                                     <tr v-for="vinculo in u.setores" :key="vinculo.id">
                                       <td class="fw-semibold">{{ vinculo.nome || '-' }}</td>
-                                      <td>{{ vinculo.unidade?.nome || '-' }}</td>
+                                      <td>{{ vinculo.polo?.nome || vinculo.unidade?.nome || '-' }}</td>
                                       <td>{{ vinculo.tipo || '-' }}</td>
                                       <td>
                                         <span class="badge" :class="getPerfilClass(vinculo.perfil)">
@@ -316,7 +316,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['ID', 'Nome', 'Email', 'CPF', 'Telefone', 'Data Nascimento', 'Vínculo', 'Status', 'Setor', 'Unidade', 'Perfil']);
+      data.push(['ID', 'Nome', 'Email', 'CPF', 'Telefone', 'Data Nascimento', 'Vínculo', 'Status', 'Setor', 'Polo', 'Perfil']);
       
       // Dados
       for (const u of this.usuarios) {
@@ -332,7 +332,7 @@ export default {
               idx === 0 ? (u.tipo_vinculo?.nome || '-') : '',
               idx === 0 ? (u.status === 'A' ? 'Ativo' : 'Inativo') : '',
               vinculo.nome || '-',
-              vinculo.unidade?.nome || '-',
+              vinculo.polo?.nome || vinculo.unidade?.nome || '-',
               vinculo.perfil || '-'
             ]);
           });
@@ -369,7 +369,7 @@ export default {
         { wch: 15 },  // Vínculo
         { wch: 10 },  // Status
         { wch: 25 },  // Setor
-        { wch: 25 },  // Unidade
+        { wch: 25 },  // Polo
         { wch: 15 }   // Perfil
       ];
       ws['!cols'] = colWidths;

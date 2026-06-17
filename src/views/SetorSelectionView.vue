@@ -78,10 +78,10 @@
 
         <CardContent>
           <form @submit.prevent="selecionarSetor" class="space-y-6">
-            <!-- Unidade Select -->
+            <!-- Polo Select -->
             <div class="space-y-2">
               <label
-                for="unidade-select"
+                for="polo-select"
                 class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Polo <span class="text-red-600">*</span>
@@ -90,7 +90,7 @@
                 v-model="poloSelecionado"
                 @update:modelValue="onPoloChange"
               >
-                <SelectTrigger id="unidade-select" class="h-10">
+                <SelectTrigger id="polo-select" class="h-10">
                   <SelectValue placeholder="-- Selecione um polo --" />
                 </SelectTrigger>
                 <SelectContent>
@@ -247,7 +247,7 @@ const onPoloChange = () => {
   setorSelecionado.value = "";
   erroValidacao.value = "";
 
-  // Se houver apenas um setor para esta unidade, selecionar automaticamente
+  // Se houver apenas um setor para este polo, selecionar automaticamente
   if (setoresFiltrados.value.length === 1) {
     setorSelecionado.value = setoresFiltrados.value[0].id.toString();
   }
