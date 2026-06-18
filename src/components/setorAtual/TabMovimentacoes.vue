@@ -14,6 +14,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -38,6 +45,10 @@ import {
   PencilIcon,
   SendIcon,
   Trash2Icon,
+  SearchIcon,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -83,15 +94,35 @@ const dialogExcluirRascunhoOpen = ref(false);
 const rascunhoParaExcluir = ref(null);
 const loadingExcluirRascunho = ref(false);
 
-// Filters
 const filterTipo = ref("todos");
 const filterStatus = ref("todos");
+const filterSolicitante = ref("todos");
 const filterSearch = ref("");
+const sortBy = ref("created_at");
+const sortDir = ref("desc");
+
+const handleSort = (col) => {
+  if (sortBy.value === col) {
+    sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
+  } else {
+    sortBy.value = col;
+    sortDir.value = "asc";
+  }
+};
 
 const listMovimentacoes = computed(
   () =>
     parentData.movimentacoesItems?.value || parentData.movimentacoesItems || [],
 );
+
+const listSolicitantes = computed(() => {
+  const set = new Set();
+  listMovimentacoes.value.forEach(mov => {
+    const nome = mov.usuario?.name || 'Sistema';
+    set.add(nome);
+  });
+  return Array.from(set).sort();
+});
 
 const filteredMovimentacoes = computed(() => {
   let items = [...listMovimentacoes.value];
@@ -104,6 +135,12 @@ const filteredMovimentacoes = computed(() => {
     items = items.filter(
       (mov) => mov.status_solicitacao === filterStatus.value,
     );
+  }
+  if (filterSolicitante.value !== "todos") {
+    items = items.filter((mov) => {
+      const nome = mov.usuario?.name || 'Sistema';
+      return nome === filterSolicitante.value;
+    });
   }
   if (filterSearch.value.trim()) {
     const term = filterSearch.value.toLowerCase();
@@ -118,10 +155,26 @@ const filteredMovimentacoes = computed(() => {
         mov.setorDestino?.nome ||
         ""
       ).toLowerCase();
-      return orig.includes(term) || dest.includes(term);
+      const usr = (mov.usuario?.name || "").toLowerCase();
+      return orig.includes(term) || dest.includes(term) || usr.includes(term);
     });
   }
-  return items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return items.sort((a, b) => {
+    let valA = null;
+    let valB = null;
+
+    if (sortBy.value === 'created_at') {
+      valA = new Date(a.created_at).getTime();
+      valB = new Date(b.created_at).getTime();
+    } else if (sortBy.value === 'status') {
+      valA = (a.status_solicitacao || "").toLowerCase();
+      valB = (b.status_solicitacao || "").toLowerCase();
+    }
+
+    if (valA < valB) return sortDir.value === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir.value === 'asc' ? 1 : -1;
+    return 0;
+  });
 });
 
 const isEntrada = (mov) => {
@@ -394,11 +447,25 @@ const excluirRascunho = async () => {
           </Select>
         </div>
 
+
+
+        <div class="flex items-center gap-2">
+          <Label class="text-[10px] font-bold uppercase text-slate-400">Solicitante</Label>
+          <Select v-model="filterSolicitante">
+            <SelectTrigger class="w-[140px] h-9 bg-white"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem v-for="solic in listSolicitantes" :key="solic" :value="solic">{{ solic }}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div class="flex-1 min-w-[200px] relative">
+          <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             v-model="filterSearch"
-            placeholder="Buscar unidade..."
-            class="px-4 h-9 bg-white"
+            placeholder="Buscar requisição..."
+            class="!pl-10 pr-4 h-9 bg-white"
           />
         </div>
       </CardContent>
@@ -419,9 +486,15 @@ const excluirRascunho = async () => {
                 Fluxo
               </th>
               <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+                @click="handleSort('created_at')"
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
               >
-                Data/Hora
+                <div class="flex items-center gap-1">
+                  Data/Hora
+                  <ArrowUpDownIcon v-if="sortBy !== 'created_at'" class="w-3 h-3 opacity-50" />
+                  <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                  <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                </div>
               </th>
               <th
                 class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
@@ -444,9 +517,15 @@ const excluirRascunho = async () => {
                 Itens
               </th>
               <th
-                class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px]"
+                @click="handleSort('status')"
+                class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
               >
-                Status
+                <div class="flex items-center justify-center gap-1">
+                  Status
+                  <ArrowUpDownIcon v-if="sortBy !== 'status'" class="w-3 h-3 opacity-50" />
+                  <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                  <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                </div>
               </th>
               <th
                 class="py-4 px-6 text-right font-bold text-slate-500 uppercase text-[10px]"
@@ -460,16 +539,24 @@ const excluirRascunho = async () => {
               v-for="mov in filteredMovimentacoes"
               :key="mov.id"
               :class="[
-                'transition-colors group',
-                mov.status_solicitacao === 'A' ? 'bg-emerald-50/60 hover:bg-emerald-100/60' :
-                mov.status_solicitacao === 'R' ? 'bg-red-50/60 hover:bg-red-100/60' :
-                mov.status_solicitacao === 'P' ? 'bg-amber-50/60 hover:bg-amber-100/60' :
-                mov.status_solicitacao === 'X' ? 'bg-slate-100/60 hover:bg-slate-200/60 opacity-80' :
-                mov.status_solicitacao === 'C' ? 'bg-blue-50/60 hover:bg-blue-100/60' :
-                'hover:bg-slate-50/50'
+                'transition-all duration-300 group border-b border-slate-100',
+                mov.status_solicitacao === 'A' ? 'bg-gradient-to-r from-emerald-500/10 to-transparent hover:from-emerald-500/20' :
+                mov.status_solicitacao === 'R' ? 'bg-gradient-to-r from-red-500/10 to-transparent hover:from-red-500/20' :
+                mov.status_solicitacao === 'P' ? 'bg-gradient-to-r from-amber-500/15 to-transparent hover:from-amber-500/25' :
+                mov.status_solicitacao === 'X' ? 'bg-gradient-to-r from-slate-500/10 to-transparent hover:from-slate-500/20 opacity-90' :
+                mov.status_solicitacao === 'C' ? 'bg-gradient-to-r from-blue-500/10 to-transparent hover:from-blue-500/20' :
+                'hover:bg-slate-50'
               ]"
             >
-              <td class="py-4 px-6">
+              <td :class="[
+                'py-4 px-6 border-l-[6px]',
+                mov.status_solicitacao === 'A' ? 'border-l-emerald-500' :
+                mov.status_solicitacao === 'R' ? 'border-l-red-500' :
+                mov.status_solicitacao === 'P' ? 'border-l-amber-500' :
+                mov.status_solicitacao === 'X' ? 'border-l-slate-400' :
+                mov.status_solicitacao === 'C' ? 'border-l-blue-500' :
+                'border-l-transparent'
+              ]">
                 <div
                   v-if="isEntrada(mov)"
                   class="flex items-center gap-2 text-emerald-600 font-bold"
@@ -487,7 +574,7 @@ const excluirRascunho = async () => {
               </td>
               <td class="py-4 px-6">
                 <div class="flex flex-col">
-                  <span class="font-bold text-slate-700">{{
+                  <span class="font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{{
                     formatarData(mov.created_at)
                   }}</span>
                   <span
@@ -498,20 +585,20 @@ const excluirRascunho = async () => {
                 </div>
               </td>
               <td
-                class="py-4 px-6 font-medium"
+                class="py-4 px-6 font-medium transition-colors"
                 :class="
                   isSaida(mov)
-                    ? 'text-slate-900 underline decoration-primary/30'
+                    ? 'text-slate-900 font-semibold'
                     : 'text-slate-500'
                 "
               >
                 {{ mov.setor_origem?.nome || mov.setorOrigem?.nome || "-" }}
               </td>
               <td
-                class="py-4 px-6 font-medium"
+                class="py-4 px-6 font-medium transition-colors"
                 :class="
                   isEntrada(mov)
-                    ? 'text-slate-900 underline decoration-primary/30'
+                    ? 'text-slate-900 font-semibold'
                     : 'text-slate-500'
                 "
               >
@@ -519,19 +606,27 @@ const excluirRascunho = async () => {
               </td>
               <td class="py-4 px-6">
                 <div class="flex items-center gap-1.5">
-                  <UserIcon class="w-3.5 h-3.5 text-slate-400" />
-                  <span class="text-[11px] font-bold text-slate-700 capitalize">{{ mov.usuario?.name || 'Sistema' }}</span>
+                  <UserIcon class="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
+                  <span class="text-[11px] font-bold text-slate-600 capitalize">{{ mov.usuario?.name || 'Sistema' }}</span>
                 </div>
               </td>
               <td class="py-4 px-6 text-center">
-                <Badge variant="outline" class="font-black bg-white">{{
+                <Badge variant="outline" class="font-black bg-white shadow-sm">{{
                   mov.itens?.length || 0
                 }}</Badge>
               </td>
               <td class="py-4 px-6 text-center">
                 <Badge
-                  :variant="getStatusBadge(mov.status_solicitacao).variant"
-                  class="text-[10px] font-black uppercase tracking-tight"
+                  variant="outline"
+                  :class="[
+                    'text-[10px] font-black uppercase tracking-widest shadow-sm border text-white',
+                    mov.status_solicitacao === 'A' ? 'bg-emerald-500 border-emerald-600' :
+                    mov.status_solicitacao === 'R' ? 'bg-red-500 border-red-600' :
+                    mov.status_solicitacao === 'P' ? 'bg-amber-500 border-amber-600' :
+                    mov.status_solicitacao === 'X' ? 'bg-slate-500 border-slate-600' :
+                    mov.status_solicitacao === 'C' ? 'bg-blue-500 border-blue-600' :
+                    'bg-slate-100 text-slate-900 border-slate-200'
+                  ]"
                 >
                   {{ getStatusBadge(mov.status_solicitacao).label }}
                 </Badge>
@@ -542,7 +637,7 @@ const excluirRascunho = async () => {
                   variant="ghost"
                   size="icon"
                   @click="verDetalhes(mov)"
-                  class="h-8 w-8 text-slate-400 hover:text-primary"
+                  class="h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
                   title="Ver detalhes"
                 >
                   <EyeIcon class="w-4 h-4" />
@@ -554,7 +649,7 @@ const excluirRascunho = async () => {
                   variant="ghost"
                   size="icon"
                   @click="abrirModalAprovacao(mov)"
-                  class="h-8 w-8 text-emerald-600 hover:bg-emerald-50"
+                  class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
                   title="Aprovar movimentação"
                 >
                   <CheckCircle2Icon class="w-4 h-4" />
@@ -566,7 +661,7 @@ const excluirRascunho = async () => {
                   variant="ghost"
                   size="icon"
                   @click="confirmarCancelamento(mov)"
-                  class="h-8 w-8 text-destructive hover:bg-destructive/10"
+                  class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
                   title="Cancelar solicitação"
                 >
                   <XCircleIcon class="w-4 h-4" />
@@ -579,7 +674,7 @@ const excluirRascunho = async () => {
                     variant="ghost"
                     size="icon"
                     @click="abrirEditarRascunho(mov)"
-                    class="h-8 w-8 text-amber-500 hover:bg-amber-50"
+                    class="h-8 w-8 text-amber-500 hover:bg-amber-100 transition-colors"
                     title="Editar rascunho"
                   >
                     <PencilIcon class="w-4 h-4" />
@@ -589,7 +684,7 @@ const excluirRascunho = async () => {
                     variant="ghost"
                     size="icon"
                     @click="confirmarEnvioRascunho(mov)"
-                    class="h-8 w-8 text-emerald-500 hover:bg-emerald-50"
+                    class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
                     title="Enviar solicitação"
                   >
                     <SendIcon class="w-4 h-4" />
@@ -599,7 +694,7 @@ const excluirRascunho = async () => {
                     variant="ghost"
                     size="icon"
                     @click="confirmarExclusaoRascunho(mov)"
-                    class="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
                     title="Excluir rascunho"
                   >
                     <Trash2Icon class="w-4 h-4" />

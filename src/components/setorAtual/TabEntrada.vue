@@ -12,7 +12,18 @@ import {
   CalendarIcon,
   UserIcon,
   ArrowDownIcon,
+  SearchIcon,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
 } from "lucide-vue-next";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ModalEntradaEstoque from "@/components/cadastros/ModalEntradaEstoque.vue";
 import ModalVisualizarEntrada from "@/components/cadastros/ModalVisualizarEntrada.vue";
 
@@ -48,12 +59,75 @@ const entradaSelecionada = ref(null);
 const dialogEntradaOpen = ref(false);
 const modalVisualizarEntrada = ref(null);
 
+const filterFornecedor = ref("todos");
+const searchQuery = ref("");
+const sortBy = ref("created_at");
+const sortDir = ref("desc");
+
+const listFornecedores = computed(() => {
+  const entradas = parentData.entradasItems?.value || parentData.entradasItems || [];
+  const fornecedores = new Set();
+  entradas.forEach(e => {
+    if (e.fornecedor?.razao_social_nome) {
+      fornecedores.add(e.fornecedor.razao_social_nome);
+    } else {
+      fornecedores.add("Fornecedor Externo");
+    }
+  });
+  return Array.from(fornecedores).sort();
+});
+
+const handleSort = (col) => {
+  if (sortBy.value === col) {
+    sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
+  } else {
+    sortBy.value = col;
+    sortDir.value = "asc";
+  }
+};
+
 const listEntradas = computed(() => {
-  const items =
-    parentData.entradasItems?.value || parentData.entradasItems || [];
-  return [...items].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at),
-  );
+  let items = [...(parentData.entradasItems?.value || parentData.entradasItems || [])];
+  
+  if (filterFornecedor.value !== "todos") {
+    items = items.filter(e => {
+      const forn = e.fornecedor?.razao_social_nome || "Fornecedor Externo";
+      return forn === filterFornecedor.value;
+    });
+  }
+
+  if (searchQuery.value) {
+    const term = searchQuery.value.toLowerCase();
+    items = items.filter((e) => {
+      const protocolo = e.id?.toString() || "";
+      const nf = e.nota_fiscal?.toLowerCase() || "";
+      const forn = e.fornecedor?.razao_social_nome?.toLowerCase() || "fornecedor externo";
+      return protocolo.includes(term) || nf.includes(term) || forn.includes(term);
+    });
+  }
+
+  return items.sort((a, b) => {
+    let valA = null;
+    let valB = null;
+
+    if (sortBy.value === 'created_at') {
+      valA = new Date(a.created_at).getTime();
+      valB = new Date(b.created_at).getTime();
+    } else if (sortBy.value === 'protocolo') {
+      valA = Number(a.id);
+      valB = Number(b.id);
+    } else if (sortBy.value === 'fornecedor') {
+      valA = (a.fornecedor?.razao_social_nome || "Fornecedor Externo").toLowerCase();
+      valB = (b.fornecedor?.razao_social_nome || "Fornecedor Externo").toLowerCase();
+    } else if (sortBy.value === 'nota_fiscal') {
+      valA = (a.nota_fiscal || "").toLowerCase();
+      valB = (b.nota_fiscal || "").toLowerCase();
+    }
+
+    if (valA < valB) return sortDir.value === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir.value === 'asc' ? 1 : -1;
+    return 0;
+  });
 });
 
 const formatarData = (data) => {
@@ -92,12 +166,36 @@ const handleEntradaRegistrada = async () => {
 
 <template>
   <div class="flex flex-col gap-4 pb-10">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
+    <!-- Header / Toolbar -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Filtros e Ordenação -->
+      <div class="flex flex-1 items-center gap-3">
+        <Select v-model="filterFornecedor">
+          <SelectTrigger class="h-10 w-[200px] text-sm bg-white border-slate-200 rounded-xl shadow-sm">
+            <SelectValue placeholder="Fornecedor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os Fornecedores</SelectItem>
+            <SelectItem v-for="forn in listFornecedores" :key="forn" :value="forn">
+              {{ forn }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div class="relative w-full max-w-sm">
+          <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            v-model="searchQuery"
+            placeholder="Buscar por protocolo, NF ou fornecedor..."
+            class="h-10 !pl-10 pr-4 text-sm bg-white border-slate-200 rounded-xl focus-visible:ring-primary/20 transition-all shadow-sm w-full"
+          />
+        </div>
+      </div>
+
       <Button
         v-if="canAddEntrada"
         @click="dialogEntradaOpen = true"
-        class="gap-2 shadow-lg shadow-primary/20"
+        class="gap-2 shadow-lg shadow-primary/20 shrink-0"
       >
         <PlusIcon class="w-4 h-4" /> Registrar Nova Entrada
       </Button>
@@ -113,24 +211,48 @@ const handleEntradaRegistrada = async () => {
           <thead class="bg-slate-50 border-b">
             <tr>
               <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+                @click="handleSort('protocolo')"
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
               >
-                Protocolo
+                <div class="flex items-center gap-1">
+                  Protocolo
+                  <ArrowUpDownIcon v-if="sortBy !== 'protocolo'" class="w-3 h-3 opacity-50" />
+                  <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                  <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                </div>
               </th>
               <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+                @click="handleSort('created_at')"
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
               >
-                Data e Hora
+                <div class="flex items-center gap-1">
+                  Data e Hora
+                  <ArrowUpDownIcon v-if="sortBy !== 'created_at'" class="w-3 h-3 opacity-50" />
+                  <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                  <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                </div>
               </th>
               <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+                @click="handleSort('nota_fiscal')"
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
               >
-                Nota Fiscal
+                <div class="flex items-center gap-1">
+                  Nota Fiscal
+                  <ArrowUpDownIcon v-if="sortBy !== 'nota_fiscal'" class="w-3 h-3 opacity-50" />
+                  <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                  <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                </div>
               </th>
               <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+                @click="handleSort('fornecedor')"
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
               >
-                Fornecedor
+                <div class="flex items-center gap-1">
+                  Fornecedor
+                  <ArrowUpDownIcon v-if="sortBy !== 'fornecedor'" class="w-3 h-3 opacity-50" />
+                  <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                  <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                </div>
               </th>
               <th
                 class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px]"

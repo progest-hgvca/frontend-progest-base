@@ -14,6 +14,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ModalVisualizarLotesProduto from "@/components/cadastros/ModalVisualizarLotesProduto.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -31,6 +38,9 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
 } from "lucide-vue-next";
 
 // Emits para comunicar com o componente pai
@@ -57,10 +67,21 @@ const modalVisualizarLotes = ref(null);
 const editandoQuantidade = ref(null);
 const novaQuantidadeMinima = ref(0);
 
-// Pagination & Search
+const filterGrupo = ref("todos");
 const searchQuery = ref("");
+const sortBy = ref("produto");
+const sortDir = ref("asc");
 const currentPage = ref(1);
 const perPage = ref(10);
+
+const handleSort = (col) => {
+  if (sortBy.value === col) {
+    sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
+  } else {
+    sortBy.value = col;
+    sortDir.value = "asc";
+  }
+};
 
 const loading = computed(() => {
   const parentItems = parentData.estoqueItems?.value || parentData.estoqueItems;
@@ -162,8 +183,23 @@ const formattedEstoque = computed(() => {
   }));
 });
 
+const listGrupos = computed(() => {
+  const grupos = new Set();
+  formattedEstoque.value.forEach(item => {
+    if (item.grupo && item.grupo !== "N/A") {
+      grupos.add(item.grupo);
+    }
+  });
+  return Array.from(grupos).sort();
+});
+
 const filteredEstoque = computed(() => {
-  let result = formattedEstoque.value;
+  let result = [...formattedEstoque.value];
+
+  if (filterGrupo.value !== "todos") {
+    result = result.filter(item => item.grupo === filterGrupo.value);
+  }
+
   if (searchQuery.value) {
     const term = searchQuery.value.toLowerCase();
     result = result.filter(
@@ -172,6 +208,30 @@ const filteredEstoque = computed(() => {
         item.grupo.toLowerCase().includes(term),
     );
   }
+  
+  result.sort((a, b) => {
+    let valA = null;
+    let valB = null;
+
+    if (sortBy.value === 'produto') {
+      valA = a.produto.toLowerCase();
+      valB = b.produto.toLowerCase();
+    } else if (sortBy.value === 'grupo') {
+      valA = a.grupo.toLowerCase();
+      valB = b.grupo.toLowerCase();
+    } else if (sortBy.value === 'quantidade') {
+      valA = Number(a.quantidade_atual);
+      valB = Number(b.quantidade_atual);
+    } else if (sortBy.value === 'minimo') {
+      valA = Number(a.quantidade_minima);
+      valB = Number(b.quantidade_minima);
+    }
+
+    if (valA < valB) return sortDir.value === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir.value === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return result;
 });
 
@@ -300,12 +360,25 @@ watch(searchQuery, () => {
       <!-- Main Inventory Table -->
       <div v-if="estoqueItems.length > 0" class="space-y-4">
         <!-- Toolbar: search -->
-        <div class="flex items-center justify-between gap-3 mt-4">
-          <div class="relative w-full max-w-xs">
+        <div class="flex flex-col md:flex-row md:items-center gap-3 mt-4">
+          <Select v-model="filterGrupo">
+            <SelectTrigger class="h-10 w-[200px] text-sm bg-slate-50 border-slate-100 rounded-xl shadow-inner">
+              <SelectValue placeholder="Grupo do Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Grupos</SelectItem>
+              <SelectItem v-for="grupo in listGrupos" :key="grupo" :value="grupo">
+                {{ grupo }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div class="relative w-full max-w-sm">
+            <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               v-model="searchQuery"
               placeholder="Pesquisar produto..."
-              class="h-10 px-4 text-sm bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-primary/20 transition-all shadow-inner"
+              class="h-10 !pl-10 pr-4 text-sm bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-primary/20 transition-all shadow-inner"
             />
           </div>
         </div>
@@ -316,24 +389,48 @@ watch(searchQuery, () => {
               <thead class="bg-slate-50 border-b">
                 <tr>
                   <th
-                    class="text-left font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px]"
+                    @click="handleSort('produto')"
+                    class="text-left font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors"
                   >
-                    Produto
+                    <div class="flex items-center gap-1">
+                      Produto
+                      <ArrowUpDownIcon v-if="sortBy !== 'produto'" class="w-3 h-3 opacity-50" />
+                      <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                      <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                    </div>
                   </th>
                   <th
-                    class="text-left font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] hidden md:table-cell"
+                    @click="handleSort('grupo')"
+                    class="text-left font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors hidden md:table-cell"
                   >
-                    Grupo
+                    <div class="flex items-center gap-1">
+                      Grupo
+                      <ArrowUpDownIcon v-if="sortBy !== 'grupo'" class="w-3 h-3 opacity-50" />
+                      <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                      <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                    </div>
                   </th>
                   <th
-                    class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px]"
+                    @click="handleSort('quantidade')"
+                    class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors"
                   >
-                    Qtd. Atual
+                    <div class="flex items-center justify-center gap-1">
+                      Quantidade Atual
+                      <ArrowUpDownIcon v-if="sortBy !== 'quantidade'" class="w-3 h-3 opacity-50" />
+                      <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                      <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                    </div>
                   </th>
                   <th
-                    class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px]"
+                    @click="handleSort('minimo')"
+                    class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors"
                   >
-                    Mínimo
+                    <div class="flex items-center justify-center gap-1">
+                      Mínimo
+                      <ArrowUpDownIcon v-if="sortBy !== 'minimo'" class="w-3 h-3 opacity-50" />
+                      <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                      <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                    </div>
                   </th>
                   <th
                     class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px]"
