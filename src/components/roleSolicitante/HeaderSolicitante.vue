@@ -1,6 +1,6 @@
 <template>
   <header class="flex justify-between items-center bg-azul-eclipse p-4 shadow-md">
-    <h2 class="text-4xl font-semibold text-white ml-2">Progest - Base</h2>
+    <h2 class="text-4xl font-semibold text-white ml-2">ProGest HGVC - Base</h2>
     <nav class="flex items-center space-x-10 text-xl">
       <a href="/pedidos" class="text-white underline-effect">Pedidos</a>
       <router-link to="/historico" class="text-white underline-effect">Histórico de Pedidos</router-link>

@@ -146,10 +146,10 @@ onMounted(carregarSetor);
 
 <template>
   <TemplateAdmin>
-    <div class="px-6 py-6 w-full h-full flex flex-col gap-6">
+    <div class="px-6 py-6 w-full h-full flex flex-col gap-4">
       <!-- Premium Header Section -->
       <div
-        class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
         <div class="flex items-center gap-5">
           <div
@@ -166,7 +166,7 @@ onMounted(carregarSetor);
             <div class="flex items-center gap-2 text-slate-500 font-medium">
               <span
                 class="text-xs font-black uppercase tracking-widest text-primary/70"
-                >Gestão de Unidade</span
+                >Gestão de Setor</span
               >
               <div class="w-1 h-1 rounded-full bg-slate-300"></div>
               <p class="text-xs">
@@ -201,8 +201,8 @@ onMounted(carregarSetor);
       </div>
 
       <!-- Main Content -->
-      <div v-else-if="setor.id" class="flex-1 flex flex-col gap-6">
-        <Tabs v-model="activeTab" @update:modelValue="changeTab" class="w-full flex flex-col gap-6">
+      <div v-else-if="setor.id" class="flex-1 flex flex-col gap-4">
+        <Tabs v-model="activeTab" @update:modelValue="changeTab" class="w-full flex flex-col gap-4">
           <div
             class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex self-start"
           >
@@ -268,7 +268,7 @@ onMounted(carregarSetor);
         <div class="p-6 bg-white rounded-full shadow-sm mb-4">
           <AlertTriangleIcon class="w-12 h-12 text-amber-500" />
         </div>
-        <h5 class="text-slate-800 font-bold text-lg">Unidade não encontrada</h5>
+        <h5 class="text-slate-800 font-bold text-lg">Setor não encontrado</h5>
         <p class="text-slate-500 text-sm max-w-xs text-center mt-2">
           Não foi possível carregar os detalhes do setor informado. Verifique o
           ID ou se ele ainda existe no sistema.
@@ -314,7 +314,7 @@ onMounted(carregarSetor);
               @click="confirmarExclusaoSetor"
               class="bg-red-600 hover:bg-red-700 text-white font-bold h-12 rounded-xl px-8 shadow-lg shadow-red-200"
             >
-              Sim, Excluir Unidade
+              Sim, Excluir Setor
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

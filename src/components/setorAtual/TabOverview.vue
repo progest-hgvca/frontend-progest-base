@@ -165,8 +165,8 @@ const formatarData = (date) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-10">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+  <div class="flex flex-col gap-4 pb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
       <!-- Info Section -->
       <div class="lg:col-span-2 space-y-6">
         <Card
@@ -179,17 +179,17 @@ const formatarData = (date) => {
             </CardTitle>
           </CardHeader>
           <CardContent class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="space-y-1">
                 <Label class="text-xs uppercase font-bold text-slate-400"
-                  >Nome da Unidade</Label
+                  >Nome do Setor</Label
                 >
                 <p class="text-lg font-semibold text-slate-900">
                   {{ setor.nome }}
                 </p>
               </div>
 
-              <div class="flex gap-8">
+              <div class="flex gap-4">
                 <div class="space-y-2">
                   <Label class="text-xs uppercase font-bold text-slate-400"
                     >Tipo de Insumos</Label
@@ -239,7 +239,7 @@ const formatarData = (date) => {
                 class="md:col-span-2 space-y-1 pt-4 border-t border-slate-100"
               >
                 <Label class="text-xs uppercase font-bold text-slate-400"
-                  >Unidade Central / Polo</Label
+                  >Polo</Label
                 >
                 <div class="flex items-center gap-2 text-slate-700 font-medium">
                   <div
@@ -406,7 +406,7 @@ const formatarData = (date) => {
               </Dialog>
             </div>
             <CardDescription
-              >Unidades centrais que fornecem itens.</CardDescription
+              >Setores centrais que fornecem itens.</CardDescription
             >
           </CardHeader>
           <CardContent class="pb-6">

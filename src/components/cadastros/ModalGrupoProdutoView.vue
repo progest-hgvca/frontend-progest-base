@@ -61,7 +61,7 @@ const close = () => emit("update:open", false);
         </div>
 
         <!-- Informações -->
-        <div class="grid grid-cols-1 gap-3.5">
+        <div class="grid grid-cols-1 gap-4.5">
           <div class="flex items-start gap-3">
             <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
               <TagIcon class="w-4 h-4 text-blue-500" />

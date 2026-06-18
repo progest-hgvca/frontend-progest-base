@@ -595,7 +595,7 @@ const imprimirPedido = (pedido) => {
 
       <div class="footer">
         <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
-        <p style="margin-top: 5px;">Sistema de Gestão de Estoque - ProGest</p>
+        <p style="margin-top: 5px;">Sistema de Gestão de Estoque - ProGest HGVC</p>
       </div>
 
       <${'script'}>

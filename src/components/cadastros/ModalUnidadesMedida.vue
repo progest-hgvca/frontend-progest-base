@@ -85,7 +85,7 @@ const handleSave = () => {
     "
   >
     <div class="space-y-6 py-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Name -->
         <div class="space-y-3">
           <Label

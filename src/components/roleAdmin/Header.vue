@@ -25,19 +25,19 @@
       </div>
 
       <!-- Right Side: User Info + Logout -->
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-4">
         <!-- Current Setor Badge with Details -->
         <div
           v-if="setorAtual"
           class="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg hover:shadow-md transition-shadow"
-          :title="`Setor: ${setorDetalhes?.nome}\nUnidade: ${setorDetalhes?.unidade?.nome}\nDescrição: ${setorDetalhes?.descricao}`"
+          :title="`Setor: ${setorDetalhes?.nome}\nPolo: ${setorDetalhes?.polo?.nome}\nDescrição: ${setorDetalhes?.descricao}`"
         >
           <span class="material-icons text-blue-600 text-lg">apartment</span>
           <div class="flex flex-col">
             <span
               class="text-xs text-blue-600 font-semibold uppercase tracking-wide"
             >
-              {{ setorDetalhes?.unidade?.nome || "Unidade" }}
+              Setor
             </span>
             <span class="text-sm font-medium text-blue-900">
               {{ setorDetalhes?.nome }}
@@ -80,8 +80,7 @@ const displayTitle = computed(() => {
     produtos: "Produtos",
     grupoProduto: "Grupos de Produtos",
     unidadesMedida: "Unidades de Medida",
-    unidades: "Unidades",
-    polos: "Unidades",
+    polos: "Polos",
     estoques: "Estoques",
     fornecedores: "Fornecedores",
   };

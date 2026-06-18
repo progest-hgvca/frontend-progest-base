@@ -93,7 +93,7 @@ onMounted(() => {
 
 <template>
   <TemplateAdmin>
-    <div class="px-6 py-6 w-full h-full flex flex-col gap-6">
+    <div class="px-6 py-6 w-full h-full flex flex-col gap-4">
       <!-- Main Table Card -->
       <div
         class="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden"

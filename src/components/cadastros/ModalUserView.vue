@@ -115,7 +115,7 @@ const close = () => emit("update:open", false);
         </div>
 
         <!-- Informações -->
-        <div class="grid grid-cols-1 gap-3.5">
+        <div class="grid grid-cols-1 gap-4.5">
           <!-- E-mail -->
           <div class="flex items-start gap-3">
             <div

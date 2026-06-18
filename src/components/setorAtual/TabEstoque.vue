@@ -199,7 +199,7 @@ watch(searchQuery, () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-10">
+  <div class="flex flex-col gap-4 pb-10">
     <!-- Loading -->
     <div
       v-if="loading"

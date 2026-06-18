@@ -74,7 +74,7 @@ const handleSave = () => {
   >
     <div class="space-y-6 py-4">
       <!-- Header Style within Dialog Content for context -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2 space-y-3">
           <Label
             for="cat-nome"

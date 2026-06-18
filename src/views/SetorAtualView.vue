@@ -230,7 +230,7 @@ onUnmounted(() => {
 
 <template>
   <TemplateAdmin>
-    <div class="px-6 py-6 w-full h-full flex flex-col gap-6">
+    <div class="px-6 py-6 w-full h-full flex flex-col gap-4">
       <!-- Loading State -->
       <div
         v-if="loading"
@@ -245,8 +245,8 @@ onUnmounted(() => {
       </div>
 
       <!-- Main Content -->
-      <div v-else-if="setor.id" class="flex-1 flex flex-col gap-6">
-        <Tabs v-model="activeTab" class="w-full flex flex-col gap-6">
+      <div v-else-if="setor.id" class="flex-1 flex flex-col gap-4">
+        <Tabs v-model="activeTab" class="w-full flex flex-col gap-4">
           <div
             class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex self-start"
           >

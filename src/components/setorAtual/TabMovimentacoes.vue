@@ -344,9 +344,9 @@ const excluirRascunho = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-10">
+  <div class="flex flex-col gap-4 pb-10">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-end gap-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
       <Button
         v-if="!isCAF"
         @click="dialogMovimentacaoOpen = true"
@@ -459,7 +459,15 @@ const excluirRascunho = async () => {
             <tr
               v-for="mov in filteredMovimentacoes"
               :key="mov.id"
-              class="hover:bg-slate-50/50 transition-colors group"
+              :class="[
+                'transition-colors group',
+                mov.status_solicitacao === 'A' ? 'bg-emerald-50/60 hover:bg-emerald-100/60' :
+                mov.status_solicitacao === 'R' ? 'bg-red-50/60 hover:bg-red-100/60' :
+                mov.status_solicitacao === 'P' ? 'bg-amber-50/60 hover:bg-amber-100/60' :
+                mov.status_solicitacao === 'X' ? 'bg-slate-100/60 hover:bg-slate-200/60 opacity-80' :
+                mov.status_solicitacao === 'C' ? 'bg-blue-50/60 hover:bg-blue-100/60' :
+                'hover:bg-slate-50/50'
+              ]"
             >
               <td class="py-4 px-6">
                 <div
@@ -666,7 +674,7 @@ const excluirRascunho = async () => {
         </div>
 
         <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-4 p-4 bg-white rounded-2xl border shadow-sm">
               <div
                 class="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest"

@@ -90,9 +90,9 @@ const handleUsuarioVinculado = () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-10">
+  <div class="flex flex-col gap-4 pb-10">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-end gap-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
       <div class="flex items-center gap-3">
         <div class="relative hidden sm:block">
           <Input

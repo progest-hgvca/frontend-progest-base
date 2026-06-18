@@ -144,7 +144,7 @@
               <i class="mdi mdi-cart"></i>
               Itens do Pedido
             </CardTitle>
-            <div class="flex items-center gap-6 text-sm">
+            <div class="flex items-center gap-4 text-sm">
               <div class="text-center">
                 <span class="text-muted-foreground">Itens:</span>
                 <span class="font-bold ml-1">{{ quantidadeProdutos }}</span>

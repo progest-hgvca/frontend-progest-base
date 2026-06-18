@@ -8,7 +8,7 @@
     <div class="logo-section">
       <img
         :src="currentLogoSrc"
-        :alt="is_expanded ? unidadeNome : 'ProGest Logo'"
+        :alt="is_expanded ? unidadeNome : 'ProGest HGVC Logo'"
         class="logo-image"
       />
     </div>
@@ -429,7 +429,7 @@ const isCAF = computed(() => {
 // Obter o nome da unidade do setor atual
 const unidadeNome = computed(() => {
   const setorDetails = store.state.setorDetails;
-  return setorDetails?.unidade?.nome || "ProGest";
+  return setorDetails?.polo?.nome || "ProGest HGVC";
 });
 
 // Obter a imagem da unidade baseada no nome

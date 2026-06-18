@@ -110,7 +110,7 @@ onMounted(carregarSetores);
 
 <template>
   <TemplateAdmin>
-    <div class="px-6 py-6 w-full h-full flex flex-col gap-6">
+    <div class="px-6 py-6 w-full h-full flex flex-col gap-4">
       <!-- Enhanced Filters Card -->
       <div
         class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden"
@@ -137,7 +137,7 @@ onMounted(carregarSetores);
 
         <!-- Secondary Filters Row -->
         <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end relative z-10"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end relative z-10"
         >
           <div class="space-y-2">
             <label
@@ -201,7 +201,7 @@ onMounted(carregarSetores);
               class="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-1.5 ml-1"
             >
               <div class="w-1 h-3 bg-primary/40 rounded-full"></div>
-              Polo / Unidade Regional
+              Polo
             </label>
             <Select v-model="filtroPolo">
               <SelectTrigger
@@ -209,7 +209,7 @@ onMounted(carregarSetores);
                 ><SelectValue
               /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Todas as Unidades</SelectItem>
+                <SelectItem value="ALL">Todos os Polos</SelectItem>
                 <SelectItem
                   v-for="u in polosList"
                   :key="u.id"
@@ -226,7 +226,7 @@ onMounted(carregarSetores);
       <!-- Interactive Grid -->
       <div
         v-if="setoresFiltrados.length > 0"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
       >
         <div
           v-for="setor in setoresFiltrados"

@@ -91,9 +91,9 @@ const handleEntradaRegistrada = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-10">
+  <div class="flex flex-col gap-4 pb-10">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-end gap-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
       <Button
         v-if="canAddEntrada"
         @click="dialogEntradaOpen = true"

@@ -4,7 +4,7 @@
   >
     <Card class="w-full max-w-sm shadow-2xl border-0">
       <CardHeader class="space-y-2">
-        <CardTitle class="text-2xl font-bold text-center"> PROGEST </CardTitle>
+        <CardTitle class="text-2xl font-bold text-center"> PROGEST HGVC </CardTitle>
         <CardDescription class="text-center">
           Acesso ao Sistema de Gestão de Estoque
         </CardDescription>

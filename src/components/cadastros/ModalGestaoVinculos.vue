@@ -150,7 +150,7 @@ const close = () => emit("update:open", false);
         <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 space-y-3">
           <Label class="text-xs font-bold uppercase tracking-wider text-slate-500">Novo Vínculo</Label>
 
-          <div class="grid grid-cols-1 gap-3">
+          <div class="grid grid-cols-1 gap-4">
             <div class="space-y-1.5">
               <Label>Setor</Label>
               <Select v-model="novoSetorId">

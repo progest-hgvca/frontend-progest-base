@@ -207,7 +207,7 @@ onMounted(listAllUsers);
 
 <template>
   <TemplateAdmin>
-    <div class="px-4 py-6 w-full h-full flex flex-col gap-6 max-w-[1800px] mx-auto">
+    <div class="px-4 py-6 w-full h-full flex flex-col gap-4 max-w-[1800px] mx-auto">
       <!-- Main Database Card -->
       <div
         class="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/30 overflow-hidden flex-1 flex flex-col"
@@ -354,7 +354,7 @@ onMounted(listAllUsers);
             <!-- Empty State -->
             <template #empty>
               <div
-                class="flex flex-col items-center justify-center py-24 gap-6"
+                class="flex flex-col items-center justify-center py-24 gap-4"
               >
                 <div class="relative">
                   <div

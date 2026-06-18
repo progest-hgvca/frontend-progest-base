@@ -158,7 +158,7 @@ const loadDashboardData = async () => {
 
   store.commit("setPageHeader", {
     title: `Olá, ${user.value.name || "Usuário"}!`,
-    subtitle: `Bem-vindo ao painel da unidade ${setorAtual.value.nome || "..."}`,
+    subtitle: `Bem-vindo ao painel do setor ${setorAtual.value.nome || "..."}`,
   });
 
   loading.value = false;
@@ -181,7 +181,7 @@ onMounted(loadDashboardData);
 
 <template>
   <TemplateAdmin>
-    <div class="px-6 py-8 w-full h-full flex flex-col gap-8 bg-slate-50/30">
+    <div class="px-6 pt-8 pb-24 w-full h-full flex flex-col gap-4 bg-slate-50/30">
       <!-- Loading State -->
       <div
         v-if="loading"
@@ -197,7 +197,7 @@ onMounted(loadDashboardData);
 
       <template v-else>
         <!-- Info Cards para Setores com Estoque -->
-        <div v-if="setorAtual.estoque" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div v-if="setorAtual.estoque" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card
             class="border-none shadow-sm bg-white hover:shadow-md transition-all group"
           >
@@ -296,7 +296,7 @@ onMounted(loadDashboardData);
         </div>
 
         <!-- Info Cards para Setores Sem Estoque (Consumidores) -->
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card
             class="border-none shadow-sm bg-white hover:shadow-md transition-all group"
           >
@@ -370,9 +370,9 @@ onMounted(loadDashboardData);
           </Card>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- Quick Actions -->
-          <div class="lg:col-span-1 flex flex-col gap-6">
+          <div class="lg:col-span-1 flex flex-col gap-4">
             <Card class="border-none shadow-sm h-full overflow-hidden">
               <CardHeader class="border-b bg-slate-50/50">
                 <CardTitle class="text-lg flex items-center gap-2">
@@ -456,7 +456,7 @@ onMounted(loadDashboardData);
           </div>
 
           <!-- Main Dashboard Sections -->
-          <div class="lg:col-span-2 flex flex-col gap-6">
+          <div class="lg:col-span-2 flex flex-col gap-4">
             <!-- Alerts Section (Somente com Estoque) -->
             <Card v-if="setorAtual.estoque" class="border-none shadow-sm overflow-hidden">
               <CardHeader
@@ -475,7 +475,7 @@ onMounted(loadDashboardData);
                   Ver tudo
                 </Button>
               </CardHeader>
-              <CardContent class="p-0">
+              <CardContent class="p-0 max-h-[200px] overflow-y-auto custom-scrollbar">
                 <div v-if="alerts.length > 0" class="divide-y divide-slate-100">
                   <div
                     v-for="item in alerts"
@@ -546,7 +546,7 @@ onMounted(loadDashboardData);
                   Ver tudo
                 </Button>
               </CardHeader>
-              <CardContent class="p-0">
+              <CardContent class="p-0 max-h-[200px] overflow-y-auto custom-scrollbar">
                 <div
                   v-if="recentRequests.length > 0"
                   class="divide-y divide-slate-100"
@@ -582,12 +582,12 @@ onMounted(loadDashboardData);
                             {{
                               req.setor_origem_id == store.state.setorAtualId
                                 ? "Dest: " +
-                                  (req.setor_destino?.nome || "Unidade")
-                                : "Orig: " + (req.setor_origem?.nome || "Unidade")
+                                  (req.setor_destino?.nome || "Setor")
+                                : "Orig: " + (req.setor_origem?.nome || "Setor")
                             }}
                           </span>
                           <span v-else>
-                            Orig: {{ req.setor_origem?.nome || "Unidade" }}
+                            Orig: {{ req.setor_origem?.nome || "Setor" }}
                           </span>
                         </p>
                         <p class="text-[10px] text-slate-400 font-bold mt-1 flex items-center gap-2">
@@ -627,6 +627,8 @@ onMounted(loadDashboardData);
             </Card>
           </div>
         </div>
+        <!-- Spacer para espaço na parte inferior -->
+        <div class="h-12 w-full shrink-0"></div>
       </template>
     </div>
   </TemplateAdmin>
