@@ -51,6 +51,18 @@ var ADD_UP = (content, funcao) => {
     })
     .catch(function (error) {
       console.error("Erro capturado globalmente:", error);
+      if (error.response && error.response.status === 422) {
+        const backendErrors = error.response.data.errors || {};
+        const parsedErrors = {};
+        for (const key in backendErrors) {
+          const cleanKey = key.replace("user.", "");
+          parsedErrors[cleanKey] = backendErrors[key];
+        }
+        content.$store.commit("setModalErrors", parsedErrors);
+        feedback.error("Verifique os campos obrigatórios e tente novamente.");
+      } else {
+        feedback.error(error.response?.data?.message || "Erro ao salvar usuário.");
+      }
     });
 };
 
@@ -177,39 +189,7 @@ var listData = (content) => {
     });
 };
 
-var toggleData = (content, idToggle, metodo, field = null, checkd = null) => {
-  content.$axios
-    .post(
-      "/user/toggle/" + metodo,
-      {
-        id: content.$store.state.idDataLoaded,
-        id_toggle: idToggle,
-        field: field,
-        checkd: checkd,
-      },
-      {
-        headers: {
-          Authorization: "Bearer " + content.$store.getters.getUserToken,
-        },
-      }
-    )
-    .then((response) => {
-      //content.$store.commit("setIdDataLoaded", content.idData);
-      //content.$store.commit("setModalData", response.data.data);
-      console.log("toggleData", response.data);
-      if (response.data.attached) {
-        content.$toastr.s(
-          (response.data.attached.length > 0 ? "Vinculado" : "Desvinculado") +
-          " com sucesso"
-        );
-      } else {
-        content.$toastr.s("Atualizado com sucesso");
-      }
-    })
-    .catch((error) => {
-      console.error("Erro no toggleData:", error);
-    });
-};
+
 
 // Mantém apenas a função de tipos de vínculo que é obrigatória
 var listTiposVinculo = (content, url = null) => {
@@ -293,7 +273,6 @@ var exportFunctions = {
   listALL: listALL,
   listData: listData,
   deleteData: deleteData,
-  toggleData: toggleData,
   EDIT_PERFIL: EDIT_PERFIL,
   listTiposVinculo: listTiposVinculo,
   listPolos: listPolos,

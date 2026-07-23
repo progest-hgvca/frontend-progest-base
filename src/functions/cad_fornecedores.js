@@ -47,6 +47,18 @@ var ADD_UP = (content, funcao) => {
     })
     .catch(function (error) {
       console.error("Erro na requisição:", error);
+      if (error.response && error.response.status === 422) {
+        const backendErrors = error.response.data.errors || {};
+        const parsedErrors = {};
+        for (const key in backendErrors) {
+          const cleanKey = key.replace("fornecedor.", "");
+          parsedErrors[cleanKey] = backendErrors[key];
+        }
+        content.$store.commit("setModalErrors", parsedErrors);
+        feedback.error("Verifique os campos obrigatórios e tente novamente.");
+      } else {
+        feedback.error(error.response?.data?.message || "Erro ao processar a requisição.");
+      }
     });
 };
 

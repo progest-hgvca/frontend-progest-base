@@ -5,6 +5,7 @@ import { feedback } from "@/components/ui/feedback-modal";
 var ADD_UP = (content, funcao) => {
   const unidadeData = {
     nome: content.modalData.nome,
+    sigla: content.modalData.sigla,
     status: content.modalData.status || "A",
   };
 
@@ -131,8 +132,8 @@ var deleteData = (content, id) => {
 
   content.$axios
     .post(
-      `/polo/delete/${id}`,
-      {},
+      `/polo/toggleStatus`,
+      { id: id },
       {
         headers: {
           Authorization: "Bearer " + content.$store.getters.getUserToken,
