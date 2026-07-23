@@ -225,6 +225,9 @@ const filteredEstoque = computed(() => {
     } else if (sortBy.value === 'minimo') {
       valA = Number(a.quantidade_minima);
       valB = Number(b.quantidade_minima);
+    } else if (sortBy.value === 'status') {
+      valA = a.abaixo_minimo ? 1 : 0;
+      valB = b.abaixo_minimo ? 1 : 0;
     }
 
     if (valA < valB) return sortDir.value === 'asc' ? -1 : 1;
@@ -433,9 +436,15 @@ watch(searchQuery, () => {
                     </div>
                   </th>
                   <th
-                    class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px]"
+                    @click="handleSort('status')"
+                    class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors"
                   >
-                    Status
+                    <div class="flex items-center justify-center gap-1">
+                      Status
+                      <ArrowUpDownIcon v-if="sortBy !== 'status'" class="w-3 h-3 opacity-50" />
+                      <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                      <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                    </div>
                   </th>
                   <th
                     v-if="!readOnly"

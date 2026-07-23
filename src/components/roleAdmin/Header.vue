@@ -29,7 +29,8 @@
         <!-- Current Setor Badge with Details -->
         <div
           v-if="setorAtual"
-          class="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg hover:shadow-md transition-shadow"
+          @click="$router.push('/setor-atual?tab=overview')"
+          class="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
           :title="`Setor: ${setorDetalhes?.nome}\nPolo: ${setorDetalhes?.polo?.nome}\nDescrição: ${setorDetalhes?.descricao}`"
         >
           <span class="material-icons text-blue-600 text-lg">apartment</span>

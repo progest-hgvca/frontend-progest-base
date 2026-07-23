@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, getCurrentInstance } from "vue";
+import { computed, ref, onMounted, getCurrentInstance, watch } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import LinkModal01 from "@/components/layouts/LinkModal01.vue";
@@ -101,9 +101,18 @@ const confirmarExclusao = async (setor) => {
       { $axios: proxy.$axios, $store: store, $toastr: proxy.$toastr },
       setor.id,
     );
-    if (result?.success) carregarSetores();
+    if (result?.success) {
+      carregarSetores();
+      proxy.$toastr.success("Setor excluído com sucesso!");
+    } else {
+      proxy.$toastr.error(result?.message || "Erro ao excluir setor");
+    }
   }
 };
+
+watch(() => store.state.modalData.isModalOpen, (isOpen) => {
+  if (!isOpen) carregarSetores();
+});
 
 onMounted(carregarSetores);
 </script>
@@ -123,7 +132,7 @@ onMounted(carregarSetores);
             </div>
             <Input
               v-model="searchQuery"
-              placeholder="Pesquisar unidade..."
+              placeholder="Pesquisar setor..."
               class="h-10 pl-9 pr-4 text-sm bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-primary/20 transition-all shadow-inner w-full"
             />
           </div>
@@ -301,7 +310,7 @@ onMounted(carregarSetores);
               <p
                 class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate"
               >
-                {{ setor.unidade?.nome || "Sem Polo Definido" }}
+                {{ setor.polo?.nome || setor.unidade?.nome || "Sem Polo Definido" }}
               </p>
             </div>
           </div>
@@ -322,7 +331,7 @@ onMounted(carregarSetores);
               "
               class="text-[9px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-lg"
             >
-              {{ setor.estoque ? "Estoque Ativo" : "Controle Externo" }}
+              {{ setor.estoque ? "Estoque Ativo" : "Sem Estoque" }}
             </Badge>
           </div>
 

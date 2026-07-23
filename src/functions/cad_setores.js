@@ -508,6 +508,9 @@ var deleteSetor = (content, id) => {
     })
     .catch(function (error) {
       console.error("Erro na requisição de exclusão:", error);
+      if (error.response && error.response.data && error.response.data.message) {
+         return { success: false, message: error.response.data.message, references: error.response.data.references };
+      }
       return { success: false, message: "Erro de conexão com o servidor" };
     });
 };

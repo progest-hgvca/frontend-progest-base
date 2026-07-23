@@ -436,6 +436,7 @@ onMounted(loadDashboardData);
                 </Button>
 
                 <Button
+                  v-if="!isSolicitante && !isAdmin"
                   @click="navigateTo('/setor-atual', { tab: 'movimentacoes' })"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
@@ -538,10 +539,11 @@ onMounted(loadDashboardData);
                   {{ setorAtual.estoque ? 'Solicitações Pendentes' : 'Meus Pedidos Recentes' }}
                 </CardTitle>
                 <Button
+                  v-if="!isAdmin"
                   variant="ghost"
                   size="sm"
                   class="text-xs text-primary"
-                  @click="navigateTo('/setor-atual', { tab: 'movimentacoes' })"
+                  @click="navigateTo(isSolicitante ? '/pedidos' : '/setor-atual', isSolicitante ? {} : { tab: 'movimentacoes' })"
                 >
                   Ver tudo
                 </Button>

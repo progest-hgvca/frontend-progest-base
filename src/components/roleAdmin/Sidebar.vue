@@ -106,6 +106,16 @@
         </router-link>
 
         <router-link
+          v-if="!isSolicitante && isAdminUser"
+          class="menu-item"
+          to="/setor-atual?tab=usuarios"
+          title="Equipe"
+        >
+          <span class="material-icons menu-icon">group</span>
+          <span class="menu-text">Equipe</span>
+        </router-link>
+
+        <router-link
           v-if="setoresConsumidores.length > 0"
           class="menu-item"
           to="/setores-consumidores"
@@ -582,7 +592,7 @@ watch(
     justify-content: center;
     align-items: center;
     height: 70px;
-    padding: 0 1rem;
+    padding: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     margin-bottom: 0.5rem;
 
@@ -591,13 +601,14 @@ watch(
       height: auto;
       transition: max-width 0.3s ease;
       filter: brightness(0) invert(1);
+      margin: 0 auto;
     }
   }
 
   &.is-expanded {
     .logo-section {
       .logo-image {
-        max-width: 220px;
+        max-width: 200px;
       }
     }
   }

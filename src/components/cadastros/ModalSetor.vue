@@ -235,8 +235,8 @@ const removeDistribuidor = (index) => {
           Setores Fornecedores (Distribuidores)
         </Label>
 
-        <div class="flex gap-2">
-          <Select v-model="selectedSetorId">
+        <div class="flex gap-2 w-full">
+          <Select :model-value="selectedSetorId" @update:model-value="val => { selectedSetorId = val; adicionarDistribuidor(); }">
             <SelectTrigger
               ><SelectValue placeholder="Selecione um fornecedor"
             /></SelectTrigger>
@@ -250,14 +250,6 @@ const removeDistribuidor = (index) => {
               </SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant="outline"
-            size="icon"
-            @click="adicionarDistribuidor"
-            :disabled="!selectedSetorId"
-          >
-            <PlusIcon class="h-4 w-4" />
-          </Button>
         </div>
 
         <div class="space-y-2 max-h-[150px] overflow-y-auto pr-1">
