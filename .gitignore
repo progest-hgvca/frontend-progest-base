@@ -34,8 +34,6 @@ coverage
 .env.*
 !.env.examplecypress
 
-cypress.config.js
-
-
 cypress
 cypress.config.js
+cypress_out.txt

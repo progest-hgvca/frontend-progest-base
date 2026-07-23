@@ -115,9 +115,6 @@ const formatCPF = (cpf) => {
 // no listALL do cad_usuarios.js (enrichedUsers). Não reconverter aqui.
 
 const listAllUsers = async (url = null) => {
-  await functions.listTiposVinculo({ $axios: proxy.$axios, $store: store });
-  await functions.listPolos({ $axios: proxy.$axios, $store: store });
-  
   functions.listALL(
     {
       $axios: proxy.$axios,
@@ -132,9 +129,13 @@ const listAllUsers = async (url = null) => {
   );
 };
 
+let searchTimeout = null;
 const handleSearch = (query) => {
   searchQuery.value = query;
-  listAllUsers();
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    listAllUsers();
+  }, 400);
 };
 
 const handleSort = (key) => {
@@ -203,7 +204,13 @@ const handleToggleStatus = (item) => {
   );
 };
 
-onMounted(listAllUsers);
+onMounted(async () => {
+  await Promise.all([
+    functions.listTiposVinculo({ $axios: proxy.$axios, $store: store }),
+    functions.listPolos({ $axios: proxy.$axios, $store: store })
+  ]);
+  listAllUsers();
+});
 </script>
 
 <template>
