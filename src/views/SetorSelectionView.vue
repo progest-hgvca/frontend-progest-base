@@ -59,6 +59,12 @@
             momento. Fale com o administrador para vincular um setor à sua
             conta.
           </div>
+          <div v-if="isGlobalAdmin" class="pt-2 border-t mt-4 space-y-2">
+            <p class="text-sm text-slate-600 font-medium">Modo Administrador Global</p>
+            <Button @click="$router.push('/polos')" class="w-full h-10 bg-indigo-600 hover:bg-indigo-700">
+              Configurar Sistema (Cadastros Básicos)
+            </Button>
+          </div>
           <Button @click="logout" variant="destructive" class="w-full h-10">
             Fazer Logout
           </Button>
@@ -234,6 +240,11 @@ const polos = computed(() => {
     }
   });
   return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
+});
+
+const isGlobalAdmin = computed(() => {
+  const user = store.state.user;
+  return user && (user.email === "admin@admin.com" || !!user.is_admin);
 });
 
 const setoresFiltrados = computed(() => {

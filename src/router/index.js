@@ -288,8 +288,15 @@ router.beforeEach(async (to, from, next) => {
 
   // Se a rota requer setor selecionado e não tem
   if (to.meta.requiresSector && !hasSector) {
-    next("/setor-selection");
-    return;
+    const userObj = store.state.user || JSON.parse(localStorage.getItem('user') || '{}');
+    const isGlobalAdmin = userObj && (userObj.email === "admin@admin.com" || !!userObj.is_admin);
+    
+    if (isGlobalAdmin) {
+      // O admin global tem permissão para ignorar o bloqueio de falta de setor para poder configurar o sistema inicial
+    } else {
+      next("/setor-selection");
+      return;
+    }
   }
 
   // Se não está autenticado e tenta fazer logout (limpar cookies)

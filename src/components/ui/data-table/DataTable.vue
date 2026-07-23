@@ -40,6 +40,7 @@ interface Props {
   columns: Column[];
   data: any[];
   loading?: boolean;
+  hasVinculosAction?: boolean;
   pagination?: {
     current_page: number;
     last_page: number;
@@ -49,7 +50,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["search", "paginate", "sort", "view", "edit", "toggle-status"]);
+const emit = defineEmits(["search", "paginate", "sort", "view", "edit", "toggle-status", "manage-vinculos"]);
 
 const searchQuery = ref("");
 
@@ -189,7 +190,17 @@ const onSort = (key: string) => {
 
                 <!-- Actions cell -->
                 <TableCell class="py-2 px-4 text-center">
-                  <DropdownMenu>
+                  <div class="flex items-center justify-center gap-1">
+                    <slot name="rowExtraActions" :item="item" />
+                    <button
+                      v-if="hasVinculosAction"
+                      @click.stop="emit('manage-vinculos', item)"
+                      class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+                      title="Gerenciar Vínculos de Setor"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link w-4 h-4"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </button>
+                    <DropdownMenu>
                     <DropdownMenuTrigger as-child>
                       <Button
                         variant="ghost"
@@ -230,6 +241,7 @@ const onSort = (key: string) => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             </template>

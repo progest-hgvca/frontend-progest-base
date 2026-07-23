@@ -116,6 +116,7 @@ const formatCPF = (cpf) => {
 
 const listAllUsers = async (url = null) => {
   await functions.listTiposVinculo({ $axios: proxy.$axios, $store: store });
+  await functions.listPolos({ $axios: proxy.$axios, $store: store });
   
   functions.listALL(
     {
@@ -224,6 +225,8 @@ onMounted(listAllUsers);
             @view="handleView"
             @edit="handleEdit"
             @toggle-status="handleToggleStatus"
+            has-vinculos-action
+            @manage-vinculos="handleVinculos"
           >
             <!-- Actions Slot -->
             <template #actions>
@@ -340,16 +343,6 @@ onMounted(listAllUsers);
               </div>
             </template>
 
-            <!-- Botão Extra: Gerenciar Vínculos de Setor -->
-            <template #row-extra-actions="{ item }">
-              <button
-                @click.stop="handleVinculos(item)"
-                class="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
-                title="Gerenciar Vínculos de Setor"
-              >
-                <LinkIcon class="w-4 h-4" />
-              </button>
-            </template>
 
             <!-- Empty State -->
             <template #empty>
