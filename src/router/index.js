@@ -1,9 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
-import DashboardView from "@/views/DashboardView.vue";
 import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 import SetorSelectionView from "../views/SetorSelectionView.vue";
-import HistoricoDePedidosView from "@/views/roleSolicitante/HistoricoDePedidosView.vue";
 import PedidosView from "@/views/roleSolicitante/PedidosView.vue";
 import SetorAtualView from "@/views/SetorAtualView.vue";
 import { setorCookie } from "@/utils/setorCookie";
@@ -14,7 +12,6 @@ import functionsUsuarioSetor from "@/functions/cad_usuario_setor";
 
 // cadastros
 import Home from "@/views/Home.vue";
-import About from "@/views/About.vue";
 import Users from "../views/cadastros/Users.vue";
 
 import SetorDetalhes from "../views/cadastros/SetorDetalhes.vue";
@@ -25,9 +22,6 @@ import GrupoProduto from "../views/cadastros/GrupoProduto.vue";
 import Polos from "../views/cadastros/Polos.vue";
 import Setores from "../views/cadastros/Setores.vue";
 import Perfis from "../views/cadastros/Perfis.vue";
-import CategoriasProdutos from "../views/cadastros/CategoriasProdutos.vue";
-import Estoque from "@/views/cadastros/Estoque.vue";
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -51,16 +45,6 @@ const router = createRouter({
       path: "/home",
       name: "home",
       component: Home,
-    },
-    {
-      path: "/about",
-      name: "about",
-      component: About,
-    },
-    {
-      path: "/dashboard",
-      name: "dashboard",
-      redirect: "/home",
     },
     {
       path: "/setor-atual",
@@ -131,12 +115,7 @@ const router = createRouter({
       component: Setores,
       meta: { requiresAuth: true, requiresSector: true, globalAdminOnly: true },
     },
-    {
-      path: "/historico",
-      name: "historico",
-      component: HistoricoDePedidosView,
-      meta: { requiresAuth: true, requiresSector: true },
-    },
+
     // Relatórios (placeholders / views de relatórios)
     {
       path: "/relatorios",
