@@ -50,7 +50,7 @@ Neste modo, o frontend roda dentro de um container Nginx e se comunica com o Tra
 
    * **Mudança de Link:** O domínio único agora governa o frontend e backend. Ajuste apenas `APP_DOMAIN` em seus `.env`.
    * **Problemas de CORS:** Agora são extintos nativamente na produção e no Docker local pois a API compartilha a base do Frontend (ex: `/api`).
-   * **Banco Vazio:** Se o sistema logar mas não mostrar nada, certifique-se de ter rodado o comando `php artisan db:seed` no backend.
+   * **Banco Vazio:** Se o sistema logar mas não mostrar nada, certifique-se de ter rodado o comando `php artisan db:seed --class=FullSystemSeeder` no backend.
 
 ---
 
