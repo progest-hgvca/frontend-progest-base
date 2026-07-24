@@ -319,6 +319,30 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
+import {
+  HomeIcon,
+  Building2Icon,
+  PackageIcon,
+  ArrowLeftRightIcon,
+  DownloadIcon,
+  ShoppingCartIcon,
+  UsersIcon,
+  StoreIcon,
+  PlusCircleIcon,
+  ChevronDownIcon,
+  LayersIcon,
+  BriefcaseIcon,
+  MapIcon,
+  BuildingIcon,
+  TagIcon,
+  RulerIcon,
+  BarChart2Icon,
+  LineChartIcon,
+  ReceiptTextIcon,
+  CalendarIcon,
+  ArrowUpRightIcon,
+  BoxesIcon
+} from "lucide-vue-next";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import axios from "axios";
@@ -809,17 +833,5 @@ watch(
   opacity: 1;
 }
 
-.material-icons {
-  font-family: "Material Icons";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-}
+
 </style>

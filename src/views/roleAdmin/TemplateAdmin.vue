@@ -22,17 +22,11 @@ import Header from "@/components/roleAdmin/Header.vue";
     flex: 1;
     /* Faz o conteúdo ocupar o restante do espaço */
     overflow-y: auto;
-    background-color: var(--light);
+    background-color: #f8fafc;
   }
 }
 
-:root {
-  --grey: #64748b;
-  --dark: rgba(0, 77, 153, 1);
-  --dark-alt: #002c6b;
-  --light: #f1f5f9;
-  --sidebar-width: 300px;
-}
+
 
 * {
   margin: 0;
@@ -41,7 +35,7 @@ import Header from "@/components/roleAdmin/Header.vue";
 }
 
 body {
-  background: var(--light);
+  background: #f8fafc;
 }
 
 button {
@@ -66,7 +60,7 @@ button {
         flex: 1;
         /* Faz o conteúdo ocupar o restante do espaço */
         overflow-x: auto;
-        background-color: var(--light);
+        background-color: #f8fafc;
       }
     }
   }
