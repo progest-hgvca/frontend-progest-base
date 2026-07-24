@@ -507,7 +507,7 @@ const loadSetoresConsumidores = async () => {
 
   try {
     const response = await axios.post(
-      `${API_URL}/setores/listConsumers`,
+      `/setores/listConsumers`,
       { id: setorDetails.id },
       {
         headers: {

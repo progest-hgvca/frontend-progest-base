@@ -97,7 +97,7 @@ const login = async () => {
   loading.value = true;
   errorMessage.value = "";
   try {
-    const response = await axios.post(`${apiUrl}/login`, {
+    const response = await axios.post(`/login`, {
       email: email.value,
       password: password.value,
     });

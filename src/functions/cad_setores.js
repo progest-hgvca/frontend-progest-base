@@ -424,7 +424,7 @@ export const buscarSetorPorId = async (id) => {
     console.log("=== buscarSetorPorId iniciado para ID:", id);
 
     const response = await axios.post(
-      `${API_URL}/setores/listData`,
+      `/setores/listData`,
       { id },
       {
         headers: {
@@ -454,7 +454,7 @@ export const buscarSetorPorId = async (id) => {
 export const atualizarSetor = async (dadosSetor) => {
   try {
     const response = await axios.post(
-      `${API_URL}/setores/update`,
+      `/setores/update`,
       { setores: dadosSetor },
       {
         headers: {
@@ -591,7 +591,7 @@ var getSetorDetail = (content, setorId) => {
 export const addDistribuidor = async (setorSolicitanteId, setorFornecedorId) => {
   try {
     const response = await axios.post(
-      `${API_URL}/setores/addDistribuidor`,
+      `/setores/addDistribuidor`,
       {
         setor_solicitante_id: setorSolicitanteId,
         setor_distribuidor_id: setorFornecedorId,
@@ -625,7 +625,7 @@ export const addDistribuidor = async (setorSolicitanteId, setorFornecedorId) => 
 export const removeDistribuidor = async (id) => {
   try {
     const response = await axios.post(
-      `${API_URL}/setores/removeDistribuidor`,
+      `/setores/removeDistribuidor`,
       { id },
       {
         headers: {

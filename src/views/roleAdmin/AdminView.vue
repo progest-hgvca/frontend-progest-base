@@ -59,7 +59,7 @@ const fetchUserInfo = async () => {
       Authorization: `Bearer ${token}`,
     };
 
-    const response = await axios.get(`${apiUrl}/user`, { headers });
+    const response = await axios.get(`/user`, { headers });
     userName.value = response.data.name || "Usuário";
     userRole.value = response.data.role || "Admin";
   } catch (error) {

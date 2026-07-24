@@ -103,7 +103,7 @@ export default {
       };
 
       try {
-        await axios.post(`${API_URL}/register`, formData);
+        await axios.post(`/register`, formData);
         this.$router.push("/login");
       } catch (error) {
         console.error("Erro ao registrar usuário", error.response.data);
