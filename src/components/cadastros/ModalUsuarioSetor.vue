@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, inject } from "vue";
+import { ref, watch, computed, inject, nextTick } from "vue";
 import {
   Dialog,
   DialogContent,
@@ -8,21 +8,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { onClickOutside } from "@vueuse/core";
 import {
   UserPlusIcon,
   ShieldCheckIcon,
   UserCogIcon,
   CheckIcon,
   AlertCircleIcon,
+  SearchIcon,
+  ChevronDownIcon,
+  XIcon,
 } from "lucide-vue-next";
 import Funcoes from "@/functions/cad_usuario_setor.js";
 
@@ -82,6 +79,52 @@ const getRoleErrorMsg = (role) => {
   return "";
 };
 
+/* --- Seleção de colaborador com busca --- */
+const userSearch = ref("");
+const isUserListOpen = ref(false);
+const userPickerRef = ref(null);
+const searchInputRef = ref(null);
+
+// Remove acentos para que "jose" encontre "JOSÉ"
+const normalize = (valor) =>
+  String(valor ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+
+const filteredUsers = computed(() => {
+  const termo = normalize(userSearch.value).trim();
+  if (!termo) return availableUsers.value;
+  return availableUsers.value.filter((u) =>
+    [u.name, u.email, u.cpf].some((campo) => normalize(campo).includes(termo)),
+  );
+});
+
+const selectedUserName = computed(() => {
+  const encontrado = availableUsers.value.find(
+    (u) => String(u.id) === String(form.value.usuario_id),
+  );
+  return encontrado ? encontrado.name : "";
+});
+
+const toggleUserList = async () => {
+  isUserListOpen.value = !isUserListOpen.value;
+  if (!isUserListOpen.value) return;
+  await nextTick();
+  const el = searchInputRef.value?.$el ?? searchInputRef.value;
+  el?.focus?.();
+};
+
+const selectUser = (usuario) => {
+  form.value.usuario_id = String(usuario.id);
+  userSearch.value = "";
+  isUserListOpen.value = false;
+};
+
+onClickOutside(userPickerRef, () => {
+  isUserListOpen.value = false;
+});
+
 const loadData = async () => {
   const context = {
     $axios: parentContext.$axios,
@@ -101,6 +144,9 @@ const loadData = async () => {
 };
 
 watch(isOpen, (newVal) => {
+  userSearch.value = "";
+  isUserListOpen.value = false;
+
   if (newVal) {
     loadData();
     if (props.mode === "UP" && props.initialData) {
@@ -210,34 +256,93 @@ const submit = async () => {
             class="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1"
             >Colaborador Disponível</Label
           >
-          <Select v-model="form.usuario_id">
-            <SelectTrigger
-              class="h-12 border-slate-200 rounded-xl bg-slate-50/30"
+          <div ref="userPickerRef" class="relative">
+            <!-- Gatilho -->
+            <button
+              type="button"
+              @click="toggleUserList"
+              class="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/30 px-3 text-sm transition-colors hover:bg-slate-50"
             >
-              <SelectValue placeholder="Busque um usuário..." />
-            </SelectTrigger>
-            <SelectContent class="rounded-xl border-slate-200">
-              <SelectItem
-                v-for="u in availableUsers"
-                :key="u.id"
-                :value="u.id.toString()"
-                class="py-3 px-4"
+              <span
+                :class="
+                  selectedUserName
+                    ? 'font-bold text-slate-800'
+                    : 'text-slate-400'
+                "
               >
-                <div class="flex flex-col">
-                  <span class="font-bold text-slate-800">{{ u.name }}</span>
-                </div>
-              </SelectItem>
-              <div
-                v-if="availableUsers.length === 0"
-                class="flex flex-col items-center py-6 px-4 text-center"
-              >
-                <AlertCircleIcon class="w-6 h-6 text-slate-300 mb-2" />
-                <span class="text-xs text-slate-400 font-medium"
-                  >Todos os usuários já estão vinculados.</span
+                {{ selectedUserName || "Busque um usuário..." }}
+              </span>
+              <ChevronDownIcon
+                class="h-4 w-4 shrink-0 text-slate-400 transition-transform"
+                :class="{ 'rotate-180': isUserListOpen }"
+              />
+            </button>
+
+            <!-- Lista com busca -->
+            <div
+              v-if="isUserListOpen"
+              class="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+            >
+              <div class="border-b border-slate-100 p-2">
+                <div
+                  class="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 transition-colors focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20"
                 >
+                  <SearchIcon class="h-4 w-4 shrink-0 text-slate-400" />
+                  <input
+                    ref="searchInputRef"
+                    v-model="userSearch"
+                    type="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Nome, e-mail ou CPF..."
+                    class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                    @keydown.esc="isUserListOpen = false"
+                  />
+                  <button
+                    v-if="userSearch"
+                    type="button"
+                    aria-label="Limpar busca"
+                    class="shrink-0 text-slate-300 transition-colors hover:text-slate-500"
+                    @click="userSearch = ''"
+                  >
+                    <XIcon class="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-            </SelectContent>
-          </Select>
+
+              <div class="max-h-48 overflow-y-auto">
+                <button
+                  v-for="u in filteredUsers"
+                  :key="u.id"
+                  type="button"
+                  @click="selectUser(u)"
+                  class="flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                  :class="{
+                    'bg-primary/5': String(u.id) === String(form.usuario_id),
+                  }"
+                >
+                  <span class="font-bold text-slate-800">{{ u.name }}</span>
+                  <span v-if="u.email" class="text-xs text-slate-400">{{
+                    u.email
+                  }}</span>
+                </button>
+
+                <div
+                  v-if="filteredUsers.length === 0"
+                  class="flex flex-col items-center px-4 py-6 text-center"
+                >
+                  <AlertCircleIcon class="mb-2 h-6 w-6 text-slate-300" />
+                  <span class="text-xs font-medium text-slate-400">
+                    {{
+                      availableUsers.length === 0
+                        ? "Todos os usuários já estão vinculados."
+                        : `Nenhum usuário encontrado para "${userSearch}".`
+                    }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Role Selection -->

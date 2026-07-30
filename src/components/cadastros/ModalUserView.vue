@@ -184,7 +184,7 @@ const close = () => emit("update:open", false);
             </div>
           </div>
 
-          <!-- Tipo de Vínculo -->
+          <!-- Regime de Contratação -->
           <div class="flex items-start gap-3">
             <div
               class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center shrink-0"
@@ -193,7 +193,7 @@ const close = () => emit("update:open", false);
             </div>
             <div>
               <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                Tipo de Vínculo
+                Regime de Contratação
               </p>
               <p class="text-sm text-slate-700 font-medium">
                 {{ tipoVinculoNome }}

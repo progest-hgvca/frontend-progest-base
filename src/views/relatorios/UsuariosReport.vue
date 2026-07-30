@@ -26,7 +26,7 @@
                   </select>
                 </div>
                 <div class="col-md-2">
-                  <label class="form-label">Tipo de Vínculo</label>
+                  <label class="form-label">Regime de Contratação</label>
                   <select v-model.number="filters.tipo_vinculo_id" class="form-select">
                     <option :value="''">Todos</option>
                     <option v-for="tv in tiposVinculo" :key="tv.id" :value="tv.id">{{ tv.nome }}</option>
@@ -88,7 +88,7 @@
                         <th>CPF</th>
                         <th>Telefone</th>
                         <th>Data Nascimento</th>
-                        <th>Vínculo</th>
+                        <th>Contratação</th>
                         <th>Status</th>
                         <th>Total Setores</th>
                       </tr>
@@ -316,7 +316,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['ID', 'Nome', 'Email', 'CPF', 'Telefone', 'Data Nascimento', 'Vínculo', 'Status', 'Setor', 'Polo', 'Perfil']);
+      data.push(['ID', 'Nome', 'Email', 'CPF', 'Telefone', 'Data Nascimento', 'Contratação', 'Status', 'Setor', 'Polo', 'Perfil']);
       
       // Dados
       for (const u of this.usuarios) {
@@ -366,7 +366,7 @@ export default {
         { wch: 15 },  // CPF
         { wch: 15 },  // Telefone
         { wch: 14 },  // Data Nascimento
-        { wch: 15 },  // Vínculo
+        { wch: 15 },  // Contratação
         { wch: 10 },  // Status
         { wch: 25 },  // Setor
         { wch: 25 },  // Polo
@@ -390,7 +390,7 @@ export default {
       doc.setFontSize(10);
       const filtros = [];
       if (this.filters.status) filtros.push(`Status: ${this.filters.status === 'A' ? 'Ativo' : 'Inativo'}`);
-      if (this.filters.tipo_vinculo) filtros.push(`Vínculo: ${this.filters.tipo_vinculo}`);
+      if (this.filters.tipo_vinculo) filtros.push(`Contratação: ${this.filters.tipo_vinculo}`);
       if (filtros.length > 0) {
         doc.text(`Filtros: ${filtros.join(', ')}`, 14, 22);
       }
@@ -428,7 +428,7 @@ export default {
       // Gerar tabela
       autoTable(doc, {
         startY: filtros.length > 0 ? 28 : 22,
-        head: [['ID', 'Nome', 'Email', 'CPF', 'Vínculo', 'Status', 'Setor', 'Perfil']],
+        head: [['ID', 'Nome', 'Email', 'CPF', 'Contratação', 'Status', 'Setor', 'Perfil']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [13, 110, 253], fontSize: 8, fontStyle: 'bold' },
@@ -438,7 +438,7 @@ export default {
           1: { cellWidth: 45 },  // Nome
           2: { cellWidth: 55 },  // Email
           3: { cellWidth: 25 },  // CPF
-          4: { cellWidth: 25 },  // Vínculo
+          4: { cellWidth: 25 },  // Contratação
           5: { cellWidth: 18 },  // Status
           6: { cellWidth: 40 },  // Setor
           7: { cellWidth: 22 }   // Perfil

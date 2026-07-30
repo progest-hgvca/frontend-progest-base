@@ -92,19 +92,18 @@ const handleUsuarioVinculado = () => {
 <template>
   <div class="flex flex-col gap-4 pb-10">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
-      <div class="flex items-center gap-3">
-        <div class="relative hidden sm:block">
-          <Input
-            v-model="filterSearch"
-            placeholder="Buscar usuário..."
-            class="px-4 h-10 w-64 bg-white"
-          />
-        </div>
-        <Button @click="handleVincular" class="gap-2 shadow-lg shadow-primary/20">
-          <UserPlusIcon class="w-4 h-4" /> Vincular Usuário
-        </Button>
-      </div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <Input
+        v-model="filterSearch"
+        placeholder="Buscar usuário..."
+        class="h-10 w-full flex-1 bg-white px-4"
+      />
+      <Button
+        @click="handleVincular"
+        class="h-10 shrink-0 gap-2 shadow-lg shadow-primary/20"
+      >
+        <UserPlusIcon class="w-4 h-4" /> Vincular Usuário
+      </Button>
     </div>
 
     <!-- User Grid -->

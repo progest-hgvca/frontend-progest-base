@@ -5,13 +5,13 @@
     @mouseleave="handleMouseLeave"
   >
     <!-- Logo Section -->
-    <div class="logo-section">
+    <router-link class="logo-section" to="/home" title="Ir para a tela inicial">
       <img
         :src="currentLogoSrc"
         :alt="is_expanded ? unidadeNome : 'ProGest HGVC Logo'"
         class="logo-image"
       />
-    </div>
+    </router-link>
 
     <!-- Menu Principal -->
     <nav class="menu-section">
@@ -619,11 +619,18 @@ watch(
     padding: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     margin-bottom: 0.5rem;
+    cursor: pointer;
+
+    &:hover .logo-image {
+      opacity: 0.75;
+    }
 
     .logo-image {
       max-width: 45px;
       height: auto;
-      transition: max-width 0.3s ease;
+      transition:
+        max-width 0.3s ease,
+        opacity 0.2s ease;
       filter: brightness(0) invert(1);
       margin: 0 auto;
     }

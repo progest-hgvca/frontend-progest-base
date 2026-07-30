@@ -129,13 +129,13 @@ const handleSave = () => {
 
       <div class="space-y-2">
         <Label for="vinculo"
-          >Tipo de Vínculo <span class="text-destructive">*</span></Label
+          >Regime de Contratação <span class="text-destructive">*</span></Label
         >
         <Select v-model="localData.tipo_vinculo">
           <SelectTrigger
             :class="{ 'border-red-500': hasError('tipo_vinculo') }"
           >
-            <SelectValue placeholder="Selecione o vínculo" />
+            <SelectValue placeholder="Selecione o regime" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem

@@ -47,7 +47,7 @@ const columns = [
   { key: "name", label: "Colaborador", sortable: true },
   { key: "email", label: "Contato", sortable: true },
   { key: "cpf", label: "CPF" },
-  { key: "tipo_vinculo", label: "Vínculo", align: "center", sortable: true },
+  { key: "tipo_vinculo", label: "Contratação", align: "center", sortable: true },
   { key: "status", label: "Status", align: "center", sortable: true },
 ];
 
@@ -237,7 +237,7 @@ onMounted(async () => {
           >
             <!-- Actions Slot -->
             <template #actions>
-              <!-- Filtro por Tipo de Vínculo -->
+              <!-- Filtro por Regime de Contratação -->
               <div class="flex items-center gap-2">
                 <div class="flex items-center gap-1.5 text-slate-400">
                   <FilterIcon class="w-3.5 h-3.5" />
@@ -249,10 +249,10 @@ onMounted(async () => {
                   <SelectTrigger
                     class="h-10 w-[180px] text-sm bg-slate-50 border-slate-100 rounded-xl"
                   >
-                    <SelectValue placeholder="Tipo de Vínculo" />
+                    <SelectValue placeholder="Regime de Contratação" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os Vínculos</SelectItem>
+                    <SelectItem value="all">Todos os Regimes</SelectItem>
                     <SelectItem
                       v-for="tipo in listTiposVinculo"
                       :key="tipo.id"
@@ -333,7 +333,7 @@ onMounted(async () => {
               </span>
             </template>
 
-            <!-- Tipo de Vínculo Column -->
+            <!-- Regime de Contratação Column -->
             <template #cell-tipo_vinculo="{ item }">
               <div class="flex items-center justify-center gap-2">
                 <div
