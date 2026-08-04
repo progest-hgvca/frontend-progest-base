@@ -31,7 +31,6 @@ coverage
 
 .agente
 .env
-.env.*
 !.env.examplecypress
 
 cypress

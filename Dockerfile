@@ -16,6 +16,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Increase Node memory limit for small EC2 instances
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 # Build for production (Vite will use VITE_API_URL from env)
 RUN npm run build
 
