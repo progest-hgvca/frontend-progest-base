@@ -51,18 +51,12 @@ var ADD_UP = (content, funcao) => {
     })
     .catch(function (error) {
       console.error("Erro capturado globalmente:", error);
-      if (error.response && error.response.status === 422) {
-        const backendErrors = error.response.data.errors || {};
-        const parsedErrors = {};
-        for (const key in backendErrors) {
-          const cleanKey = key.replace("user.", "");
-          parsedErrors[cleanKey] = backendErrors[key];
-        }
-        content.$store.commit("setModalErrors", parsedErrors);
-        feedback.error("Verifique os campos obrigatórios e tente novamente.");
-      } else {
-        feedback.error(error.response?.data?.message || "Erro ao salvar usuário.");
-      }
+      // Erros 422 já são tratados pelo interceptor global (main.js): ele preenche
+      // modalErrors e abre o modal de validação com as mensagens do backend.
+      // Tratar aqui sobrescreveria esse feedback por uma mensagem genérica.
+      if (error.response && error.response.status === 422) return;
+
+      feedback.error(error.response?.data?.message || "Erro ao salvar usuário.");
     });
 };
 
