@@ -76,7 +76,6 @@
         </router-link>
 
         <router-link
-          v-if="!isAdminUser"
           class="menu-item"
           to="/setor-atual?tab=movimentacoes"
           title="Movimentações"
@@ -86,7 +85,7 @@
         </router-link>
 
         <router-link
-          v-if="isCAF && (isAdminPerfil || isAlmoxarifePerfil) && !isAdminUser"
+          v-if="isCAF && (isAdminPerfil || isAlmoxarifePerfil || isAdminUser)"
           class="menu-item"
           to="/setor-atual?tab=entrada"
           title="Registrar Entrada"
@@ -96,7 +95,7 @@
         </router-link>
 
         <router-link 
-          v-if="!isCAF && !isAdminUser"
+          v-if="!isCAF"
           class="menu-item" 
           to="/pedidos" 
           title="Pedidos"
@@ -363,10 +362,9 @@ const setoresConsumidores = ref([]);
 
 const emit = defineEmits(["toggle"]);
 
-// Verificar se o usuário é admin@admin.com
+// Verificar se o usuário é super admin (God Mode)
 const isAdminUser = computed(() => {
-  const user = store.state.user;
-  return user && user.email === "admin@admin.com";
+  return store.getters.isSuperAdmin;
 });
 
 // Verificar se o setor atual tem um setor fornecedor (não é raiz/fornecedor/distribuidor)
@@ -414,6 +412,8 @@ const isAlmoxarifePerfil = computed(() => getPerfilAtual() === 'almoxarife');
 
 // Verificar se o usuário possui perfil 'solicitante' no setor atual
 const isSolicitante = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
+
   const user = store.state.user;
   if (!user) return false;
 

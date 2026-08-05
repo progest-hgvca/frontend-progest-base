@@ -55,8 +55,7 @@ const user = computed(() => store.state.user || {});
 const setorAtual = computed(() => store.state.setorDetails || {});
 
 const isAdmin = computed(() => {
-  if (user.value.email === "admin@admin.com") return true;
-  return !!user.value.is_admin;
+  return store.getters.isSuperAdmin;
 });
 
 const isCAF = computed(() => {
@@ -65,6 +64,7 @@ const isCAF = computed(() => {
 });
 
 const isSolicitante = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
   const list = store.state.listUsuariosSetor || [];
   const found = list.find((u) => {
     const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
@@ -382,7 +382,7 @@ onMounted(loadDashboardData);
               </CardHeader>
               <CardContent class="p-4 flex flex-col gap-3">
                 <Button
-                  v-if="!isCAF && !isAdmin"
+                  v-if="!isCAF"
                   @click="navigateTo('/pedidos')"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
@@ -400,7 +400,7 @@ onMounted(loadDashboardData);
                 </Button>
 
                 <Button
-                  v-if="isCAF && !isSolicitante && !isAdmin"
+                  v-if="isCAF && !isSolicitante"
                   @click="navigateTo('/setor-atual', { tab: 'entrada' })"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
@@ -436,7 +436,7 @@ onMounted(loadDashboardData);
                 </Button>
 
                 <Button
-                  v-if="!isSolicitante && !isAdmin"
+                  v-if="!isSolicitante"
                   @click="navigateTo('/setor-atual', { tab: 'movimentacoes' })"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >
@@ -539,7 +539,7 @@ onMounted(loadDashboardData);
                   {{ setorAtual.estoque ? 'Solicitações Pendentes' : 'Meus Pedidos Recentes' }}
                 </CardTitle>
                 <Button
-                  v-if="!isAdmin"
+                  v-if="true"
                   variant="ghost"
                   size="sm"
                   class="text-xs text-primary"

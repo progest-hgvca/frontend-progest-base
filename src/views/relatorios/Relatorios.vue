@@ -359,6 +359,8 @@ export default {
      * no setor atual, via lista listUsuariosSetor.
      */
     isAdmin() {
+      if (this.$store.getters.isSuperAdmin) return true;
+
       const user = this.usuarioLogado
       if (!user) return false
       return this.listUsuariosSetor.some((u) => {

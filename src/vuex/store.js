@@ -370,10 +370,14 @@ export default createStore({
     // Você pode adicionar ações assíncronas aqui se necessário
   },
   getters: {
-    // Autenticação
+    // Autenticação e Permissão Global
     getUserToken: (state) => state.userToken,
-
-    // Setor Atual
+    getUser: (state) => state.user,
+    isSuperAdmin: (state) => {
+      const u = state.user;
+      if (!u) return false;
+      return u.email?.toLowerCase() === 'admin@admin.com' || u.is_admin === true || u.is_admin === 1;
+    },
     getSetorAtualId: (state) => state.setorAtualId,
     getSetorAtualNome: (state) => state.setorAtualNome,
     getSetorDetails: (state) => state.setorDetails,
