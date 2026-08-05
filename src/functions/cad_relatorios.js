@@ -435,7 +435,7 @@ var listEstoqueReport = (content, filters = {}) => {
 /**
  * Lista todos os usuários para o relatório
  * @param {Object} content - Contexto do componente Vue (this)
- * @param {Object} filters - Filtros opcionais (status, tipo_vinculo, setor_id, perfil)
+ * @param {Object} filters - Filtros opcionais (status, regime_contratacao_id, setor_id, perfil)
  */
 var listUsuariosReport = (content, filters = {}) => {
   console.log("📊 Carregando relatório de usuários: POST /relatorios/usuarios/list");

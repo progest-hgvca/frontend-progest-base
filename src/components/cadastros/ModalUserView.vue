@@ -27,14 +27,14 @@ const props = defineProps({
 const emit = defineEmits(["update:open"]);
 const store = useStore();
 
-const listTiposVinculo = computed(() => store.state.listTiposVinculo || []);
+const listRegimesContratacao = computed(() => store.state.listRegimesContratacao || []);
 
-const tipoVinculoNome = computed(() => {
-  if (!props.user?.tipo_vinculo) return "N/A";
-  const tipo = listTiposVinculo.value.find(
-    (t) => t.id == props.user.tipo_vinculo,
+const regimeContratacaoNome = computed(() => {
+  if (!props.user?.regime_contratacao_id) return "N/A";
+  const tipo = listRegimesContratacao.value.find(
+    (t) => t.id == props.user.regime_contratacao_id,
   );
-  return tipo ? tipo.nome : props.user.tipo_vinculo;
+  return tipo ? tipo.nome : props.user.regime_contratacao_id;
 });
 
 const formatCpf = (cpf) => {
@@ -196,7 +196,7 @@ const close = () => emit("update:open", false);
                 Regime de Contratação
               </p>
               <p class="text-sm text-slate-700 font-medium">
-                {{ tipoVinculoNome }}
+                {{ regimeContratacaoNome }}
               </p>
             </div>
           </div>

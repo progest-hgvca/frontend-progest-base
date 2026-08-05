@@ -73,7 +73,7 @@ export default createStore({
     listFornecedores: [],
     listPolos: [],
     listPerfis: [],
-    listTiposVinculo: [],
+    listRegimesContratacao: [],
 
     relatorioEntradas: [],
     relatorioMovimentacoes: [],
@@ -236,7 +236,7 @@ export default createStore({
         email: "",
         telefone: "",
         data_nascimento: "",
-        tipo_vinculo: "",
+        regime_contratacao_id: "",
         password: "",
       };
     },
@@ -362,8 +362,8 @@ export default createStore({
       state.relatorioUsuarios = [];
     },
 
-    setListTiposVinculo(state, tiposVinculo) {
-      state.listTiposVinculo = tiposVinculo || [];
+    setListRegimesContratacao(state, RegimesContratacao) {
+      state.listRegimesContratacao = RegimesContratacao || [];
     },
   },
   actions: {
@@ -407,7 +407,7 @@ export default createStore({
     getListFornecedores: (state) => state.listFornecedores,
     getListPolos: (state) => state.listPolos,
     getListPerfis: (state) => state.listPerfis,
-    getListTiposVinculo: (state) => state.listTiposVinculo,
+    getListRegimesContratacao: (state) => state.listRegimesContratacao,
 
     // Relatórios
     getRelatorioEntradas: (state) => state.relatorioEntradas,

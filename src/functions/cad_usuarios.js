@@ -105,7 +105,7 @@ var listALL = (content, url = null) => {
         search: content.search || "",
         sort_by: content.sort_by || "name",
         sort_dir: content.sort_dir || "asc",
-        tipo_vinculo: content.tipo_vinculo || "",
+        regime_contratacao_id: content.regime_contratacao_id || "",
       },
       {
         headers: {
@@ -117,17 +117,17 @@ var listALL = (content, url = null) => {
       if (response.data.status && response.data.data) {
         // Substituir os valores dos usuários pelos nomes legíveis
         const enrichedUsers = response.data.data.map((user) => {
-          const tiposVinculo = content.$store.state.listTiposVinculo || [];
-          const tipoVinculo = tiposVinculo.find(
-            (tipo) => tipo.id == user.tipo_vinculo
+          const RegimesContratacao = content.$store.state.listRegimesContratacao || [];
+          const regimeContratacao = RegimesContratacao.find(
+            (tipo) => tipo.id == user.regime_contratacao_id
           );
 
           return {
             ...user,
             // Preservar o ID original do tipo de vínculo
-            tipo_vinculo_id: user.tipo_vinculo,
+            regime_contratacao_id: user.regime_contratacao_id,
             // Substitui o valor numérico pelo nome do tipo de vínculo
-            tipo_vinculo: tipoVinculo ? tipoVinculo.nome : "N/A",
+            regime_contratacao_nome: regimeContratacao ? regimeContratacao.nome : "N/A",
             // Substitui A/I por Ativo/Inativo
             status: user.status === "A" ? "Ativo" : "Inativo",
           };
@@ -186,10 +186,10 @@ var listData = (content) => {
 
 
 // Mantém apenas a função de tipos de vínculo que é obrigatória
-var listTiposVinculo = (content, url = null) => {
+var listRegimesContratacao = (content, url = null) => {
   return content.$axios
     .post(
-      url == null ? "/tipoVinculo/list" : url,
+      url == null ? "/regimeContratacao/list" : url,
       {},
       {
         headers: {
@@ -198,14 +198,14 @@ var listTiposVinculo = (content, url = null) => {
       }
     )
     .then((response) => {
-      content.$store.commit("setListTiposVinculo", response.data.data);
-      console.log("setListTiposVinculo", response.data.data);
+      content.$store.commit("setListRegimesContratacao", response.data.data);
+      console.log("setListRegimesContratacao", response.data.data);
       return response.data.data;
     })
     .catch((error) => {
       console.error("Erro ao carregar tipos de vínculo:", error);
       // Inicializa com array vazio para evitar erros no frontend
-      content.$store.commit("setListTiposVinculo", []);
+      content.$store.commit("setListRegimesContratacao", []);
       // Retornar array vazio para que chamadores possam continuar sem rejeição
       return [];
     });
@@ -268,7 +268,7 @@ var exportFunctions = {
   listData: listData,
   deleteData: deleteData,
   EDIT_PERFIL: EDIT_PERFIL,
-  listTiposVinculo: listTiposVinculo,
+  listRegimesContratacao: listRegimesContratacao,
   listPolos: listPolos,
 };
 

@@ -21,7 +21,7 @@ const { proxy } = getCurrentInstance();
 const localData = ref({
   id: null,
   status: "A",
-  tipo_vinculo: "",
+  regime_contratacao_id: "",
   name: "",
   cpf: "",
   email: "",
@@ -32,8 +32,8 @@ const localData = ref({
 
 const modalDataStore = computed(() => store.state.modalData.modalData);
 const modalFunction = computed(() => store.state.modalData.modalFunction);
-const listTiposVinculoStore = computed(
-  () => store.state.listTiposVinculo || [],
+const listRegimesContratacaoStore = computed(
+  () => store.state.listRegimesContratacao || [],
 );
 const isModalOpen = computed({
   get: () => store.state.modalData.isModalOpen,
@@ -54,9 +54,9 @@ watch(
     if (newValue) {
       localData.value = JSON.parse(JSON.stringify(newValue));
       if (!localData.value.status) localData.value.status = "A";
-      // Converter tipo_vinculo para string (o Select usa :value="tipo.id.toString()")
-      if (localData.value.tipo_vinculo != null) {
-        localData.value.tipo_vinculo = String(localData.value.tipo_vinculo);
+      // Converter regime_contratacao_id para string (o Select usa :value="tipo.id.toString()")
+      if (localData.value.regime_contratacao_id != null) {
+        localData.value.regime_contratacao_id = String(localData.value.regime_contratacao_id);
       }
     }
   },
@@ -64,7 +64,7 @@ watch(
 );
 
 onMounted(() => {
-  Funcoes.listTiposVinculo({ $axios: proxy.$axios, $store: store })?.catch(
+  Funcoes.listRegimesContratacao({ $axios: proxy.$axios, $store: store })?.catch(
     (e) => {
       console.warn("Erro ao carregar tipos de vínculo:", e);
     },
@@ -79,7 +79,7 @@ const handleSave = () => {
     !localData.value.name ||
     !localData.value.email ||
     !localData.value.cpf ||
-    !localData.value.tipo_vinculo
+    !localData.value.regime_contratacao_id
   ) {
     proxy.$toastr?.e("Por favor, preencha todos os campos obrigatórios (*)");
     return;
@@ -131,15 +131,15 @@ const handleSave = () => {
         <Label for="vinculo"
           >Regime de Contratação <span class="text-destructive">*</span></Label
         >
-        <Select v-model="localData.tipo_vinculo">
+        <Select v-model="localData.regime_contratacao_id">
           <SelectTrigger
-            :class="{ 'border-red-500': hasError('tipo_vinculo') }"
+            :class="{ 'border-red-500': hasError('regime_contratacao_id') }"
           >
             <SelectValue placeholder="Selecione o regime" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem
-              v-for="tipo in listTiposVinculoStore"
+              v-for="tipo in listRegimesContratacaoStore"
               :key="tipo.id"
               :value="tipo.id.toString()"
             >
@@ -148,10 +148,10 @@ const handleSave = () => {
           </SelectContent>
         </Select>
         <p
-          v-if="hasError('tipo_vinculo')"
+          v-if="hasError('regime_contratacao_id')"
           class="text-xs text-destructive mt-1"
         >
-          {{ getError("tipo_vinculo") }}
+          {{ getError("regime_contratacao_id") }}
         </p>
       </div>
 

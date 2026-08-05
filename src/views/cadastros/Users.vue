@@ -38,7 +38,7 @@ const varsModalData = {
   email: "",
   telefone: "",
   data_nascimento: "",
-  tipo_vinculo: "",
+  regime_contratacao_id: "",
   password: "",
 };
 
@@ -47,7 +47,7 @@ const columns = [
   { key: "name", label: "Colaborador", sortable: true },
   { key: "email", label: "Contato", sortable: true },
   { key: "cpf", label: "CPF" },
-  { key: "tipo_vinculo", label: "Contratação", align: "center", sortable: true },
+  { key: "regime_contratacao_id", label: "Contratação", align: "center", sortable: true },
   { key: "status", label: "Status", align: "center", sortable: true },
 ];
 
@@ -55,7 +55,7 @@ const columns = [
 const searchQuery = ref("");
 const sortBy = ref("name");
 const sortDir = ref("asc");
-const filterTipoVinculo = ref("");
+const filterRegimeContratacao = ref("");
 
 const listUsers = computed(() => {
   const usersData = store.state.listUsers;
@@ -75,20 +75,20 @@ const pagination = computed(() => {
   return null;
 });
 
-const listTiposVinculo = computed(() => store.state.listTiposVinculo || []);
+const listRegimesContratacao = computed(() => store.state.listRegimesContratacao || []);
 
-const tipoVinculoMap = computed(() => {
+const regimeContratacaoMap = computed(() => {
   const map = {};
-  listTiposVinculo.value.forEach((tipo) => {
+  listRegimesContratacao.value.forEach((tipo) => {
     map[tipo.id] = tipo.nome;
     map[String(tipo.id)] = tipo.nome;
   });
   console.log("🗺️ Mapa de tipos de vínculo criado:", map);
-  console.log("📋 Lista de tipos disponíveis:", listTiposVinculo.value);
+  console.log("📋 Lista de tipos disponíveis:", listRegimesContratacao.value);
   return map;
 });
 
-const getTipoVinculoColor = (tipoId) => {
+const getRegimeContratacaoColor = (tipoId) => {
   const id = typeof tipoId === 'string' ? parseInt(tipoId) : tipoId;
   const colors = {
     1: "bg-blue-50 text-blue-700 border-blue-200", 
@@ -123,7 +123,7 @@ const listAllUsers = async (url = null) => {
       search: searchQuery.value,
       sort_by: sortBy.value,
       sort_dir: sortDir.value,
-      tipo_vinculo: filterTipoVinculo.value,
+      regime_contratacao_id: filterRegimeContratacao.value,
     },
     url,
   );
@@ -148,8 +148,8 @@ const handleSort = (key) => {
   listAllUsers();
 };
 
-const handleFilterTipoVinculo = (value) => {
-  filterTipoVinculo.value = value === "all" ? "" : value;
+const handleFilterRegimeContratacao = (value) => {
+  filterRegimeContratacao.value = value === "all" ? "" : value;
   listAllUsers();
 };
 
@@ -206,7 +206,7 @@ const handleToggleStatus = (item) => {
 
 onMounted(async () => {
   await Promise.all([
-    functions.listTiposVinculo({ $axios: proxy.$axios, $store: store }),
+    functions.listRegimesContratacao({ $axios: proxy.$axios, $store: store }),
     functions.listPolos({ $axios: proxy.$axios, $store: store })
   ]);
   listAllUsers();
@@ -243,8 +243,8 @@ onMounted(async () => {
                   <FilterIcon class="w-3.5 h-3.5" />
                 </div>
                 <Select
-                  :model-value="filterTipoVinculo || 'all'"
-                  @update:model-value="handleFilterTipoVinculo"
+                  :model-value="filterRegimeContratacao || 'all'"
+                  @update:model-value="handleFilterRegimeContratacao"
                 >
                   <SelectTrigger
                     class="h-10 w-[180px] text-sm bg-slate-50 border-slate-100 rounded-xl"
@@ -254,7 +254,7 @@ onMounted(async () => {
                   <SelectContent>
                     <SelectItem value="all">Todos os Regimes</SelectItem>
                     <SelectItem
-                      v-for="tipo in listTiposVinculo"
+                      v-for="tipo in listRegimesContratacao"
                       :key="tipo.id"
                       :value="tipo.id.toString()"
                     >
@@ -334,17 +334,17 @@ onMounted(async () => {
             </template>
 
             <!-- Regime de Contratação Column -->
-            <template #cell-tipo_vinculo="{ item }">
+            <template #cell-regime_contratacao_id="{ item }">
               <div class="flex items-center justify-center gap-2">
                 <div
                   :class="[
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2',
-                    getTipoVinculoColor(item.tipo_vinculo),
+                    getRegimeContratacaoColor(item.regime_contratacao_id),
                   ]"
                 >
                   <BriefcaseIcon class="w-3 h-3" />
                   <span class="font-bold text-[10px] uppercase tracking-wider">
-                    {{ tipoVinculoMap[item.tipo_vinculo] || `${item.tipo_vinculo}` }}
+                    {{ item.regime_contratacao_nome || regimeContratacaoMap[item.regime_contratacao_id] || `${item.regime_contratacao_id}` }}
                   </span>
                 </div>
               </div>

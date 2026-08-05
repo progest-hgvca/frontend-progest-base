@@ -27,9 +27,9 @@
                 </div>
                 <div class="col-md-2">
                   <label class="form-label">Regime de Contratação</label>
-                  <select v-model.number="filters.tipo_vinculo_id" class="form-select">
+                  <select v-model.number="filters.regime_contratacao_id_id" class="form-select">
                     <option :value="''">Todos</option>
-                    <option v-for="tv in tiposVinculo" :key="tv.id" :value="tv.id">{{ tv.nome }}</option>
+                    <option v-for="tv in RegimesContratacao" :key="tv.id" :value="tv.id">{{ tv.nome }}</option>
                   </select>
                 </div>
                 <div class="col-md-2">
@@ -108,7 +108,7 @@
                           <td>{{ formatTelefone(u.telefone) }}</td>
                           <td>{{ formatDate(u.data_nascimento) }}</td>
                           <td>
-                            <span class="badge bg-info">{{ u.tipo_vinculo?.nome || '-' }}</span>
+                            <span class="badge bg-info">{{ u.regime_contratacao_id?.nome || '-' }}</span>
                           </td>
                           <td>
                             <span class="badge" :class="u.status === 'A' ? 'bg-success' : 'bg-secondary'">
@@ -175,7 +175,7 @@
 import TemplateAdmin from '@/views/roleAdmin/TemplateAdmin.vue'
 import functionsRelatorios from '@/functions/cad_relatorios.js'
 import functionsSetores from '@/functions/cad_setores.js'
-import functionsTipoVinculo from '@/functions/cad_tipo_vinculo.js'
+import functionsregimeContratacao from '@/functions/cad_regime_contratacao_id.js'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -187,7 +187,7 @@ export default {
     return {
       filters: {
         status: '',
-        tipo_vinculo_id: '',
+        regime_contratacao_id_id: '',
         setor_id: '',
         perfil: '',
       },
@@ -203,7 +203,7 @@ export default {
   },
   mounted() {
     functionsSetores.listAll(this);
-    functionsTipoVinculo.listAll(this);
+    functionsregimeContratacao.listAll(this);
     this.loadUsuarios();
   },
   computed: {
@@ -213,8 +213,8 @@ export default {
       if (setoresData?.data) return setoresData.data;
       return [];
     },
-    tiposVinculo() {
-      return this.$store.state.listTiposVinculo || [];
+    RegimesContratacao() {
+      return this.$store.state.listRegimesContratacao || [];
     }
   },
   methods: {
@@ -266,7 +266,7 @@ export default {
       try {
         const payloadFilters = {};
         if (this.filters.status) payloadFilters.status = this.filters.status;
-        if (this.filters.tipo_vinculo_id) payloadFilters.tipo_vinculo_id = this.filters.tipo_vinculo_id;
+        if (this.filters.regime_contratacao_id_id) payloadFilters.regime_contratacao_id_id = this.filters.regime_contratacao_id_id;
         if (this.filters.setor_id) payloadFilters.setor_id = this.filters.setor_id;
         if (this.filters.perfil) payloadFilters.perfil = this.filters.perfil;
 
@@ -305,7 +305,7 @@ export default {
     },
     resetFilters() {
       this.filters.status = '';
-      this.filters.tipo_vinculo_id = '';
+      this.filters.regime_contratacao_id_id = '';
       this.filters.setor_id = '';
       this.filters.perfil = '';
       this.loadUsuarios();
@@ -329,7 +329,7 @@ export default {
               idx === 0 ? this.formatCPF(u.cpf) : '',
               idx === 0 ? this.formatTelefone(u.telefone) : '',
               idx === 0 ? this.formatDate(u.data_nascimento) : '',
-              idx === 0 ? (u.tipo_vinculo?.nome || '-') : '',
+              idx === 0 ? (u.regime_contratacao_id?.nome || '-') : '',
               idx === 0 ? (u.status === 'A' ? 'Ativo' : 'Inativo') : '',
               vinculo.nome || '-',
               vinculo.polo?.nome || vinculo.unidade?.nome || '-',
@@ -344,7 +344,7 @@ export default {
             this.formatCPF(u.cpf),
             this.formatTelefone(u.telefone),
             this.formatDate(u.data_nascimento),
-            u.tipo_vinculo?.nome || '-',
+            u.regime_contratacao_id?.nome || '-',
             u.status === 'A' ? 'Ativo' : 'Inativo',
             'Sem setor',
             '-',
@@ -390,7 +390,7 @@ export default {
       doc.setFontSize(10);
       const filtros = [];
       if (this.filters.status) filtros.push(`Status: ${this.filters.status === 'A' ? 'Ativo' : 'Inativo'}`);
-      if (this.filters.tipo_vinculo) filtros.push(`Contratação: ${this.filters.tipo_vinculo}`);
+      if (this.filters.regime_contratacao_id) filtros.push(`Contratação: ${this.filters.regime_contratacao_id}`);
       if (filtros.length > 0) {
         doc.text(`Filtros: ${filtros.join(', ')}`, 14, 22);
       }
@@ -405,7 +405,7 @@ export default {
               idx === 0 ? u.name : '',
               idx === 0 ? u.email : '',
               idx === 0 ? this.formatCPF(u.cpf) : '',
-              idx === 0 ? (u.tipo_vinculo?.nome || '-') : '',
+              idx === 0 ? (u.regime_contratacao_id?.nome || '-') : '',
               idx === 0 ? (u.status === 'A' ? 'Ativo' : 'Inativo') : '',
               vinculo.nome || '-',
               vinculo.perfil || '-'
@@ -417,7 +417,7 @@ export default {
             u.name,
             u.email,
             this.formatCPF(u.cpf),
-            u.tipo_vinculo?.nome || '-',
+            u.regime_contratacao_id?.nome || '-',
             u.status === 'A' ? 'Ativo' : 'Inativo',
             'Sem setor',
             '-'

@@ -7,14 +7,14 @@
  * @param {Object} content - Contexto do componente Vue (this)
  */
 var listAll = (content) => {
-  console.log("📋 Carregando tipos de vínculo: POST /tipo-vinculo/list");
+  console.log("📋 Carregando tipos de vínculo: POST /regime-contratacao/list");
 
   const payload = {
     filters: {},
   };
 
   return content.$axios
-    .post("/tipo-vinculo/list", payload, {
+    .post("/regime-contratacao/list", payload, {
       headers: {
         Authorization: "Bearer " + content.$store.getters.getUserToken,
         "Content-Type": "application/json",
@@ -25,25 +25,25 @@ var listAll = (content) => {
 
       if (response.data && (response.data.status === true || response.data.status === "success")) {
         // Extrair lista de tipos de vínculo
-        let tiposVinculo = [];
+        let RegimesContratacao = [];
         
         if (Array.isArray(response.data.data)) {
-          tiposVinculo = response.data.data;
+          RegimesContratacao = response.data.data;
         } else if (response.data.data && Array.isArray(response.data.data.data)) {
-          tiposVinculo = response.data.data.data;
+          RegimesContratacao = response.data.data.data;
         } else if (response.data.data) {
-          tiposVinculo = [response.data.data];
+          RegimesContratacao = [response.data.data];
         }
 
-        console.log(`📊 Tipos de vínculo encontrados: ${tiposVinculo.length}`);
+        console.log(`📊 Tipos de vínculo encontrados: ${RegimesContratacao.length}`);
 
         // Commit no Vuex store
-        content.$store.commit("setListTiposVinculo", tiposVinculo);
+        content.$store.commit("setListRegimesContratacao", RegimesContratacao);
         
-        return { success: true, data: tiposVinculo };
+        return { success: true, data: RegimesContratacao };
       } else {
         console.warn("⚠️ Resposta da API sem dados válidos:", response.data);
-        content.$store.commit("setListTiposVinculo", []);
+        content.$store.commit("setListRegimesContratacao", []);
         return { success: false, data: [] };
       }
     })
@@ -64,7 +64,7 @@ var listAll = (content) => {
         console.warn("Erro ao exibir notificação:", e);
       }
 
-      content.$store.commit("setListTiposVinculo", []);
+      content.$store.commit("setListRegimesContratacao", []);
       return { success: false, data: [], error };
     });
 };
