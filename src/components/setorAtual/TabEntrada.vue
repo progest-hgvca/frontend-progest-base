@@ -45,7 +45,7 @@ const canAddEntrada = computed(() => {
     const perfil = (u.perfil || u.pivot?.perfil || "").toString().toLowerCase();
     return (
       userId === user.value.id &&
-      (perfil.includes("admin") || perfil.includes("gerente") || perfil.includes("almoxarife"))
+      (perfil.includes("almoxarife"))
     );
   });
   return !!found;

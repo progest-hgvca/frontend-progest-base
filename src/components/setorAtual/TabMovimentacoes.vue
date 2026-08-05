@@ -94,6 +94,23 @@ const dialogExcluirRascunhoOpen = ref(false);
 const rascunhoParaExcluir = ref(null);
 const loadingExcluirRascunho = ref(false);
 
+const isSetorAdmin = computed(() => {
+  const user = store.state.user;
+  if (!user) return false;
+  // Super Admin tem passe livre
+  if (user.email?.toLowerCase() === "admin@admin.com") return false;
+  
+  const list = parentData.usuariosItems?.value || parentData.usuariosItems || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
+    return userId === user.id;
+  });
+  if (!found) return false;
+  
+  const perfil = (found.perfil || found.pivot?.perfil || "").toString().toLowerCase();
+  return perfil.includes("admin") || perfil.includes("gerente");
+});
+
 const filterTipo = ref("todos");
 const filterStatus = ref("todos");
 const filterSolicitante = ref("todos");
@@ -401,7 +418,7 @@ const excluirRascunho = async () => {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
       <Button
-        v-if="!isCAF"
+        v-if="!isCAF && !isSetorAdmin"
         @click="dialogMovimentacaoOpen = true"
         class="gap-2 shadow-lg shadow-primary/20"
       >
