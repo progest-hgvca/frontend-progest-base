@@ -83,10 +83,25 @@
           class="menu-item"
           to="/setor-atual?tab=movimentacoes"
           title="Movimentações"
-          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' }"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && $route.query.status !== 'P' }"
         >
           <span class="material-icons menu-icon">swap_horiz</span>
           <span class="menu-text">Movimentações</span>
+        </router-link>
+
+        <router-link
+          class="menu-item"
+          to="/setor-atual?tab=movimentacoes&status=P"
+          title="Solicitações Pendentes"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && $route.query.status === 'P' }"
+        >
+          <span class="menu-icon-wrapper">
+            <span class="material-icons menu-icon">pending_actions</span>
+            <span v-if="solicitacoesPendentes > 0" class="badge-pendentes">
+              {{ solicitacoesPendentes > 99 ? "99+" : solicitacoesPendentes }}
+            </span>
+          </span>
+          <span class="menu-text">Solicitações Pendentes</span>
         </router-link>
 
         <router-link
@@ -366,6 +381,7 @@ const submenuOpen = ref(false);
 const consumidoresSubmenuOpen = ref(false);
 const relatoriosSubmenuOpen = ref(false);
 const setoresConsumidores = ref([]);
+const solicitacoesPendentes = ref(0);
 
 const emit = defineEmits(["toggle"]);
 
@@ -532,6 +548,37 @@ const loadSetoresConsumidores = async () => {
   }
 };
 
+// Contador do badge de solicitações pendentes.
+// A sidebar é global, então busca por conta própria em vez de depender do
+// store, que só é preenchido enquanto a tela do setor está aberta.
+const loadSolicitacoesPendentes = async () => {
+  const setorDetails = store.state.setorDetails;
+  if (!setorDetails || !setorDetails.id) {
+    solicitacoesPendentes.value = 0;
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      `/movimentacao/listByUnidade`,
+      { setor_id: setorDetails.id },
+      {
+        headers: {
+          Authorization: `Bearer ${store.getters.getUserToken}`,
+        },
+      },
+    );
+
+    const lista = (response.data && response.data.data) || [];
+    solicitacoesPendentes.value = lista.filter(
+      (m) => m.status_solicitacao === "P",
+    ).length;
+  } catch (error) {
+    console.warn("Erro ao carregar solicitações pendentes:", error);
+    solicitacoesPendentes.value = 0;
+  }
+};
+
 // Navegar para outro setor (Visualização Read-Only)
 const navigateToSetor = async (setorId) => {
   try {
@@ -575,6 +622,7 @@ onMounted(() => {
 
   // Carregar setores consumidores
   loadSetoresConsumidores();
+  loadSolicitacoesPendentes();
 });
 
 watch(submenuOpen, (val) => {
@@ -594,8 +642,21 @@ watch(
   () => store.state.setorDetails,
   () => {
     loadSetoresConsumidores();
+    loadSolicitacoesPendentes();
   },
   { deep: true },
+);
+
+// Manter o badge em dia quando a própria tela de movimentações recarrega a
+// lista (aprovar/rejeitar/cancelar refletem aqui sem recarregar a página).
+watch(
+  () => store.state.listMovimentacoes,
+  (lista) => {
+    if (!Array.isArray(lista) || lista.length === 0) return;
+    solicitacoesPendentes.value = lista.filter(
+      (m) => m.status_solicitacao === "P",
+    ).length;
+  },
 );
 </script>
 
@@ -750,6 +811,33 @@ watch(
       border-radius: 4px;
       margin-left: auto;
       white-space: nowrap;
+    }
+
+    /* Envolve o ícone para ancorar o contador; assim o badge continua
+       visível também com a sidebar recolhida, onde o texto some. */
+    .menu-icon-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .badge-pendentes {
+      position: absolute;
+      top: -5px;
+      right: -7px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: #ffffff;
+      font-size: 0.62rem;
+      font-weight: 700;
+      line-height: 17px;
+      text-align: center;
+      box-shadow: 0 0 0 2px rgba(13, 71, 161, 0.6);
     }
   }
 

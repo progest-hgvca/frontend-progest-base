@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, inject } from "vue";
+import { ref, computed, inject, watch } from "vue";
 import { useStore } from "vuex";
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,15 +50,20 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   ArrowDownIcon,
+  PrinterIcon,
+  ChevronRightIcon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { imprimirPedido } from "@/utils/imprimirPedido";
 
 const props = defineProps({
   setorId: { type: Number, required: true },
 });
 
 const store = useStore();
+const route = useRoute();
+const router = useRouter();
 const { toast } = useToast();
 
 // Nome do setor atual (para exibir no modal de aprovação)
@@ -111,12 +117,62 @@ const isSetorAdmin = computed(() => {
   return perfil.includes("admin") || perfil.includes("gerente");
 });
 
-const filterTipo = ref("todos");
-const filterStatus = ref("todos");
+// Tipo e status vivem na URL para que atalhos do menu (ex.: "Solicitações
+// Pendentes" → ?tab=movimentacoes&status=P) já cheguem filtrados, e para que
+// a tela filtrada continue compartilhável.
+const STATUS_VALIDOS = ["P", "A", "R", "C", "X"];
+const TIPOS_VALIDOS = ["entrada", "saida"];
+
+const statusDaRota = () =>
+  STATUS_VALIDOS.includes(route.query.status) ? route.query.status : "todos";
+const tipoDaRota = () =>
+  TIPOS_VALIDOS.includes(route.query.tipo) ? route.query.tipo : "todos";
+
+const filterTipo = ref(tipoDaRota());
+const filterStatus = ref(statusDaRota());
 const filterSolicitante = ref("todos");
 const filterSearch = ref("");
+
+// URL → filtros
+watch(
+  () => [route.query.status, route.query.tipo],
+  () => {
+    filterStatus.value = statusDaRota();
+    filterTipo.value = tipoDaRota();
+  },
+);
+
+// Filtros → URL. Sem isso, mudar o filtro na mão e clicar de novo no item do
+// menu não voltaria a filtrar (a query já estaria igual e o watch acima não
+// dispararia).
+watch([filterStatus, filterTipo], ([status, tipo]) => {
+  const query = { ...route.query };
+
+  if (status && status !== "todos") query.status = status;
+  else delete query.status;
+
+  if (tipo && tipo !== "todos") query.tipo = tipo;
+  else delete query.tipo;
+
+  if (
+    query.status === route.query.status &&
+    query.tipo === route.query.tipo
+  ) {
+    return; // nada mudou: evita navegação redundante
+  }
+
+  router.replace({ query });
+});
 const sortBy = ref("created_at");
 const sortDir = ref("desc");
+
+// Linhas expandidas na tabela (mesmo padrão dos relatórios): clicar na
+// requisição abre os itens logo abaixo dela.
+const expandedRows = ref({});
+
+const toggleRow = (id) => {
+  expandedRows.value[id] = !expandedRows.value[id];
+};
 
 const handleSort = (col) => {
   if (sortBy.value === col) {
@@ -230,6 +286,19 @@ const getStatusBadge = (status) => {
 const verDetalhes = (mov) => {
   movimentacaoSelecionada.value = mov;
   dialogDetalhesOpen.value = true;
+};
+
+// A listagem já traz itens.produto, usuario e os setores, então dá para
+// imprimir direto da linha sem uma nova requisição.
+const imprimir = (mov) => {
+  if (!imprimirPedido(mov)) {
+    toast({
+      title: "Erro",
+      description:
+        "Não foi possível abrir a janela de impressão. Verifique se pop-ups estão bloqueados.",
+      variant: "destructive",
+    });
+  }
 };
 
 const abrirModalAprovacao = async (mov) => {
@@ -552,11 +621,11 @@ const excluirRascunho = async () => {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
+            <template v-for="mov in filteredMovimentacoes" :key="mov.id">
             <tr
-              v-for="mov in filteredMovimentacoes"
-              :key="mov.id"
+              @click="toggleRow(mov.id)"
               :class="[
-                'transition-all duration-300 group border-b border-slate-100',
+                'transition-all duration-300 group border-b border-slate-100 cursor-pointer',
                 mov.status_solicitacao === 'A' ? 'bg-gradient-to-r from-emerald-500/10 to-transparent hover:from-emerald-500/20' :
                 mov.status_solicitacao === 'R' ? 'bg-gradient-to-r from-red-500/10 to-transparent hover:from-red-500/20' :
                 mov.status_solicitacao === 'P' ? 'bg-gradient-to-r from-amber-500/15 to-transparent hover:from-amber-500/25' :
@@ -574,19 +643,25 @@ const excluirRascunho = async () => {
                 mov.status_solicitacao === 'C' ? 'border-l-blue-500' :
                 'border-l-transparent'
               ]">
-                <div
-                  v-if="isEntrada(mov)"
-                  class="flex items-center gap-2 text-emerald-600 font-bold"
-                >
-                  <ArrowDownCircleIcon class="w-5 h-5" />
-                  <span class="text-[11px] uppercase">Entrada</span>
-                </div>
-                <div
-                  v-else
-                  class="flex items-center gap-2 text-blue-600 font-bold"
-                >
-                  <ArrowUpCircleIcon class="w-5 h-5" />
-                  <span class="text-[11px] uppercase">Saída</span>
+                <div class="flex items-center gap-2">
+                  <ChevronRightIcon
+                    class="w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200"
+                    :class="{ 'rotate-90 text-primary': expandedRows[mov.id] }"
+                  />
+                  <div
+                    v-if="isEntrada(mov)"
+                    class="flex items-center gap-2 text-emerald-600 font-bold"
+                  >
+                    <ArrowDownCircleIcon class="w-5 h-5" />
+                    <span class="text-[11px] uppercase">Entrada</span>
+                  </div>
+                  <div
+                    v-else
+                    class="flex items-center gap-2 text-blue-600 font-bold"
+                  >
+                    <ArrowUpCircleIcon class="w-5 h-5" />
+                    <span class="text-[11px] uppercase">Saída</span>
+                  </div>
                 </div>
               </td>
               <td class="py-4 px-6">
@@ -648,7 +723,7 @@ const excluirRascunho = async () => {
                   {{ getStatusBadge(mov.status_solicitacao).label }}
                 </Badge>
               </td>
-              <td class="py-4 px-6 text-right space-x-1">
+              <td class="py-4 px-6 text-right space-x-1" @click.stop>
                 <!-- Ver detalhes (sempre visível) -->
                 <Button
                   variant="ghost"
@@ -658,6 +733,17 @@ const excluirRascunho = async () => {
                   title="Ver detalhes"
                 >
                   <EyeIcon class="w-4 h-4" />
+                </Button>
+
+                <!-- Imprimir requisição (sempre visível) -->
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  @click="imprimir(mov)"
+                  class="h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                  title="Imprimir requisição"
+                >
+                  <PrinterIcon class="w-4 h-4" />
                 </Button>
 
                 <!-- Aprovar (saída Pendente) -->
@@ -719,6 +805,96 @@ const excluirRascunho = async () => {
                 </template>
               </td>
             </tr>
+
+            <!-- Linha expansível: itens e quantidades da requisição -->
+            <tr v-if="expandedRows[mov.id]" class="bg-slate-50/80">
+              <td colspan="8" class="p-0">
+                <div class="px-6 py-5 border-l-[6px] border-l-slate-200">
+                  <div
+                    v-if="mov.observacao"
+                    class="mb-4 text-xs text-slate-500 italic"
+                  >
+                    <span class="font-bold not-italic text-slate-600"
+                      >Observação:</span
+                    >
+                    {{ mov.observacao }}
+                  </div>
+
+                  <div
+                    class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+                  >
+                    <table class="w-full text-sm">
+                      <thead class="bg-slate-100/70 border-b border-slate-200">
+                        <tr>
+                          <th
+                            class="py-2.5 px-5 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                          >
+                            Produto
+                          </th>
+                          <th
+                            class="py-2.5 px-5 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                          >
+                            Lote
+                          </th>
+                          <th
+                            class="py-2.5 px-5 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                          >
+                            Qtd. Solicitada
+                          </th>
+                          <th
+                            class="py-2.5 px-5 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                          >
+                            Qtd. Liberada
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        <tr v-if="!mov.itens || mov.itens.length === 0">
+                          <td
+                            colspan="4"
+                            class="py-6 text-center text-slate-400 italic text-xs"
+                          >
+                            Nenhum item nesta requisição.
+                          </td>
+                        </tr>
+                        <tr
+                          v-for="item in mov.itens"
+                          :key="item.id"
+                          class="hover:bg-slate-50/70 transition-colors"
+                        >
+                          <td class="py-3 px-5 font-bold text-slate-700">
+                            {{
+                              item.produto?.nome || `Produto #${item.produto_id}`
+                            }}
+                          </td>
+                          <td class="py-3 px-5 text-xs text-slate-400">
+                            {{ item.lote || "—" }}
+                          </td>
+                          <td class="py-3 px-5 text-center">
+                            <Badge variant="secondary" class="font-black">{{
+                              item.quantidade_solicitada
+                            }}</Badge>
+                          </td>
+                          <td class="py-3 px-5 text-center">
+                            <Badge
+                              v-if="item.quantidade_liberada > 0"
+                              class="font-black bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                              >{{ item.quantidade_liberada }}</Badge
+                            >
+                            <span
+                              v-else
+                              class="text-slate-300 font-bold italic text-xs"
+                              >Aguardando</span
+                            >
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -773,15 +949,25 @@ const excluirRascunho = async () => {
                 {{ formatarData(movimentacaoSelecionada?.created_at) }}
               </p>
             </div>
-            <Badge
-              variant="outline"
-              class="bg-white/20 text-white border-white/40 font-black"
-            >
-              {{
-                getStatusBadge(movimentacaoSelecionada?.status_solicitacao)
-                  .label
-              }}
-            </Badge>
+            <div class="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                class="gap-2 bg-white/10 text-white border-white/40 hover:bg-white/20 hover:text-white font-bold"
+                @click="imprimir(movimentacaoSelecionada)"
+              >
+                <PrinterIcon class="w-4 h-4" /> Imprimir
+              </Button>
+              <Badge
+                variant="outline"
+                class="bg-white/20 text-white border-white/40 font-black"
+              >
+                {{
+                  getStatusBadge(movimentacaoSelecionada?.status_solicitacao)
+                    .label
+                }}
+              </Badge>
+            </div>
           </div>
         </div>
 
