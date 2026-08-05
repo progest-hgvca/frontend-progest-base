@@ -33,6 +33,7 @@
           class="menu-item"
           to="/setor-atual"
           :title="setorAtualNome"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': !$route.query.tab || $route.query.tab === 'overview' }"
         >
           <span class="material-icons menu-icon">apartment</span>
           <span class="menu-text">{{ setorAtualNome }}</span>
@@ -43,6 +44,7 @@
           class="menu-item"
           to="/setor-atual?tab=estoque"
           title="Estoque Local"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'estoque' }"
         >
           <span class="material-icons menu-icon">inventory</span>
           <span class="menu-text">Estoque Local</span>
@@ -60,6 +62,7 @@
           class="menu-item"
           to="/setor-atual"
           :title="setorAtualNome"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': !$route.query.tab || $route.query.tab === 'overview' }"
         >
           <span class="material-icons menu-icon">apartment</span>
           <span class="menu-text">{{ setorAtualNome }}</span>
@@ -70,6 +73,7 @@
           class="menu-item"
           to="/setor-atual?tab=estoque"
           title="Estoque Local"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'estoque' }"
         >
           <span class="material-icons menu-icon">inventory</span>
           <span class="menu-text">Estoque Local</span>
@@ -79,6 +83,7 @@
           class="menu-item"
           to="/setor-atual?tab=movimentacoes"
           title="Movimentações"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' }"
         >
           <span class="material-icons menu-icon">swap_horiz</span>
           <span class="menu-text">Movimentações</span>
@@ -89,6 +94,7 @@
           class="menu-item"
           to="/setor-atual?tab=entrada"
           title="Registrar Entrada"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'entrada' }"
         >
           <span class="material-icons menu-icon">arrow_circle_down</span>
           <span class="menu-text">Registrar Entrada</span>
@@ -109,6 +115,7 @@
           class="menu-item"
           to="/setor-atual?tab=usuarios"
           title="Equipe"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'usuarios' }"
         >
           <span class="material-icons menu-icon">group</span>
           <span class="menu-text">Equipe</span>
@@ -628,6 +635,8 @@ watch(
     .logo-image {
       max-width: 45px;
       height: auto;
+      max-height: 50px;
+      object-fit: contain;
       transition:
         max-width 0.3s ease,
         opacity 0.2s ease;
@@ -640,6 +649,7 @@ watch(
     .logo-section {
       .logo-image {
         max-width: 200px;
+        max-height: 55px;
       }
     }
   }
