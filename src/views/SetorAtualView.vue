@@ -269,7 +269,7 @@ onUnmounted(() => {
               </TabsTrigger>
 
               <TabsTrigger
-                v-if="!isSolicitante && !isAdminUser"
+                v-if="!isSolicitante"
                 value="movimentacoes"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
@@ -278,7 +278,7 @@ onUnmounted(() => {
               </TabsTrigger>
 
               <TabsTrigger
-                v-if="isCAF && !isSolicitante && !isAdminUser"
+                v-if="isCAF && !isSolicitante"
                 value="entrada"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
