@@ -175,7 +175,7 @@
 import TemplateAdmin from '@/views/roleAdmin/TemplateAdmin.vue'
 import functionsRelatorios from '@/functions/cad_relatorios.js'
 import functionsSetores from '@/functions/cad_setores.js'
-import functionsregimeContratacao from '@/functions/cad_regime_contratacao_id.js'
+import functionsregimeContratacao from '@/functions/cad_regime_contratacao.js'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
