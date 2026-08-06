@@ -189,7 +189,7 @@ var listData = (content) => {
 var listRegimesContratacao = (content, url = null) => {
   return content.$axios
     .post(
-      url == null ? "/regimeContratacao/list" : url,
+      url == null ? "/regime-contratacao/list" : url,
       {},
       {
         headers: {
