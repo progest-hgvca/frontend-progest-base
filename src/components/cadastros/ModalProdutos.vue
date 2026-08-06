@@ -36,8 +36,14 @@ const isModalOpen = computed({
   set: (value) => store.commit("setModalOpen", value),
 });
 
-const gruposProdutos = computed(() => store.state.gruposProdutos || []);
-const unidadesMedidaAux = computed(() => store.state.unidadesMedidaAux || []);
+const gruposProdutos = computed(() => {
+  const list = store.state.gruposProdutos || [];
+  return list.filter(g => g.status === 'A' || g.status === 'Ativo' || g.id == localData.value.grupo_produto_id);
+});
+const unidadesMedidaAux = computed(() => {
+  const list = store.state.unidadesMedidaAux || [];
+  return list.filter(u => u.status === 'A' || u.status === 'Ativo' || u.id == localData.value.unidade_medida_id);
+});
 
 // Marcas exclusivas para sugestão no datalist
 const listaMarcasUnicas = computed(() => {
@@ -47,6 +53,18 @@ const listaMarcasUnicas = computed(() => {
   const marcas = items.map(p => p.marca).filter(m => m && m.trim() !== "");
   return [...new Set(marcas)].sort();
 });
+
+const showMarcas = ref(false);
+const marcasFiltradas = computed(() => {
+  const query = (localData.value.marca || "").toLowerCase();
+  if (!query) return listaMarcasUnicas.value;
+  return listaMarcasUnicas.value.filter(m => m.toLowerCase().includes(query));
+});
+
+const selecionarMarca = (m) => {
+  localData.value.marca = m;
+  showMarcas.value = false;
+};
 
 // Formulários inline
 const showGrupoForm = ref(false);
@@ -245,18 +263,32 @@ const handleSave = () => {
         <!-- Marca e Status -->
         <div class="space-y-2">
           <Label for="prod-marca">Marca</Label>
-          <Input
-            id="prod-marca"
-            v-model="localData.marca"
-            list="lista-marcas"
-            placeholder="Ex: Samsung, Nestlé"
-            :class="{
-              'border-red-500 focus-visible:ring-red-500': hasError('marca'),
-            }"
-          />
-          <datalist id="lista-marcas">
-            <option v-for="m in listaMarcasUnicas" :key="m" :value="m">{{m}}</option>
-          </datalist>
+          <div class="relative">
+            <Input
+              id="prod-marca"
+              v-model="localData.marca"
+              autocomplete="off"
+              @focus="showMarcas = true"
+              @blur="setTimeout(() => showMarcas = false, 200)"
+              placeholder="Ex: Samsung, Nestlé"
+              :class="{
+                'border-red-500 focus-visible:ring-red-500': hasError('marca'),
+              }"
+            />
+            <div
+              v-if="showMarcas && marcasFiltradas.length > 0"
+              class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto"
+            >
+              <div
+                v-for="m in marcasFiltradas"
+                :key="m"
+                @mousedown.prevent="selecionarMarca(m)"
+                class="px-3 py-2 text-sm text-slate-700 cursor-pointer hover:bg-slate-100 hover:text-indigo-600 transition-colors"
+              >
+                {{ m }}
+              </div>
+            </div>
+          </div>
           <p v-if="hasError('marca')" class="text-xs text-destructive mt-1">
             {{ getError("marca") }}
           </p>

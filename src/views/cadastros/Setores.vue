@@ -125,8 +125,8 @@ onMounted(carregarSetores);
         class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden"
       >
         <!-- Toolbar Row (Search + Action) -->
-        <div class="flex items-center justify-between gap-3 mb-6">
-          <div class="relative w-full max-w-xs">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+          <div class="relative w-full sm:max-w-xs">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search class="h-4 w-4 text-slate-400" />
             </div>
@@ -138,6 +138,7 @@ onMounted(carregarSetores);
           </div>
 
           <LinkModal01
+            class="w-full sm:w-auto"
             label="NOVO SETOR"
             :titleModal="titleModal"
             :varsModalData="varsModalData"

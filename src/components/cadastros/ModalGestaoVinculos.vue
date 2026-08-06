@@ -137,7 +137,7 @@ const close = () => emit("update:open", false);
 
 <template>
   <Dialog :open="open" @update:open="close">
-    <DialogContent class="max-w-lg">
+    <DialogContent class="max-w-lg max-h-[85vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
           <LinkIcon class="w-5 h-5 text-primary" />
