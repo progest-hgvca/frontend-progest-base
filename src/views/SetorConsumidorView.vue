@@ -123,6 +123,7 @@ const changeTab = (tab) => {
 const carregarDadosDoSetor = async (setorId) => {
   try {
     loading.value = true;
+    activeTab.value = "overview"; // reset imediato antes do carregamento
     console.log(`Carregando dados do setor consumidor ${setorId}...`);
 
     // 1. Buscar detalhes do setor
@@ -194,13 +195,12 @@ onUnmounted(() => {
   store.commit("clearPageHeader");
 });
 
-// Observar mudança de rota
-watch(
+  watch(
   () => route.params.id,
   (newId) => {
     if (newId) {
-      carregarDadosDoSetor(newId);
       activeTab.value = "overview";
+      carregarDadosDoSetor(newId);
     }
   },
 );

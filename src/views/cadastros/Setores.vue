@@ -122,12 +122,12 @@ onMounted(carregarSetores);
     <div class="px-6 py-6 w-full h-full flex flex-col gap-4">
       <!-- Enhanced Filters Card -->
       <div
-        class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden"
+        class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 relative"
       >
         <!-- Toolbar Row (Search + Action) -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 w-full">
-          <div class="relative w-full sm:max-w-md flex items-center">
-            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+        <div class="flex flex-row items-center justify-between gap-4 mb-6 w-full">
+          <div class="relative flex-1 max-w-md flex items-center">
+            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
             <Input
               v-model="searchQuery"
               placeholder="Pesquisar setor..."
@@ -135,13 +135,11 @@ onMounted(carregarSetores);
             />
           </div>
 
-          <div class="w-full sm:w-auto flex justify-end">
-            <LinkModal01
-              label="NOVO SETOR"
-              :titleModal="titleModal"
-              :varsModalData="varsModalData"
-            />
-          </div>
+          <LinkModal01
+            label="NOVO SETOR"
+            :titleModal="titleModal"
+            :varsModalData="varsModalData"
+          />
         </div>
 
         <!-- Secondary Filters Row -->

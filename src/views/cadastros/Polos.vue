@@ -249,14 +249,26 @@ onMounted(listAll);
       <AlertDialog :open="isToggleDialogOpen" @update:open="v => isToggleDialogOpen = v">
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Alterar Status</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja alterar o status deste item?
+            <AlertDialogTitle class="text-slate-800">
+              {{ itemToToggle?.status === 'Ativo' ? 'Inativar Polo' : 'Ativar Polo' }}
+            </AlertDialogTitle>
+            <AlertDialogDescription class="text-slate-500">
+              Tem certeza que deseja
+              <strong>{{ itemToToggle?.status === 'Ativo' ? 'inativar' : 'ativar' }}</strong>
+              o polo <strong class="text-slate-700">"{{ itemToToggle?.nome }}"</strong>?
+              <span v-if="itemToToggle?.status === 'Ativo'" class="block mt-2 text-amber-600 text-xs">
+                Polos inativos ficam ocultos nas seleções do sistema.
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter class="gap-2">
             <AlertDialogCancel @click="isToggleDialogOpen = false">Cancelar</AlertDialogCancel>
-            <AlertDialogAction @click="confirmToggleStatus">Confirmar</AlertDialogAction>
+            <AlertDialogAction
+              @click="confirmToggleStatus"
+              :class="itemToToggle?.status === 'Ativo' ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'"
+            >
+              {{ itemToToggle?.status === 'Ativo' ? 'Inativar' : 'Ativar' }}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
