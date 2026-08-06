@@ -18,7 +18,7 @@
               <InfoIcon class="w-4 h-4 mr-2 inline-block" />
               Visão Geral
             </TabsTrigger>
-            <TabsTrigger v-if="setor.estoque && !isSolicitante" value="estoque" class="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-md">
+            <TabsTrigger v-if="setor.estoque && (!isSolicitante || isSuperAdmin)" value="estoque" class="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-md">
               <PackageIcon class="w-4 h-4 mr-2 inline-block" />
               Estoque
             </TabsTrigger>
@@ -32,7 +32,7 @@
             />
           </TabsContent>
 
-          <TabsContent value="estoque" v-if="setor.estoque && !isSolicitante">
+          <TabsContent value="estoque" v-if="setor.estoque && (!isSolicitante || isSuperAdmin)">
             <TabEstoque :readOnly="true" />
           </TabsContent>
         </Tabs>
@@ -74,6 +74,7 @@ const loading = ref(true);
 const activeTab = ref("overview");
 
 const isSolicitante = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
   const user = store.state.user;
   if (!user) return false;
   const list = store.state.listUsuariosSetor || [];
@@ -83,6 +84,10 @@ const isSolicitante = computed(() => {
     return userId === user.id && perfil.includes("solicitante");
   });
   return !!found;
+});
+
+const isSuperAdmin = computed(() => {
+  return store.getters.isSuperAdmin;
 });
 
 // Dados compartilhados via provide
@@ -152,7 +157,7 @@ const carregarDadosDoSetor = async (setorId) => {
             setorId,
           );
 
-          if (result && result.success && result.data) {
+          if (result && result.status && result.data) {
             const data = result.data;
             estoqueItems.value = data.estoque || [];
             resumoEstoque.value = data.resumo || {};
@@ -180,6 +185,7 @@ const carregarDadosDoSetor = async (setorId) => {
 onMounted(() => {
   const setorId = route.params.id;
   if (setorId) {
+    activeTab.value = "overview";
     carregarDadosDoSetor(setorId);
   }
 });

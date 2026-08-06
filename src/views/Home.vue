@@ -253,7 +253,7 @@ onMounted(loadDashboardData);
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm font-medium text-slate-500 mb-1">
-                    Pedidos a Receber
+                    Pedidos Pendentes (entradas)
                   </p>
                   <h3
                     class="text-2xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors"
@@ -277,7 +277,7 @@ onMounted(loadDashboardData);
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm font-medium text-slate-500 mb-1">
-                    Pedidos a Enviar
+                    Pedidos para Análise (saídas)
                   </p>
                   <h3
                     class="text-2xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors"

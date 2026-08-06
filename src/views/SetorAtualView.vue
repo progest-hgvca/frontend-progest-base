@@ -98,9 +98,9 @@ const isAdminUser = computed(() => {
 });
 
 const isSolicitante = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
   const user = store.state.user;
   if (!user) return false;
-  if (user.email?.toLowerCase() === "admin@admin.com" || user.is_admin) return false; // GOD MODE
   const list = usuariosItems.value || [];
   const found = list.find((u) => {
     const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
