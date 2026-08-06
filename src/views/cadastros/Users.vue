@@ -25,6 +25,16 @@ import {
   BriefcaseIcon,
   LinkIcon,
 } from "lucide-vue-next";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import functions from "@/functions/cad_usuarios.js";
 
 const store = useStore();
@@ -197,11 +207,22 @@ const handleEdit = (item) => {
   });
 };
 
+const isToggleDialogOpen = ref(false);
+const itemToToggle = ref(null);
+
 const handleToggleStatus = (item) => {
-  functions.deleteData(
-    { $axios: proxy.$axios, $store: store, $toastr: proxy.$toastr },
-    item.id,
-  );
+  itemToToggle.value = item;
+  isToggleDialogOpen.value = true;
+};
+
+const confirmToggleStatus = () => {
+  if (itemToToggle.value) {
+    functions.deleteData(
+      { $axios: proxy.$axios, $store: store, $toastr: proxy.$toastr },
+      itemToToggle.value.id
+    );
+    isToggleDialogOpen.value = false;
+  }
 };
 
 onMounted(async () => {
@@ -393,6 +414,22 @@ onMounted(async () => {
         v-model:open="isVinculosModalOpen"
         :usuario="vinculosUser"
       />
+
+      <!-- Modal de Confirmação -->
+      <AlertDialog :open="isToggleDialogOpen" @update:open="v => isToggleDialogOpen = v">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Alterar Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar o status deste item?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel @click="isToggleDialogOpen = false">Cancelar</AlertDialogCancel>
+            <AlertDialogAction @click="confirmToggleStatus">Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </TemplateAdmin>
 </template>

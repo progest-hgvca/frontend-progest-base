@@ -235,9 +235,6 @@ var listPolos = (content, url = null) => {
 };
 
 var deleteData = (content, id) => {
-  if (!confirm("Tem certeza que deseja alterar o status deste usuário?")) {
-    return;
-  }
 
   content.$axios
     .post(

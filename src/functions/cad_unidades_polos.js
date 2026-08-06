@@ -127,9 +127,6 @@ var listData = (content) => {
 };
 
 var deleteData = (content, id) => {
-  if (!confirm("Tem certeza que deseja alterar o status desta unidade?"))
-    return;
-
   content.$axios
     .post(
       `/polo/toggleStatus`,

@@ -19,6 +19,16 @@ import {
   FilterIcon,
   UserIcon,
 } from "lucide-vue-next";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import functions from "@/functions/cad_fornecedores.js";
 import ModalFornecedores from "@/components/cadastros/ModalFornecedores.vue";
 import ModalFornecedoresView from "@/components/cadastros/ModalFornecedoresView.vue";
@@ -142,11 +152,22 @@ const handleEdit = (item) => {
   });
 };
 
+const isToggleDialogOpen = ref(false);
+const itemToToggle = ref(null);
+
 const handleToggleStatus = (item) => {
-  functions.deleteData(
-    { $axios: proxy.$axios, $store: store, $toastr: proxy.$toastr },
-    item.id,
-  );
+  itemToToggle.value = item;
+  isToggleDialogOpen.value = true;
+};
+
+const confirmToggleStatus = () => {
+  if (itemToToggle.value) {
+    functions.deleteData(
+      { $axios: proxy.$axios, $store: store, $toastr: proxy.$toastr },
+      itemToToggle.value.id
+    );
+    isToggleDialogOpen.value = false;
+  }
 };
 
 const formatDoc = (item) => {
@@ -322,6 +343,22 @@ onMounted(listAllFornecedores);
         v-model:open="isViewModalOpen"
         :item="viewingItem"
       />
+
+      <!-- Modal de Confirmação -->
+      <AlertDialog :open="isToggleDialogOpen" @update:open="v => isToggleDialogOpen = v">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Alterar Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar o status deste item?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel @click="isToggleDialogOpen = false">Cancelar</AlertDialogCancel>
+            <AlertDialogAction @click="confirmToggleStatus">Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </TemplateAdmin>
 </template>

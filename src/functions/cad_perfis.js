@@ -112,7 +112,6 @@ var listData = (content) => {
 };
 
 var deleteData = (content, id) => {
-  if (confirm("Tem certeza que deseja excluir este perfil?")) {
     content.$axios
       .post(
         `/perfil/delete/${id}`,
@@ -135,7 +134,6 @@ var deleteData = (content, id) => {
       .catch((e) => {
         console.error(e);
       });
-  }
 };
 
 var exportFunctions = {

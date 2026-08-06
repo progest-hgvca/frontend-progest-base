@@ -32,9 +32,10 @@ const localData = ref({
 
 const modalDataStore = computed(() => store.state.modalData.modalData);
 const modalFunction = computed(() => store.state.modalData.modalFunction);
-const listRegimesContratacaoStore = computed(
-  () => store.state.listRegimesContratacao || [],
-);
+const listRegimesContratacaoStore = computed(() => {
+  const regimes = store.state.listRegimesContratacao || [];
+  return regimes.filter(r => !r.status || r.status === 'A' || r.status === 'Ativo' || r.id == localData.value.cad_regime_contratacao_id);
+});
 const isModalOpen = computed({
   get: () => store.state.modalData.isModalOpen,
   set: (value) => store.commit("setModalOpen", value),

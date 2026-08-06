@@ -235,7 +235,7 @@ const erroValidacao = ref("");
 const polos = computed(() => {
   const map = new Map();
   setores.value.forEach((s) => {
-    if (s.polo && !map.has(s.polo.id)) {
+    if (s.polo && (s.polo.status === 'A' || s.polo.status === 'Ativo') && !map.has(s.polo.id)) {
       map.set(s.polo.id, s.polo);
     }
   });

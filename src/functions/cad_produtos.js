@@ -131,8 +131,6 @@ var listData = (content) => {
 };
 
 var deleteData = (content, id) => {
-  if (!confirm("Tem certeza que deseja alterar o status deste produto?"))
-    return;
 
   content.$axios
     .post(

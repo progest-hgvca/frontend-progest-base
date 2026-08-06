@@ -123,10 +123,6 @@ var listData = (content) => {
 };
 
 var deleteData = (content, id) => {
-  if (!confirm("Tem certeza que deseja alterar o status desta unidade de medida?")) {
-    return;
-  }
-
   content.$axios
     .post(
       `/unidadeMedida/delete/${id}`,

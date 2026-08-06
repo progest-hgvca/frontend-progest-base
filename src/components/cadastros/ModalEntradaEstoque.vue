@@ -788,14 +788,16 @@ export default {
   },
   computed: {
     fornecedoresDisponiveis() {
-      const base = this.normalizarLista(this.$store.state.listFornecedores);
+      const base = this.normalizarLista(this.$store.state.listFornecedores)
+        .filter(f => f.status === 'A' || f.status === 'Ativo' || f.id == this.localData?.fornecedor_id);
       const custom = this.fornecedoresCustom.filter(
         (item) => !base.some((baseItem) => baseItem.id === item.id),
       );
       return [...base, ...custom];
     },
     produtosDisponiveis() {
-      let base = this.normalizarLista(this.$store.state.listProdutos);
+      let base = this.normalizarLista(this.$store.state.listProdutos)
+        .filter(p => p.status === 'A' || p.status === 'Ativo' || this.localData?.itens?.some(i => i.produto_id == p.id));
 
       // Filtrar por tipo de grupo se setorTipo estiver definido
       if (this.setorTipo) {
