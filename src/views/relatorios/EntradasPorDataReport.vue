@@ -150,6 +150,7 @@
                             <tr>
                               <th style="width: 80px;">ID</th>
                               <th style="width: 100px;">Quantidade</th>
+                              <th style="width: 110px;">Valor Unit.</th>
                               <th>Nota Fiscal</th>
                               <th>Fornecedor</th>
                               <th>Lote</th>
@@ -163,6 +164,12 @@
                               <td class="text-muted">#{{ entrada.entrada_id }}</td>
                               <td>
                                 <span class="badge bg-success text-white">{{ entrada.quantidade }}</span>
+                              </td>
+                              <td class="text-muted small">
+                                <span v-if="entrada.valor_unitario != null" class="text-success fw-semibold">
+                                  R$ {{ parseFloat(entrada.valor_unitario).toFixed(2) }}
+                                </span>
+                                <span v-else class="text-muted">-</span>
                               </td>
                               <td>{{ entrada.nota_fiscal || '-' }}</td>
                               <td>
@@ -348,7 +355,7 @@ export default {
       const data = [];
       
       // Cabeçalho
-      data.push(['Data', 'Total Produtos Dia', 'Qtd Total Dia', 'Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Qtd Produto', 'ID Entrada', 'Qtd Entrada', 'Nota Fiscal', 'Fornecedor', 'Lote', 'Fabricação', 'Vencimento', 'Data/Hora']);
+      data.push(['Data', 'Total Produtos Dia', 'Qtd Total Dia', 'Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Qtd Produto', 'ID Entrada', 'Qtd Entrada', 'Valor Unit. (R$)', 'Nota Fiscal', 'Fornecedor', 'Lote', 'Fabricação', 'Vencimento', 'Data/Hora']);
       
       // Dados com estrutura hierárquica achatada
       for (const dia of this.entradasPorData) {
@@ -367,6 +374,7 @@ export default {
                 entIdx === 0 ? produtoItem.quantidade_total : '',
                 entrada.entrada_id || '',
                 entrada.quantidade || '',
+                entrada.valor_unitario != null ? parseFloat(entrada.valor_unitario).toFixed(2) : '',
                 entrada.nota_fiscal || '',
                 entrada.fornecedor?.razao_social_nome || entrada.fornecedor?.razao_social || entrada.fornecedor?.nome || '',
                 entrada.lote || '',

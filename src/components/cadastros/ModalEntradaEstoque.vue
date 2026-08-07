@@ -238,6 +238,60 @@
               />
             </div>
 
+            <!-- Bloco de valor (opcional) -->
+            <div class="col-md-3">
+              <Label>Valor <span class="text-muted small">(opcional)</span></Label>
+              <div class="flex flex-col gap-1.5">
+                <!-- Toggle tipo de valor -->
+                <div class="flex rounded-lg overflow-hidden border border-slate-200 text-xs font-medium">
+                  <button
+                    type="button"
+                    @click="itemAtual.tipoValor = 'unitario'"
+                    :class="[
+                      'flex-1 py-1.5 px-2 transition-colors',
+                      itemAtual.tipoValor === 'unitario'
+                        ? 'bg-primary text-white'
+                        : 'bg-white text-slate-600 hover:bg-slate-50'
+                    ]"
+                  >
+                    Por unidade
+                  </button>
+                  <button
+                    type="button"
+                    @click="itemAtual.tipoValor = 'total'"
+                    :class="[
+                      'flex-1 py-1.5 px-2 transition-colors',
+                      itemAtual.tipoValor === 'total'
+                        ? 'bg-primary text-white'
+                        : 'bg-white text-slate-600 hover:bg-slate-50'
+                    ]"
+                  >
+                    Valor total
+                  </button>
+                </div>
+                <!-- Campo de valor -->
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm select-none">R$</span>
+                  <Input
+                    id="produtoValor"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    v-model="itemAtual.valor"
+                    placeholder="0,00"
+                    class="pl-9"
+                  />
+                </div>
+                <!-- Preview do valor unitario quando modo total -->
+                <div
+                  v-if="itemAtual.tipoValor === 'total' && itemAtual.valor && itemAtual.quantidade > 0"
+                  class="text-[11px] text-slate-500"
+                >
+                  Unitário ≈ R$ {{ (parseFloat(itemAtual.valor) / itemAtual.quantidade).toFixed(4) }}
+                </div>
+              </div>
+            </div>
+
             <div class="col-md-2">
               <Label for="produtoLote">
                 Lote
@@ -254,7 +308,7 @@
             </div>
 
             <div class="col-md-2">
-              <Label for="produtoDataFabricacao"> Data fabricação </Label>
+              <Label for="produtoDataFabricacao">Data fabricação <span class="text-muted small">(opcional)</span></Label>
               <Input
                 id="produtoDataFabricacao"
                 type="date"
@@ -580,6 +634,7 @@
               <tr>
                 <th class="text-start">Produto</th>
                 <th class="text-center">Quantidade</th>
+                <th class="text-center">Valor Unit.</th>
                 <th class="text-center">Lote</th>
                 <th class="text-center">Data fabricação</th>
                 <th class="text-center">Data vencimento</th>
@@ -596,6 +651,12 @@
                 </td>
                 <td class="text-center">
                   <span class="badge bg-primary">{{ item.quantidade }}</span>
+                </td>
+                <td class="text-center">
+                  <small v-if="item.valor_unitario != null" class="text-success fw-semibold">
+                    R$ {{ parseFloat(item.valor_unitario).toFixed(2) }}
+                  </small>
+                  <small v-else class="text-muted">-</small>
                 </td>
                 <td class="text-center">
                   <code class="text-dark">{{ item.lote }}</code>
@@ -777,6 +838,8 @@ export default {
         lote: "",
         data_fabricacao: "",
         data_vencimento: "",
+        tipoValor: "unitario", // 'unitario' ou 'total'
+        valor: "",            // valor digitado pelo usuário
       },
       salvandoFornecedorInline: false,
       salvandoProdutoInline: false,
@@ -1299,11 +1362,23 @@ export default {
         return;
       }
 
+      // Calcular valor_unitario
+      let valorUnitario = null;
+      if (this.itemAtual.valor !== '' && this.itemAtual.valor !== null && !isNaN(parseFloat(this.itemAtual.valor))) {
+        const v = parseFloat(this.itemAtual.valor);
+        if (this.itemAtual.tipoValor === 'total') {
+          valorUnitario = this.itemAtual.quantidade > 0 ? parseFloat((v / this.itemAtual.quantidade).toFixed(4)) : null;
+        } else {
+          valorUnitario = parseFloat(v.toFixed(4));
+        }
+      }
+
       const item = {
         localId: `item-${Date.now()}-${Math.random()}`,
         produto_id: produto.id,
         produtoNome: produto.nome,
         quantidade: this.itemAtual.quantidade,
+        valor_unitario: valorUnitario,
         lote: this.itemAtual.lote.trim().toUpperCase(),
         data_vencimento: this.itemAtual.data_vencimento,
         data_fabricacao: this.itemAtual.data_fabricacao || null,
@@ -1322,6 +1397,8 @@ export default {
         lote: "",
         data_fabricacao: "",
         data_vencimento: "",
+        tipoValor: "unitario",
+        valor: "",
       };
 
       this.notificar("Produto adicionado à entrada", "success");
@@ -1339,6 +1416,8 @@ export default {
         lote: item.lote,
         data_fabricacao: item.data_fabricacao || "",
         data_vencimento: item.data_vencimento,
+        tipoValor: "unitario",
+        valor: item.valor_unitario != null ? String(item.valor_unitario) : "",
       };
 
       // Remover o item da lista (será adicionado novamente quando salvar)
@@ -1380,6 +1459,7 @@ export default {
           itens: this.form.itens.map((item) => ({
             produto_id: item.produto_id,
             quantidade: item.quantidade,
+            valor_unitario: item.valor_unitario ?? null,
             lote: item.lote,
             data_vencimento: item.data_vencimento,
             data_fabricacao: item.data_fabricacao,

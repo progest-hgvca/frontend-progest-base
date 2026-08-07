@@ -65,6 +65,7 @@
                 <tr>
                   <th class="text-start">Produto</th>
                   <th class="text-center">Quantidade</th>
+                  <th class="text-center">Valor Unit.</th>
                   <th class="text-center">Unidade</th>
                   <th class="text-center">Lote</th>
                   <th class="text-center">Data Fabricação</th>
@@ -94,6 +95,12 @@
                     }}</span>
                   </td>
                   <td class="text-center">
+                    <small v-if="item.valor_unitario != null" class="text-success fw-semibold">
+                      R$ {{ parseFloat(item.valor_unitario).toFixed(2) }}
+                    </small>
+                    <small v-else class="text-muted">-</small>
+                  </td>
+                  <td class="text-center">
                     {{ item.produto?.unidade_medida?.nome || "-" }}
                   </td>
                   <td class="text-center">
@@ -112,10 +119,8 @@
               <tfoot>
                 <tr class="table-light">
                   <td colspan="1" class="text-end fw-bold">Total de itens:</td>
-                  <td class="text-center fw-bold">
-                    {{ totalQuantidade }}
-                  </td>
-                  <td colspan="4" class="text-muted small">
+                  <td class="text-center fw-bold">{{ totalQuantidade }}</td>
+                  <td colspan="5" class="text-muted small">
                     {{ entrada?.itens?.length || 0 }} produto(s) diferente(s)
                   </td>
                 </tr>
