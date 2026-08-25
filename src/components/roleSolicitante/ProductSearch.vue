@@ -331,7 +331,7 @@ const handleAddItem = (product) => {
 };
 
 const goToCheckout = () => {
-  router.push("/pedidos?tab=pedido");
+  router.replace({ query: { tab: "pedido" } });
 };
 
 onMounted(() => {

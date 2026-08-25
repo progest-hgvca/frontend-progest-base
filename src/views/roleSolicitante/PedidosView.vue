@@ -10,7 +10,7 @@
         </div>
       </div>
       
-      <Tabs :value="activeTab" @update:value="changeTab" class="w-full">
+      <Tabs :model-value="activeTab" @update:model-value="changeTab" class="w-full">
         <TabsList class="grid w-full grid-cols-3 mb-6 bg-slate-100/50 p-1 rounded-lg">
           <TabsTrigger value="itens" class="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-md">
             <ShoppingCartIcon class="w-4 h-4 mr-2 inline-block" />
@@ -57,7 +57,7 @@ const changeTab = (tab) => {
   const normalized = normalizeTab(tab);
   activeTab.value = normalized;
   try {
-    window.history.replaceState({}, "", `${route.path}?tab=${normalized}`);
+    router.replace({ query: { tab: normalized } });
   } catch (e) {
     console.warn("Não foi possível atualizar a URL com a tab:", e);
   }
@@ -81,8 +81,9 @@ onMounted(() => {
 watch(
   () => route.query.tab,
   (newTab) => {
-    if (newTab && normalizeTab(newTab) !== activeTab.value) {
-      activeTab.value = normalizeTab(newTab);
+    const normalized = normalizeTab(newTab);
+    if (normalized !== activeTab.value) {
+      activeTab.value = normalized;
     }
   }
 );

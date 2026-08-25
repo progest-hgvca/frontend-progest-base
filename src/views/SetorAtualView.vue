@@ -124,7 +124,7 @@ watch(isSolicitante, (val) => {
 watch(
   () => route.query.tab,
   (newTab) => {
-    if (newTab) activeTab.value = newTab;
+    activeTab.value = newTab || "overview";
   },
 );
 
@@ -247,7 +247,7 @@ onUnmounted(() => {
 
       <!-- Main Content -->
       <div v-else-if="setor.id" class="flex-1 flex flex-col gap-4">
-        <Tabs v-model="activeTab" class="w-full flex flex-col gap-4">
+        <Tabs :model-value="activeTab" @update:model-value="changeTab" class="w-full flex flex-col gap-4">
           <div
             class="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex self-start"
           >
