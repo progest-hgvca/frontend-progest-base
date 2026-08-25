@@ -1,13 +1,20 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h2 class="text-2xl font-bold flex items-center gap-2">
-        <i class="mdi mdi-history text-xl text-blue-600"></i>
-        Histórico de Pedidos
-      </h2>
-      <p class="text-sm text-muted-foreground">
-        Acompanhe o status dos seus pedidos anteriores.
-      </p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <i class="mdi mdi-history text-xl text-blue-600"></i>
+          Histórico de Pedidos
+        </h2>
+        <p class="text-sm text-muted-foreground">
+          Acompanhe o status, edite rascunhos ou cancele pedidos pendentes.
+        </p>
+      </div>
+
+      <Button variant="outline" size="sm" @click="fetchPedidos" :disabled="loading" class="flex items-center gap-1.5">
+        <i class="mdi mdi-refresh" :class="{ 'animate-spin': loading }"></i>
+        Atualizar
+      </Button>
     </div>
 
     <!-- Loading -->
@@ -26,7 +33,7 @@
         ></i>
         <h3 class="text-lg font-medium mb-2">Nenhum pedido encontrado</h3>
         <p class="text-muted-foreground mb-4">
-          Você ainda não fez nenhum pedido.
+          Você ainda não fez nenhum pedido ou rascunho.
         </p>
         <Button @click="irParaBuscar">
           <i class="mdi mdi-magnify mr-2"></i>
@@ -37,11 +44,16 @@
 
     <!-- Pedidos List -->
     <div v-else class="space-y-4">
-      <Card v-for="pedido in pedidos" :key="pedido.id" class="overflow-hidden">
+      <Card v-for="pedido in pedidos" :key="pedido.id" class="overflow-hidden transition-all duration-200" :class="{ 'border-amber-300 bg-amber-50/20': pedido.status_solicitacao === 'C' }">
         <CardHeader class="pb-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <CardTitle class="text-lg">Pedido #{{ pedido.id }}</CardTitle>
+              <CardTitle class="text-lg flex items-center gap-2">
+                Pedido #{{ pedido.id }}
+                <span v-if="pedido.status_solicitacao === 'C'" class="text-xs font-normal text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                  Rascunho não enviado
+                </span>
+              </CardTitle>
               <Badge :variant="getStatusVariant(pedido.status_solicitacao)">
                 {{ getStatusLabel(pedido.status_solicitacao) }}
               </Badge>
@@ -54,11 +66,11 @@
         <CardContent>
           <div class="space-y-3">
             <!-- Info do pedido e Ações -->
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex flex-wrap gap-4 text-sm">
                 <div class="flex items-center gap-2">
                   <i class="mdi mdi-store text-muted-foreground"></i>
-                  <span class="text-muted-foreground">Fornecedor:</span>
+                  <span class="text-muted-foreground">Distribuidor:</span>
                   <span class="font-medium">
                     {{ pedido.setor_origem?.nome || "N/A" }}
                   </span>
@@ -73,8 +85,63 @@
               </div>
 
               <!-- Botões de Ação -->
-              <div class="flex items-center gap-2">
-                <!-- Botão de Imprimir -->
+              <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                <!-- RASCUNHO: Enviar Agora -->
+                <Button
+                  v-if="pedido.status_solicitacao === 'C'"
+                  size="sm"
+                  variant="default"
+                  @click.stop="enviarRascunhoDireto(pedido)"
+                  :disabled="actionInProgress === pedido.id"
+                  class="h-8 px-2.5 bg-green-600 hover:bg-green-700 text-white text-xs flex items-center gap-1"
+                  title="Enviar Rascunho para Análise"
+                >
+                  <LoadingSpinner v-if="actionInProgress === pedido.id" size="sm" />
+                  <i v-else class="mdi mdi-send text-sm"></i>
+                  <span>Enviar</span>
+                </Button>
+
+                <!-- RASCUNHO OU PENDENTE: Editar -->
+                <Button
+                  v-if="pedido.status_solicitacao === 'C' || pedido.status_solicitacao === 'P'"
+                  variant="outline"
+                  size="sm"
+                  @click.stop="editarPedido(pedido)"
+                  class="h-8 px-2.5 text-xs flex items-center gap-1"
+                  :title="pedido.status_solicitacao === 'C' ? 'Editar Rascunho' : 'Editar Pedido Pendente'"
+                >
+                  <i class="mdi mdi-pencil text-sm text-blue-600"></i>
+                  <span>Editar</span>
+                </Button>
+
+                <!-- RASCUNHO: Excluir -->
+                <Button
+                  v-if="pedido.status_solicitacao === 'C'"
+                  variant="ghost"
+                  size="icon"
+                  @click.stop="abrirExcluirRascunho(pedido)"
+                  :disabled="actionInProgress === pedido.id"
+                  class="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  title="Excluir Rascunho"
+                >
+                  <i class="mdi mdi-delete-outline text-lg"></i>
+                </Button>
+
+                <!-- PENDENTE: Cancelar -->
+                <Button
+                  v-if="pedido.status_solicitacao === 'P'"
+                  variant="ghost"
+                  size="icon"
+                  @click.stop="abrirCancelarPedido(pedido)"
+                  :disabled="actionInProgress === pedido.id"
+                  class="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  title="Cancelar Pedido"
+                >
+                  <LoadingSpinner v-if="actionInProgress === pedido.id" size="sm" />
+                  <i v-else class="mdi mdi-close-circle-outline text-lg"></i>
+                </Button>
+
+                <!-- APROVADO: Imprimir -->
                 <Button
                   v-if="pedido.status_solicitacao === 'A'"
                   variant="ghost"
@@ -83,38 +150,24 @@
                   class="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                   title="Imprimir Pedido"
                 >
-                  <i class="mdi mdi-printer text-xl"></i>
-                </Button>
-
-                <!-- Botão de Cancelar -->
-                <Button
-                  v-if="pedido.status_solicitacao === 'P'"
-                  variant="ghost"
-                  size="icon"
-                  @click.stop="cancelarPedido(pedido)"
-                  :disabled="canceling === pedido.id"
-                  class="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  title="Cancelar Pedido"
-                >
-                  <LoadingSpinner v-if="canceling === pedido.id" size="sm" />
-                  <i v-else class="mdi mdi-close-circle-outline text-xl"></i>
+                  <i class="mdi mdi-printer text-lg"></i>
                 </Button>
               </div>
             </div>
 
             <!-- Observação -->
-            <div v-if="pedido.observacao" class="text-sm">
-              <span class="text-muted-foreground">Observação:</span>
-              <span class="ml-2">{{ pedido.observacao }}</span>
+            <div v-if="pedido.observacao" class="text-sm bg-muted/50 p-2 rounded">
+              <span class="text-muted-foreground font-medium">Obs:</span>
+              <span class="ml-1 text-slate-700">{{ pedido.observacao }}</span>
             </div>
 
             <!-- Expandir detalhes -->
-            <div class="pt-2">
+            <div class="pt-1">
               <Button
                 variant="ghost"
                 size="sm"
                 @click="toggleExpand(pedido.id)"
-                class="text-xs"
+                class="text-xs h-7 px-2"
               >
                 <i
                   :class="[
@@ -122,7 +175,7 @@
                     expanded[pedido.id] ? 'mdi-chevron-up' : 'mdi-chevron-down',
                   ]"
                 ></i>
-                {{ expanded[pedido.id] ? "Ocultar itens" : "Ver itens" }}
+                {{ expanded[pedido.id] ? "Ocultar itens" : `Ver itens (${pedido.itens?.length || 0})` }}
               </Button>
             </div>
 
@@ -135,20 +188,23 @@
                 <div
                   v-for="item in pedido.itens"
                   :key="item.id"
-                  class="flex items-center justify-between text-sm p-2 bg-muted rounded"
+                  class="flex items-center justify-between text-sm p-2.5 bg-muted/60 rounded border border-muted"
                 >
                   <div>
-                    <span class="font-medium">
+                    <span class="font-medium text-slate-900">
                       {{ item.produto?.nome || `Produto #${item.produto_id}` }}
                     </span>
+                    <span v-if="item.produto?.marca" class="text-xs text-muted-foreground ml-2">
+                      ({{ item.produto.marca }})
+                    </span>
                   </div>
-                  <div class="flex items-center gap-4">
-                    <span class="text-muted-foreground">
+                  <div class="flex items-center gap-4 text-xs font-medium">
+                    <span class="text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">
                       Solicitado: {{ item.quantidade_solicitada }}
                     </span>
                     <span
                       v-if="item.quantidade_liberada > 0"
-                      class="text-green-600"
+                      class="text-green-700 bg-green-100 px-2 py-0.5 rounded"
                     >
                       Liberado: {{ item.quantidade_liberada }}
                     </span>
@@ -161,13 +217,13 @@
       </Card>
     </div>
 
-    <!-- Alert Dialog para confirmar cancelamento -->
+    <!-- Alert Dialog para confirmar cancelamento de pedido pendente -->
     <AlertDialog v-model:open="showCancelDialog">
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Cancelar Pedido</AlertDialogTitle>
           <AlertDialogDescription>
-            Deseja realmente cancelar o Pedido #{{ pedidoParaCancelar?.id }}?
+            Deseja realmente cancelar o Pedido #{{ pedidoSelecionado?.id }}?
             Esta ação não poderá ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -178,6 +234,28 @@
             class="bg-red-600 hover:bg-red-700 text-white"
           >
             Sim, cancelar pedido
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <!-- Alert Dialog para confirmar exclusão de rascunho -->
+    <AlertDialog v-model:open="showDeleteDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir Rascunho</AlertDialogTitle>
+          <AlertDialogDescription>
+            Deseja realmente excluir o Rascunho #{{ pedidoSelecionado?.id }}?
+            Todos os itens salvos neste rascunho serão removidos.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Não, manter rascunho</AlertDialogCancel>
+          <AlertDialogAction
+            @click="confirmarExclusaoRascunho"
+            class="bg-red-600 hover:bg-red-700 text-white"
+          >
+            Sim, excluir rascunho
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -205,17 +283,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useSolicitacao } from "@/composables/useSolicitacao";
 import { imprimirPedido as gerarImpressaoPedido } from "@/utils/imprimirPedido";
+
 const router = useRouter();
 const store = useStore();
 const { toast } = useToast();
+const { carregarPedidoParaEdicao } = useSolicitacao();
 
 const pedidos = ref([]);
 const loading = ref(true);
 const expanded = ref({});
-const canceling = ref(null);
+const actionInProgress = ref(null);
 const showCancelDialog = ref(false);
-const pedidoParaCancelar = ref(null);
+const showDeleteDialog = ref(false);
+const pedidoSelecionado = ref(null);
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -231,9 +313,9 @@ const formatDate = (dateString) => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    P: "Pendente",
-    A: "Aprovado",
-    R: "Rejeitado",
+    P: "Aguardando Análise",
+    A: "Atendido",
+    R: "Negado",
     C: "Rascunho",
     X: "Cancelado",
   };
@@ -268,7 +350,6 @@ const fetchPedidos = async () => {
     );
 
     if (response.data.status) {
-      // Filtrar apenas solicitações onde o setor atual é o destino
       const data = response.data.data?.data || response.data.data || [];
       pedidos.value = data.filter(
         (mov) => mov.tipo === "S" && mov.setor_destino_id === Number(setorId)
@@ -286,17 +367,57 @@ const fetchPedidos = async () => {
   }
 };
 
-const cancelarPedido = (pedido) => {
-  pedidoParaCancelar.value = pedido;
+const editarPedido = (pedido) => {
+  carregarPedidoParaEdicao(pedido);
+  toast({
+    title: "Modo de edição",
+    description: `Pedido #${pedido.id} carregado para edição.`,
+  });
+  router.replace({ query: { tab: "pedido" } });
+};
+
+const enviarRascunhoDireto = async (pedido) => {
+  actionInProgress.value = pedido.id;
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `/movimentacao/${pedido.id}/process`,
+      { action: "submit" },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.status) {
+      toast({
+        title: "Sucesso",
+        description: `Rascunho #${pedido.id} enviado com sucesso para análise!`,
+      });
+      await fetchPedidos();
+    } else {
+      throw new Error(response.data.message || "Erro ao enviar rascunho");
+    }
+  } catch (error) {
+    console.error("Erro ao enviar rascunho:", error);
+    toast({
+      title: "Erro",
+      description: error.response?.data?.message || "Não foi possível enviar o rascunho.",
+      variant: "destructive",
+    });
+  } finally {
+    actionInProgress.value = null;
+  }
+};
+
+const abrirCancelarPedido = (pedido) => {
+  pedidoSelecionado.value = pedido;
   showCancelDialog.value = true;
 };
 
 const confirmarCancelamento = async () => {
-  const pedido = pedidoParaCancelar.value;
+  const pedido = pedidoSelecionado.value;
   if (!pedido) return;
 
   showCancelDialog.value = false;
-  canceling.value = pedido.id;
+  actionInProgress.value = pedido.id;
 
   try {
     const token = localStorage.getItem("token");
@@ -324,8 +445,51 @@ const confirmarCancelamento = async () => {
       variant: "destructive",
     });
   } finally {
-    canceling.value = null;
-    pedidoParaCancelar.value = null;
+    actionInProgress.value = null;
+    pedidoSelecionado.value = null;
+  }
+};
+
+const abrirExcluirRascunho = (pedido) => {
+  pedidoSelecionado.value = pedido;
+  showDeleteDialog.value = true;
+};
+
+const confirmarExclusaoRascunho = async () => {
+  const pedido = pedidoSelecionado.value;
+  if (!pedido) return;
+
+  showDeleteDialog.value = false;
+  actionInProgress.value = pedido.id;
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `/movimentacao/${pedido.id}/delete`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.status) {
+      toast({
+        title: "Sucesso",
+        description: "Rascunho excluído com sucesso.",
+      });
+      await fetchPedidos();
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    console.error("Erro ao excluir rascunho:", error);
+    toast({
+      title: "Erro",
+      description:
+        error.response?.data?.message || "Não foi possível excluir o rascunho.",
+      variant: "destructive",
+    });
+  } finally {
+    actionInProgress.value = null;
+    pedidoSelecionado.value = null;
   }
 };
 
@@ -341,7 +505,7 @@ const imprimirPedido = (pedido) => {
 };
 
 const irParaBuscar = () => {
-  router.push("/pedidos?tab=itens");
+  router.replace({ query: { tab: "itens" } });
 };
 
 onMounted(() => {

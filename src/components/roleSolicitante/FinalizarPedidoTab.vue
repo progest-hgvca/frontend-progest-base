@@ -1,18 +1,31 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h2 class="text-2xl font-bold flex items-center gap-2">
-        <i class="mdi mdi-cart-check text-xl text-blue-600"></i>
-        Finalizar Pedido
-        <span
-          v-if="quantidadeProdutos > 0"
-          class="text-base font-normal text-muted-foreground"
-        >
-          ({{ quantidadeProdutos }}
-          {{ quantidadeProdutos === 1 ? "item" : "itens" }})
-        </span>
-      </h2>
-      <p class="text-sm text-muted-foreground">Revise e finalize seu pedido.</p>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <i class="mdi mdi-cart-check text-xl text-blue-600"></i>
+          {{ pedidoEmEdicaoId ? `Editar Pedido #${pedidoEmEdicaoId}` : 'Finalizar Pedido' }}
+          <span
+            v-if="quantidadeProdutos > 0"
+            class="text-base font-normal text-muted-foreground"
+          >
+            ({{ quantidadeProdutos }}
+            {{ quantidadeProdutos === 1 ? "item" : "itens" }})
+          </span>
+        </h2>
+        <p class="text-sm text-muted-foreground">
+          {{ pedidoEmEdicaoId ? 'Revise os itens e salve as alterações do seu pedido.' : 'Revise e finalize seu pedido.' }}
+        </p>
+      </div>
+
+      <!-- Banner de Modo de Edição -->
+      <div v-if="pedidoEmEdicaoId" class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 rounded-md text-sm">
+        <i class="mdi mdi-pencil text-base"></i>
+        <span>Modo de edição ativo</span>
+        <Button variant="ghost" size="sm" class="h-7 text-xs text-amber-900 hover:bg-amber-100 ml-2" @click="handleCancelarEdicao">
+          Cancelar Edição
+        </Button>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -73,7 +86,7 @@
             ></div>
 
             <!-- Setor Distribuidor (primeiro) -->
-            <div class="flex-shrink-0 w-[220px]">
+            <div class="flex-shrink-0 w-[240px]">
               <label class="text-xs text-muted-foreground block mb-1"
                 >Setor Distribuidor</label
               >
@@ -82,7 +95,7 @@
                 @update:modelValue="handleDistribuidorChange"
               >
                 <SelectTrigger class="w-full">
-                  <SelectValue placeholder="Selecione o setor distribuidor" />
+                  <SelectValue placeholder="Selecione o distribuidor" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
@@ -213,24 +226,40 @@
       </Card>
 
       <!-- Actions -->
-      <div v-if="itens.length > 0" class="flex justify-between gap-4 mt-6">
+      <div v-if="itens.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
         <Button
           variant="outline"
           @click="adicionarMaisItens"
-          class="flex items-center gap-2"
+          class="flex items-center gap-2 w-full sm:w-auto"
         >
           <i class="mdi mdi-plus"></i>
           Adicionar mais itens
         </Button>
-        <Button
-          @click="finalizarPedido"
-          :disabled="submitting || distribuidoresDisponiveis.length === 0"
-          class="flex items-center gap-2"
-        >
-          <LoadingSpinner v-if="submitting" size="sm" class="mr-2" />
-          <i v-else class="mdi mdi-check"></i>
-          {{ submitting ? "Enviando..." : "Finalizar Pedido" }}
-        </Button>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <!-- Salvar como Rascunho -->
+          <Button
+            variant="secondary"
+            @click="salvarRascunho"
+            :disabled="submitting || distribuidoresDisponiveis.length === 0"
+            class="flex items-center gap-2 w-full sm:w-auto"
+          >
+            <LoadingSpinner v-if="submitting && submittingType === 'C'" size="sm" class="mr-1" />
+            <i v-else class="mdi mdi-file-document-edit-outline"></i>
+            {{ pedidoEmEdicaoId ? "Salvar Rascunho" : "Salvar como Rascunho" }}
+          </Button>
+
+          <!-- Finalizar / Enviar Pedido -->
+          <Button
+            @click="enviarPedido"
+            :disabled="submitting || distribuidoresDisponiveis.length === 0"
+            class="flex items-center gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <LoadingSpinner v-if="submitting && submittingType === 'P'" size="sm" class="mr-1" />
+            <i v-else class="mdi mdi-send"></i>
+            {{ pedidoEmEdicaoId ? "Enviar Pedido" : "Finalizar Pedido" }}
+          </Button>
+        </div>
       </div>
     </div>
   </div>
@@ -255,6 +284,7 @@ import {
 import LoadingSpinner from "@/components/ui/loading-spinner/LoadingSpinner.vue";
 import { useToast } from "@/components/ui/toast";
 import { useSolicitacao } from "@/composables/useSolicitacao";
+
 const router = useRouter();
 const { toast } = useToast();
 
@@ -262,6 +292,8 @@ const {
   tipo,
   itens,
   distribuidor,
+  pedidoEmEdicaoId,
+  observacaoEmEdicao,
   quantidadeProdutos,
   totalItens,
   setorAtual,
@@ -269,13 +301,15 @@ const {
   updateQuantidade,
   removeItem,
   setDistribuidor,
+  cancelarEdicao,
   limparPedido,
   getPedidoParaEnvio,
 } = useSolicitacao();
 
 const loading = ref(false);
 const submitting = ref(false);
-const observacao = ref("");
+const submittingType = ref(null);
+const observacao = ref(observacaoEmEdicao.value || "");
 const distribuidorLocal = ref(distribuidor.value ? String(distribuidor.value) : null);
 
 // Sync com composable
@@ -283,8 +317,22 @@ watch(distribuidor, (newVal) => {
   distribuidorLocal.value = newVal ? String(newVal) : null;
 });
 
+watch(observacaoEmEdicao, (newVal) => {
+  if (newVal) observacao.value = newVal;
+});
+
 const handleDistribuidorChange = (value) => {
   setDistribuidor(value ? Number(value) : null);
+};
+
+const handleCancelarEdicao = () => {
+  cancelarEdicao();
+  observacao.value = "";
+  distribuidorLocal.value = null;
+  toast({
+    title: "Edição cancelada",
+    description: "Modo de edição finalizado.",
+  });
 };
 
 const incrementarQuantidade = (produtoId) => {
@@ -302,10 +350,13 @@ const decrementarQuantidade = (produtoId) => {
 };
 
 const adicionarMaisItens = () => {
-  router.push("/pedidos?tab=itens");
+  router.replace({ query: { tab: "itens" } });
 };
 
-const finalizarPedido = async () => {
+const salvarRascunho = () => processarEnvio("C");
+const enviarPedido = () => processarEnvio("P");
+
+const processarEnvio = async (statusTarget) => {
   if (!distribuidorLocal.value) {
     toast({
       title: "Atenção",
@@ -324,14 +375,8 @@ const finalizarPedido = async () => {
     return;
   }
 
-  // Garantir que distribuidor está setado
   setDistribuidor(Number(distribuidorLocal.value));
-
-  const pedidoData = getPedidoParaEnvio(observacao.value);
-
-  console.log("🚀 Finalizando pedido...");
-  console.log("📋 distribuidorLocal.value:", distribuidorLocal.value);
-  console.log("📦 pedidoData:", pedidoData);
+  const pedidoData = getPedidoParaEnvio(statusTarget, observacao.value);
 
   if (!pedidoData) {
     toast({
@@ -344,16 +389,56 @@ const finalizarPedido = async () => {
 
   try {
     submitting.value = true;
+    submittingType.value = statusTarget;
     const token = localStorage.getItem("token");
 
-    const response = await axios.post("/movimentacao/add", pedidoData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    let response;
+
+    // Se estiver editando um pedido existente
+    if (pedidoEmEdicaoId.value) {
+      const editId = pedidoEmEdicaoId.value;
+      
+      // Se era rascunho e vai continuar rascunho
+      if (statusTarget === "C") {
+        response = await axios.post(`/movimentacao/${editId}/update-rascunho`, {
+          setor_origem_id: pedidoData.setor_origem_id,
+          observacao: pedidoData.observacao,
+          itens: pedidoData.itens,
+          status_solicitacao: "C",
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        // Atualiza itens do rascunho e submete
+        await axios.post(`/movimentacao/${editId}/update-rascunho`, {
+          setor_origem_id: pedidoData.setor_origem_id,
+          observacao: pedidoData.observacao,
+          itens: pedidoData.itens,
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        response = await axios.post(`/movimentacao/${editId}/process`, {
+          action: "submit",
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } else {
+      // Criação de nova movimentação
+      response = await axios.post("/movimentacao/add", pedidoData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
 
     if (response.data.status) {
+      const mensagemSucesso = statusTarget === "C"
+        ? "Rascunho salvo com sucesso!"
+        : "Pedido enviado com sucesso! Aguarde a aprovação.";
+
       toast({
         title: "Sucesso",
-        description: "Pedido enviado com sucesso! Aguarde a aprovação.",
+        description: mensagemSucesso,
       });
 
       // Limpar pedido após sucesso
@@ -361,23 +446,33 @@ const finalizarPedido = async () => {
       observacao.value = "";
       distribuidorLocal.value = null;
 
-      // Navegar para histórico após 1.5 segundos
+      // Navegar para histórico após 1 segundo
       setTimeout(() => {
-        router.push("/pedidos?tab=historico");
-      }, 1500);
+        router.replace({ query: { tab: "historico" } });
+      }, 1000);
     } else {
-      throw new Error(response.data.message || "Erro ao enviar pedido");
+      throw new Error(response.data.message || "Erro ao salvar pedido");
     }
   } catch (error) {
-    console.error("Erro ao finalizar o pedido:", error);
+    console.error("Erro ao processar pedido:", error);
     toast({
       title: "Erro",
       description:
-        error.response?.data?.message || "Não foi possível finalizar o pedido.",
+        error.response?.data?.message || "Não foi possível concluir a operação.",
       variant: "destructive",
     });
   } finally {
     submitting.value = false;
+    submittingType.value = null;
   }
 };
+
+onMounted(() => {
+  if (observacaoEmEdicao.value) {
+    observacao.value = observacaoEmEdicao.value;
+  }
+  if (distribuidor.value) {
+    distribuidorLocal.value = String(distribuidor.value);
+  }
+});
 </script>

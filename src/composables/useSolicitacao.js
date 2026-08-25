@@ -6,6 +6,8 @@ import { useStore } from "vuex";
 const tipoSelecionado = ref(null);
 const itensPedido = ref([]);
 const distribuidorSelecionado = ref(null);
+const editingPedidoId = ref(null);
+const editingObservacao = ref("");
 
 // Carregar do localStorage na inicialização
 const savedState = localStorage.getItem("solicitacaoState");
@@ -15,6 +17,8 @@ if (savedState) {
     tipoSelecionado.value = parsed.tipo || null;
     itensPedido.value = parsed.itens || [];
     distribuidorSelecionado.value = parsed.distribuidor || parsed.fornecedor || null;
+    editingPedidoId.value = parsed.editingPedidoId || null;
+    editingObservacao.value = parsed.editingObservacao || "";
   } catch (e) {
     console.error("Erro ao carregar estado da solicitação:", e);
   }
@@ -22,7 +26,7 @@ if (savedState) {
 
 // Salvar no localStorage quando mudar
 watch(
-  [tipoSelecionado, itensPedido, distribuidorSelecionado],
+  [tipoSelecionado, itensPedido, distribuidorSelecionado, editingPedidoId, editingObservacao],
   () => {
     localStorage.setItem(
       "solicitacaoState",
@@ -30,6 +34,8 @@ watch(
         tipo: tipoSelecionado.value,
         itens: itensPedido.value,
         distribuidor: distribuidorSelecionado.value,
+        editingPedidoId: editingPedidoId.value,
+        editingObservacao: editingObservacao.value,
       })
     );
   },
@@ -43,6 +49,8 @@ export function useSolicitacao() {
   const tipo = computed(() => tipoSelecionado.value);
   const itens = computed(() => itensPedido.value);
   const distribuidor = computed(() => distribuidorSelecionado.value);
+  const pedidoEmEdicaoId = computed(() => editingPedidoId.value);
+  const observacaoEmEdicao = computed(() => editingObservacao.value);
 
   // Contadores
   const quantidadeProdutos = computed(() => itensPedido.value.length);
@@ -58,20 +66,15 @@ export function useSolicitacao() {
     const details = store.state.setorDetails;
     if (!details) return [];
 
-    // distribuidores_relacionados é um array com objetos que têm setor_distribuidor_id
     const relacionamentos = details.distribuidores_relacionados || [];
 
-    console.log("🔍 Distribuidores relacionados raw:", relacionamentos);
-
-    const result = relacionamentos
+    return relacionamentos
       .filter((rel) => {
-        // Garantir que temos um ID válido
         const distribuidorId =
           rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id || rel.id;
         return distribuidorId != null;
       })
       .map((rel) => {
-        // Tentar múltiplas formas de obter o ID do distribuidor
         const distribuidorId = rel.setor_distribuidor_id || rel.setor_fornecedor_id || rel.fornecedor_id;
         const distribuidorNome =
           rel.distribuidor?.nome ||
@@ -80,13 +83,6 @@ export function useSolicitacao() {
           rel.nome ||
           `Setor ${distribuidorId}`;
 
-        console.log("📦 Mapeando distribuidor:", {
-          rel,
-          distribuidorId,
-          distribuidorNome,
-        });
-
-        // IMPORTANTE: ...rel PRIMEIRO para que id e nome não sejam sobrescritos
         return {
           ...rel,
           id: distribuidorId,
@@ -94,9 +90,6 @@ export function useSolicitacao() {
           tipo: rel.tipo_produto || null,
         };
       });
-
-    console.log("✅ Distribuidores mapeados:", result);
-    return result;
   });
 
   // Funções
@@ -104,9 +97,9 @@ export function useSolicitacao() {
     if (
       tipoSelecionado.value &&
       tipoSelecionado.value !== novoTipo &&
-      itensPedido.value.length > 0
+      itensPedido.value.length > 0 &&
+      !editingPedidoId.value
     ) {
-      // Limpar itens ao trocar o tipo
       itensPedido.value = [];
     }
     tipoSelecionado.value = novoTipo;
@@ -118,10 +111,8 @@ export function useSolicitacao() {
     );
 
     if (existingIndex >= 0) {
-      // Atualizar quantidade se já existe
       itensPedido.value[existingIndex].quantidade += quantidade;
     } else {
-      // Adicionar novo item
       itensPedido.value.push({
         produtoId: produto.id,
         nome: produto.nome,
@@ -153,19 +144,55 @@ export function useSolicitacao() {
     distribuidorSelecionado.value = distribuidorId;
   };
 
+  const carregarPedidoParaEdicao = (pedido) => {
+    editingPedidoId.value = pedido.id;
+    editingObservacao.value = pedido.observacao || "";
+    distribuidorSelecionado.value = pedido.setor_origem_id;
+
+    if (pedido.itens && pedido.itens.length > 0) {
+      const primeiroProduto = pedido.itens[0]?.produto;
+      if (primeiroProduto?.tipo) {
+        tipoSelecionado.value = primeiroProduto.tipo;
+      }
+      itensPedido.value = pedido.itens.map((it) => ({
+        produtoId: it.produto_id,
+        nome: it.produto?.nome || `Produto #${it.produto_id}`,
+        marca: it.produto?.marca || "",
+        unidade:
+          it.produto?.unidade_medida?.sigla ||
+          it.produto?.unidade_medida?.nome ||
+          "",
+        quantidade: Number(it.quantidade_solicitada || 1),
+      }));
+    } else {
+      itensPedido.value = [];
+    }
+  };
+
+  const cancelarEdicao = () => {
+    editingPedidoId.value = null;
+    editingObservacao.value = "";
+    itensPedido.value = [];
+    distribuidorSelecionado.value = null;
+  };
+
   const limparPedido = () => {
     itensPedido.value = [];
     distribuidorSelecionado.value = null;
+    editingPedidoId.value = null;
+    editingObservacao.value = "";
   };
 
   const limparTudo = () => {
     tipoSelecionado.value = null;
     itensPedido.value = [];
     distribuidorSelecionado.value = null;
+    editingPedidoId.value = null;
+    editingObservacao.value = "";
     localStorage.removeItem("solicitacaoState");
   };
 
-  const getPedidoParaEnvio = (observacao = "") => {
+  const getPedidoParaEnvio = (status = "P", observacao = "") => {
     if (!distribuidorSelecionado.value || itensPedido.value.length === 0) {
       return null;
     }
@@ -183,7 +210,7 @@ export function useSolicitacao() {
       setor_origem_id: Number(distribuidorSelecionado.value),
       setor_destino_id: Number(setorDestinoId),
       tipo: "S", // Solicitação
-      status_solicitacao: "P", // Pendente
+      status_solicitacao: status, // P (Pendente) ou C (Rascunho)
       observacao: observacao,
       itens: itensPedido.value.map((item) => ({
         produto_id: item.produtoId,
@@ -197,6 +224,8 @@ export function useSolicitacao() {
     tipo,
     itens,
     distribuidor,
+    pedidoEmEdicaoId,
+    observacaoEmEdicao,
     quantidadeProdutos,
     totalItens,
     setorAtual,
@@ -208,6 +237,8 @@ export function useSolicitacao() {
     removeItem,
     updateQuantidade,
     setDistribuidor,
+    carregarPedidoParaEdicao,
+    cancelarEdicao,
     limparPedido,
     limparTudo,
     getPedidoParaEnvio,
