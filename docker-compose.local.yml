@@ -13,8 +13,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.progest-web.rule=Host(`${APP_DOMAIN:-app.localhost}`) || Host(`localhost`) || Host(`127.0.0.1`)"
-      - "traefik.http.routers.progest-web.entrypoints=websecure"
-      - "traefik.http.routers.progest-web.tls=true"
+      - "traefik.http.routers.progest-web.entrypoints=web"
       - "traefik.http.services.progest-web.loadbalancer.server.port=80"
 
 # --- Networks ---

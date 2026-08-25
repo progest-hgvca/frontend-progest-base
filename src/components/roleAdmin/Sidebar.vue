@@ -31,7 +31,7 @@
       <template v-if="isSolicitante">
         <router-link
           class="menu-item"
-          to="/setor-atual"
+          to="/setor-atual?tab=overview"
           :title="setorAtualNome"
           active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': !$route.query.tab || $route.query.tab === 'overview' }"
         >
@@ -50,7 +50,7 @@
           <span class="menu-text">Estoque Local</span>
         </router-link>
 
-        <router-link class="menu-item" to="/pedidos" title="Pedidos">
+        <router-link class="menu-item" to="/pedidos?tab=itens" title="Pedidos">
           <span class="material-icons menu-icon">shopping_cart</span>
           <span class="menu-text">Pedidos</span>
         </router-link>
@@ -60,7 +60,7 @@
       <template v-else>
         <router-link
           class="menu-item"
-          to="/setor-atual"
+          to="/setor-atual?tab=overview"
           :title="setorAtualNome"
           active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': !$route.query.tab || $route.query.tab === 'overview' }"
         >
@@ -118,7 +118,7 @@
         <router-link 
           v-if="!isCAF"
           class="menu-item" 
-          to="/pedidos" 
+          to="/pedidos?tab=itens" 
           title="Pedidos"
         >
           <span class="material-icons menu-icon">shopping_cart</span>
@@ -139,7 +139,7 @@
         <router-link
           v-if="store.getters.isSuperAdmin"
           class="menu-item" 
-          to="/pedidos" 
+          to="/pedidos?tab=itens" 
           title="Fazer Solicitação"
         >
           <span class="material-icons menu-icon">shopping_cart</span>
