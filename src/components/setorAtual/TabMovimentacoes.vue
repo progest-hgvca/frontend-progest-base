@@ -104,7 +104,7 @@ const isSetorAdmin = computed(() => {
   const user = store.state.user;
   if (!user) return false;
   // Super Admin tem passe livre
-  if (user.email?.toLowerCase() === "admin@admin.com") return false;
+  if (user.email?.toLowerCase() === "admin@admin.com" || user.email?.toLowerCase() === "adminti@gmail.com" || user.is_super_admin) return false;
   
   const list = parentData.usuariosItems?.value || parentData.usuariosItems || [];
   const found = list.find((u) => {

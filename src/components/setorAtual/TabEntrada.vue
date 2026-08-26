@@ -36,7 +36,7 @@ const props = defineProps({
 const store = useStore();
 const user = computed(() => store.state.user || {});
 const canAddEntrada = computed(() => {
-  if (user.value.email?.toLowerCase() === "admin@admin.com") return true;
+  if (user.value.email?.toLowerCase() === "admin@admin.com" || user.value.email?.toLowerCase() === "adminti@gmail.com" || user.value.is_super_admin) return true;
   if (user.value.is_admin) return true;
 
   const list = store.state.listUsuariosSetor || [];

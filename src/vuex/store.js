@@ -376,7 +376,7 @@ export default createStore({
     isSuperAdmin: (state) => {
       const u = state.user;
       if (!u) return false;
-      return u.email?.toLowerCase() === 'admin@admin.com' || u.is_admin === true || u.is_admin === 1;
+      return u.email?.toLowerCase() === 'adminti@gmail.com' || u.email?.toLowerCase() === 'admin@admin.com' || u.is_super_admin === true || u.is_admin === true || u.is_admin === 1;
     },
     getSetorAtualId: (state) => state.setorAtualId,
     getSetorAtualNome: (state) => state.setorAtualNome,
