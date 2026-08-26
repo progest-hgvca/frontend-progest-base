@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -107,3 +107,4 @@ textarea.text-uppercase::placeholder,
     @apply bg-background text-foreground;
   }
 }
+

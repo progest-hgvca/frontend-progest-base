@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Gera e envia para impressão a via em papel de uma requisição (movimentação).
  *
  * Usado tanto pelo solicitante (Histórico de Pedidos) quanto pelo setor
@@ -339,3 +339,4 @@ export function imprimirPedido(pedido) {
 }
 
 export default imprimirPedido;
+

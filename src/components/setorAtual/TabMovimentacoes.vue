@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed, inject, watch } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
@@ -66,7 +66,7 @@ const route = useRoute();
 const router = useRouter();
 const { toast } = useToast();
 
-// Nome do setor atual (para exibir no modal de aprovaÃ§Ã£o)
+// Nome do setor atual (para exibir no modal de aprovação)
 const setorNome = computed(() => store.state.setorDetails?.nome || "Setor Atual");
 
 const isCAF = computed(() => {
@@ -90,7 +90,7 @@ const movimentacaoParaCancelar = ref(null);
 const loadingCancelamento = ref(false);
 const previewLotesData = ref([]);
 
-// Estado para gestÃ£o de rascunhos
+// Estado para gestão de rascunhos
 const rascunhoParaEditar = ref(null);
 const dialogEditarRascunhoOpen = ref(false);
 const dialogEnviarRascunhoOpen = ref(false);
@@ -117,9 +117,9 @@ const isSetorAdmin = computed(() => {
   return perfil.includes("admin") || perfil.includes("gerente");
 });
 
-// Tipo e status vivem na URL para que atalhos do menu (ex.: "SolicitaÃ§Ãµes
-// Pendentes" â†’ ?tab=movimentacoes&status=P) jÃ¡ cheguem filtrados, e para que
-// a tela filtrada continue compartilhÃ¡vel.
+// Tipo e status vivem na URL para que atalhos do menu (ex.: "Solicitações
+// Pendentes" â†’ ?tab=movimentacoes&status=P) já cheguem filtrados, e para que
+// a tela filtrada continue compartilhável.
 const STATUS_VALIDOS = ["P", "A", "R", "C", "X"];
 const TIPOS_VALIDOS = ["entrada", "saida"];
 
@@ -142,8 +142,8 @@ watch(
   },
 );
 
-// Filtros â†’ URL. Sem isso, mudar o filtro na mÃ£o e clicar de novo no item do
-// menu nÃ£o voltaria a filtrar (a query jÃ¡ estaria igual e o watch acima nÃ£o
+// Filtros â†’ URL. Sem isso, mudar o filtro na mão e clicar de novo no item do
+// menu não voltaria a filtrar (a query já estaria igual e o watch acima não
 // dispararia).
 watch([filterStatus, filterTipo], ([status, tipo]) => {
   const query = { ...route.query };
@@ -158,7 +158,7 @@ watch([filterStatus, filterTipo], ([status, tipo]) => {
     query.status === route.query.status &&
     query.tipo === route.query.tipo
   ) {
-    return; // nada mudou: evita navegaÃ§Ã£o redundante
+    return; // nada mudou: evita navegação redundante
   }
 
   router.replace({ query });
@@ -166,8 +166,8 @@ watch([filterStatus, filterTipo], ([status, tipo]) => {
 const sortBy = ref("created_at");
 const sortDir = ref("desc");
 
-// Linhas expandidas na tabela (mesmo padrÃ£o dos relatÃ³rios): clicar na
-// requisiÃ§Ã£o abre os itens logo abaixo dela.
+// Linhas expandidas na tabela (mesmo padrão dos relatórios): clicar na
+// requisição abre os itens logo abaixo dela.
 const expandedRows = ref({});
 
 const toggleRow = (id) => {
@@ -288,14 +288,14 @@ const verDetalhes = (mov) => {
   dialogDetalhesOpen.value = true;
 };
 
-// A listagem jÃ¡ traz itens.produto, usuario e os setores, entÃ£o dÃ¡ para
-// imprimir direto da linha sem uma nova requisiÃ§Ã£o.
+// A listagem já traz itens.produto, usuario e os setores, então dá para
+// imprimir direto da linha sem uma nova requisição.
 const imprimir = (mov) => {
   if (!imprimirPedido(mov)) {
     toast({
       title: "Erro",
       description:
-        "NÃ£o foi possÃ­vel abrir a janela de impressÃ£o. Verifique se pop-ups estÃ£o bloqueados.",
+        "Não foi possível abrir a janela de impressão. Verifique se pop-ups estão bloqueados.",
       variant: "destructive",
     });
   }
@@ -313,7 +313,7 @@ const abrirModalAprovacao = async (mov) => {
     ]);
 
     let estoqueMap = {};
-    // A API retorna 'status' (nÃ£o 'success') como flag de sucesso
+    // A API retorna 'status' (não 'success') como flag de sucesso
     if (estoqueResponse.status === "fulfilled" && estoqueResponse.value.data.status && estoqueResponse.value.data.data?.estoque) {
       estoqueResponse.value.data.data.estoque.forEach((e) => {
         estoqueMap[e.produto?.id || e.produto_id] = e.quantidade_atual;
@@ -343,7 +343,7 @@ const abrirModalAprovacao = async (mov) => {
   } catch (e) {
     toast({
       title: "Erro",
-      description: "NÃ£o foi possÃ­vel carregar o estoque para validaÃ§Ã£o.",
+      description: "Não foi possível carregar o estoque para validação.",
       variant: "destructive",
     });
   } finally {
@@ -370,14 +370,14 @@ const aprovarMovimentacao = async () => {
     );
     toast({
       title: "Sucesso",
-      description: "MovimentaÃ§Ã£o aprovada com sucesso.",
+      description: "Movimentação aprovada com sucesso.",
     });
     dialogAprovacaoOpen.value = false;
     location.reload(); // Simples reload para atualizar estado global
   } catch (e) {
     toast({
       title: "Erro",
-      description: "Falha ao aprovar movimentaÃ§Ã£o.",
+      description: "Falha ao aprovar movimentação.",
       variant: "destructive",
     });
   } finally {
@@ -395,7 +395,7 @@ const rejeitarMovimentacao = async () => {
         headers: { Authorization: "Bearer " + store.getters.getUserToken },
       },
     );
-    toast({ title: "Sucesso", description: "MovimentaÃ§Ã£o rejeitada." });
+    toast({ title: "Sucesso", description: "Movimentação rejeitada." });
     dialogAprovacaoOpen.value = false;
     location.reload();
   } catch (e) {
@@ -424,7 +424,7 @@ const cancelarMovimentacao = async () => {
         headers: { Authorization: "Bearer " + store.getters.getUserToken },
       },
     );
-    toast({ title: "Sucesso", description: "SolicitaÃ§Ã£o cancelada." });
+    toast({ title: "Sucesso", description: "Solicitação cancelada." });
     dialogCancelamentoOpen.value = false;
     location.reload();
   } catch (e) {
@@ -438,7 +438,7 @@ const cancelarMovimentacao = async () => {
   }
 };
 
-// AÃ§Ãµes de rascunho
+// Ações de rascunho
 const abrirEditarRascunho = (mov) => {
   rascunhoParaEditar.value = mov;
   dialogEditarRascunhoOpen.value = true;
@@ -480,7 +480,7 @@ const excluirRascunho = async () => {
       {},
       { headers: { Authorization: "Bearer " + store.getters.getUserToken } },
     );
-    toast({ title: "ExcluÃ­do", description: "Rascunho excluÃ­do com sucesso." });
+    toast({ title: "Excluído", description: "Rascunho excluído com sucesso." });
     dialogExcluirRascunhoOpen.value = false;
     location.reload();
   } catch (e) {
@@ -500,7 +500,7 @@ const excluirRascunho = async () => {
         @click="dialogMovimentacaoOpen = true"
         class="gap-2 shadow-lg shadow-primary/20"
       >
-        <PlusIcon class="w-4 h-4" /> Nova RequisiÃ§Ã£o
+        <PlusIcon class="w-4 h-4" /> Nova Requisição
       </Button>
     </div>
 
@@ -518,7 +518,7 @@ const excluirRascunho = async () => {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="entrada">Entradas</SelectItem>
-              <SelectItem value="saida">SaÃ­das</SelectItem>
+              <SelectItem value="saida">Saídas</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -559,7 +559,7 @@ const excluirRascunho = async () => {
           <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             v-model="filterSearch"
-            placeholder="Buscar requisiÃ§Ã£o..."
+            placeholder="Buscar requisição..."
             class="!pl-10 pr-4 h-9 bg-white"
           />
         </div>
@@ -674,7 +674,7 @@ const excluirRascunho = async () => {
                     class="flex items-center gap-2 text-blue-600 font-bold"
                   >
                     <ArrowUpCircleIcon class="w-5 h-5" />
-                    <span class="text-[11px] uppercase">SaÃ­da</span>
+                    <span class="text-[11px] uppercase">Saída</span>
                   </div>
                 </div>
               </td>
@@ -770,31 +770,31 @@ const excluirRascunho = async () => {
                   <PrinterIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Aprovar (saÃ­da Pendente) -->
+                <!-- Aprovar (saída Pendente) -->
                 <Button
                   v-if="isSaida(mov) && mov.status_solicitacao === 'P'"
                   variant="ghost"
                   size="icon"
                   @click="abrirModalAprovacao(mov)"
                   class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                  title="Aprovar movimentaÃ§Ã£o"
+                  title="Aprovar movimentação"
                 >
                   <CheckCircle2Icon class="w-4 h-4" />
                 </Button>
 
-                <!-- Cancelar solicitaÃ§Ã£o (entrada Pendente) -->
+                <!-- Cancelar solicitação (entrada Pendente) -->
                 <Button
                   v-if="isEntrada(mov) && mov.status_solicitacao === 'P'"
                   variant="ghost"
                   size="icon"
                   @click="confirmarCancelamento(mov)"
                   class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
-                  title="Cancelar solicitaÃ§Ã£o"
+                  title="Cancelar solicitação"
                 >
                   <XCircleIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- AÃ§Ãµes de Rascunho (entrada, destino = setor atual) -->
+                <!-- Ações de Rascunho (entrada, destino = setor atual) -->
                 <template v-if="isEntrada(mov) && mov.status_solicitacao === 'C'">
                   <!-- Editar rascunho -->
                   <Button
@@ -812,7 +812,7 @@ const excluirRascunho = async () => {
                     size="icon"
                     @click="confirmarEnvioRascunho(mov)"
                     class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                    title="Enviar solicitaÃ§Ã£o"
+                    title="Enviar solicitação"
                   >
                     <SendIcon class="w-4 h-4" />
                   </Button>
@@ -830,7 +830,7 @@ const excluirRascunho = async () => {
               </td>
             </tr>
 
-            <!-- Linha expansÃ­vel: itens e quantidades da requisiÃ§Ã£o -->
+            <!-- Linha expansível: itens e quantidades da requisição -->
             <tr v-if="expandedRows[mov.id]" class="bg-slate-50/80">
               <td colspan="8" class="p-0">
                 <div class="px-6 py-5 border-l-[6px] border-l-slate-200">
@@ -839,7 +839,7 @@ const excluirRascunho = async () => {
                     class="mb-4 text-xs text-slate-500 italic"
                   >
                     <span class="font-bold not-italic text-slate-600"
-                      >ObservaÃ§Ã£o:</span
+                      >Observação:</span
                     >
                     {{ mov.observacao }}
                   </div>
@@ -878,7 +878,7 @@ const excluirRascunho = async () => {
                             colspan="4"
                             class="py-6 text-center text-slate-400 italic text-xs"
                           >
-                            Nenhum item nesta requisiÃ§Ã£o.
+                            Nenhum item nesta requisição.
                           </td>
                         </tr>
                         <tr
@@ -932,9 +932,9 @@ const excluirRascunho = async () => {
       <div class="p-6 bg-white rounded-full shadow-sm mb-4">
         <ArrowLeftRightIcon class="w-12 h-12 text-slate-300" />
       </div>
-      <h3 class="text-slate-800 font-bold text-lg">Sem MovimentaÃ§Ãµes</h3>
+      <h3 class="text-slate-800 font-bold text-lg">Sem Movimentações</h3>
       <p class="text-slate-500 text-sm max-w-xs text-center mt-2">
-        Nenhum registro de transferÃªncia foi encontrado para este perÃ­odo ou
+        Nenhum registro de transferência foi encontrado para este período ou
         filtros.
       </p>
     </div>
@@ -964,7 +964,7 @@ const excluirRascunho = async () => {
           <div class="flex items-center justify-between">
             <div class="space-y-1">
               <h2 class="text-xl font-black uppercase tracking-tighter">
-                Detalhes da MovimentaÃ§Ã£o
+                Detalhes da Movimentação
               </h2>
               <p
                 class="text-primary-foreground/80 text-xs flex items-center gap-1 font-bold"
@@ -1026,7 +1026,7 @@ const excluirRascunho = async () => {
                   {{ movimentacaoSelecionada?.setor_destino?.nome_exibicao || movimentacaoSelecionada?.setor_destino?.nome || "-" }}
                 </p>
                 <p class="text-xs text-slate-500 flex items-center gap-1">
-                  <UserIcon class="w-3 h-3" /> ResponsÃ¡vel pela solicitaÃ§Ã£o:
+                  <UserIcon class="w-3 h-3" /> Responsável pela solicitação:
                   <strong class="text-slate-700 ml-1">{{ movimentacaoSelecionada?.usuario?.name || "N/A" }}</strong>
                 </p>
               </div>
@@ -1129,7 +1129,7 @@ const excluirRascunho = async () => {
       >
         <div class="bg-emerald-600 p-6 text-white">
           <h2 class="text-xl font-black uppercase tracking-tighter">
-            AnÃ¡lise de SolicitaÃ§Ã£o
+            Análise de Solicitação
           </h2>
           <p class="text-emerald-100/80 text-xs font-bold flex items-center gap-2">
             Setor Origem: {{ setorNome }}
@@ -1152,7 +1152,7 @@ const excluirRascunho = async () => {
                 <TruckIcon class="w-6 h-6" />
               </div>
               <p class="text-[10px] font-black uppercase text-slate-400">
-                Origem (VocÃª)
+                Origem (Você)
               </p>
               <p class="text-sm font-bold">{{ setorNome }}</p>
             </div>
@@ -1188,7 +1188,7 @@ const excluirRascunho = async () => {
             <h3
               class="text-xs font-black uppercase text-slate-400 tracking-widest px-1"
             >
-              ConferÃªncia de Itens e Estoque
+              Conferência de Itens e Estoque
             </h3>
             <div class="bg-white border rounded-3xl overflow-hidden shadow-sm">
               <table class="w-full text-sm">
@@ -1302,7 +1302,7 @@ const excluirRascunho = async () => {
             <h3
               class="text-xs font-black uppercase text-slate-400 tracking-widest px-1 flex items-center gap-2"
             >
-              <CalendarIcon class="w-4 h-4" /> Lotes que serÃ£o consumidos (FIFO â€” mais antigo primeiro)
+              <CalendarIcon class="w-4 h-4" /> Lotes que serão consumidos (FIFO â€” mais antigo primeiro)
             </h3>
 
             <!-- No-coverage warning -->
@@ -1316,9 +1316,9 @@ const excluirRascunho = async () => {
                   Cobertura insuficiente em lotes
                 </p>
                 <p class="text-xs text-amber-800">
-                  Alguns produtos nÃ£o possuem saldo suficiente registrado em
+                  Alguns produtos não possuem saldo suficiente registrado em
                   lotes para cobrir a quantidade solicitada. O estoque agregado
-                  serÃ¡ deduzido, mas verifique a consistÃªncia dos lotes.
+                  será deduzido, mas verifique a consistência dos lotes.
                 </p>
               </div>
             </div>
@@ -1345,7 +1345,7 @@ const excluirRascunho = async () => {
                   <tr>
                     <th class="py-2 px-5 text-left font-bold text-slate-400 text-[10px]">Lote</th>
                     <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Vencimento</th>
-                    <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Qtd disponÃ­vel</th>
+                    <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Qtd disponível</th>
                     <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Qtd a usar</th>
                   </tr>
                 </thead>
@@ -1402,7 +1402,7 @@ const excluirRascunho = async () => {
               "
             >
               <CheckCircle2Icon v-if="!loadingAprovacao" class="w-4 h-4" />
-              {{ loadingAprovacao ? "Processando..." : "Confirmar LiberaÃ§Ã£o" }}
+              {{ loadingAprovacao ? "Processando..." : "Confirmar Liberação" }}
             </Button>
           </div>
         </DialogFooter>
@@ -1422,13 +1422,13 @@ const excluirRascunho = async () => {
           </div>
           <div class="space-y-2">
             <h2 class="text-xl font-black text-slate-900">
-              Cancelar SolicitaÃ§Ã£o?
+              Cancelar Solicitação?
             </h2>
             <p class="text-sm text-slate-500 leading-relaxed px-4">
-              Esta aÃ§Ã£o irÃ¡ invalidar a requisiÃ§Ã£o #{{
+              Esta ação irá invalidar a requisição #{{
                 movimentacaoParaCancelar?.id
               }}
-              e notificarÃ¡ o setor de origem.
+              e notificará o setor de origem.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -1463,10 +1463,10 @@ const excluirRascunho = async () => {
             <SendIcon class="w-10 h-10" />
           </div>
           <div class="space-y-2">
-            <h2 class="text-xl font-black text-slate-900">Enviar SolicitaÃ§Ã£o?</h2>
+            <h2 class="text-xl font-black text-slate-900">Enviar Solicitação?</h2>
             <p class="text-sm text-slate-500 leading-relaxed px-4">
-              O rascunho #{{ rascunhoParaEnviar?.id }} serÃ¡ enviado como solicitaÃ§Ã£o
-              pendente para aprovaÃ§Ã£o do setor de origem.
+              O rascunho #{{ rascunhoParaEnviar?.id }} será enviado como solicitação
+              pendente para aprovação do setor de origem.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -1475,7 +1475,7 @@ const excluirRascunho = async () => {
               @click="enviarRascunho"
               :disabled="loadingEnvioRascunho"
             >
-              {{ loadingEnvioRascunho ? 'Enviando...' : 'Sim, Enviar SolicitaÃ§Ã£o' }}
+              {{ loadingEnvioRascunho ? 'Enviando...' : 'Sim, Enviar Solicitação' }}
             </Button>
             <Button variant="ghost" class="h-12 font-bold text-slate-400" @click="dialogEnviarRascunhoOpen = false" :disabled="loadingEnvioRascunho">Voltar</Button>
           </div>
@@ -1493,8 +1493,8 @@ const excluirRascunho = async () => {
           <div class="space-y-2">
             <h2 class="text-xl font-black text-slate-900">Excluir Rascunho?</h2>
             <p class="text-sm text-slate-500 leading-relaxed px-4">
-              O rascunho #{{ rascunhoParaExcluir?.id }} serÃ¡ excluÃ­do permanentemente.
-              Esta aÃ§Ã£o nÃ£o pode ser desfeita.
+              O rascunho #{{ rascunhoParaExcluir?.id }} será excluído permanentemente.
+              Esta ação não pode ser desfeita.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -1513,3 +1513,4 @@ const excluirRascunho = async () => {
     </Dialog>
   </div>
 </template>
+
