@@ -51,11 +51,16 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   PrinterIcon,
+  FileSpreadsheetIcon,
   ChevronRightIcon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { imprimirPedido } from "@/utils/imprimirPedido";
+import {
+  exportarPedidoExcel,
+  exportarPedidosExcel,
+} from "@/utils/exportarPedidoExcel";
 
 const props = defineProps({
   setorId: { type: Number, required: true },
@@ -301,6 +306,40 @@ const imprimir = (mov) => {
   }
 };
 
+// Exporta a requisicao da linha, com os mesmos dados da via impressa.
+const exportarExcel = async (mov) => {
+  if (!(await exportarPedidoExcel(mov))) {
+    toast({
+      title: "Erro",
+      description: "Nao foi possivel gerar a planilha da requisicao.",
+      variant: "destructive",
+    });
+  }
+};
+
+// Exporta a lista como esta na tela (filtros e ordenacao aplicados).
+const exportarListaExcel = async () => {
+  const gerou = await exportarPedidosExcel(filteredMovimentacoes.value, {
+    nomeArquivo: "requisicoes_" + setorNome.value,
+    titulo: "Requisicoes - " + setorNome.value,
+  });
+
+  if (!gerou) {
+    toast({
+      title: "Nada para exportar",
+      description: "Nenhuma requisicao no filtro atual.",
+    });
+  }
+};
+
+// O backend recusa aprovacoes com motivo (lote vencido, saldo insuficiente,
+// movimentacao ja processada). Sem isso o operador so veria um erro generico.
+const motivoDoErro = (e, padrao) => {
+  const data = e?.response?.data;
+  if (Array.isArray(data?.erros) && data.erros.length) return data.erros.join(" ");
+  return data?.message || padrao;
+};
+
 const abrirModalAprovacao = async (mov) => {
   movimentacaoParaAprovar.value = mov;
   previewLotesData.value = [];
@@ -377,7 +416,7 @@ const aprovarMovimentacao = async () => {
   } catch (e) {
     toast({
       title: "Erro",
-      description: "Falha ao aprovar movimentaÃ§Ã£o.",
+      description: motivoDoErro(e, "Falha ao aprovar movimentaÃ§Ã£o."),
       variant: "destructive",
     });
   } finally {
@@ -401,7 +440,7 @@ const rejeitarMovimentacao = async () => {
   } catch (e) {
     toast({
       title: "Erro",
-      description: "Falha ao rejeitar.",
+      description: motivoDoErro(e, "Falha ao rejeitar."),
       variant: "destructive",
     });
   } finally {
@@ -563,6 +602,18 @@ const excluirRascunho = async () => {
             class="!pl-10 pr-4 h-9 bg-white"
           />
         </div>
+
+        <!-- Exporta a lista conforme os filtros acima -->
+        <Button
+          variant="outline"
+          size="sm"
+          class="h-9 gap-2 bg-white font-bold text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800"
+          :disabled="filteredMovimentacoes.length === 0"
+          @click="exportarListaExcel"
+        >
+          <FileSpreadsheetIcon class="w-4 h-4" />
+          Exportar Excel
+        </Button>
       </CardContent>
     </Card>
 
@@ -768,6 +819,17 @@ const excluirRascunho = async () => {
                   title="Imprimir requisição"
                 >
                   <PrinterIcon class="w-4 h-4" />
+                </Button>
+
+                <!-- Exportar requisição em Excel (sempre visível) -->
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  @click="exportarExcel(mov)"
+                  class="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                  title="Exportar requisição em Excel"
+                >
+                  <FileSpreadsheetIcon class="w-4 h-4" />
                 </Button>
 
                 <!-- Aprovar (saÃ­da Pendente) -->
@@ -981,6 +1043,14 @@ const excluirRascunho = async () => {
                 @click="imprimir(movimentacaoSelecionada)"
               >
                 <PrinterIcon class="w-4 h-4" /> Imprimir
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                class="gap-2 bg-white/10 text-white border-white/40 hover:bg-white/20 hover:text-white font-bold"
+                @click="exportarExcel(movimentacaoSelecionada)"
+              >
+                <FileSpreadsheetIcon class="w-4 h-4" /> Excel
               </Button>
               <Badge
                 variant="outline"
