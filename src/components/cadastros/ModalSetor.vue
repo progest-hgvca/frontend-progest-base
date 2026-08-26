@@ -174,6 +174,7 @@ const removeDistribuidor = (index) => {
             <SelectContent>
               <SelectItem value="Material">Material</SelectItem>
               <SelectItem value="Medicamento">Medicamento</SelectItem>
+              <SelectItem value="Ambos">Ambos</SelectItem>
             </SelectContent>
           </Select>
         </div>
