@@ -72,7 +72,7 @@
                   <i class="mdi mdi-store text-muted-foreground"></i>
                   <span class="text-muted-foreground">Distribuidor:</span>
                   <span class="font-medium">
-                    {{ pedido.setor_origem?.nome || "N/A" }}
+                    {{ pedido.setor_origem?.nome_exibicao || pedido.setor_origem?.nome || "N/A" }}
                   </span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -80,6 +80,14 @@
                   <span class="text-muted-foreground">Itens:</span>
                   <span class="font-medium">
                     {{ pedido.itens?.length || 0 }}
+                  </span>
+                </div>
+                <!-- Aprovador (quando aprovado ou reprovado) -->
+                <div v-if="pedido.aprovador" class="flex items-center gap-2">
+                  <i class="mdi mdi-account-check text-muted-foreground"></i>
+                  <span class="text-muted-foreground">{{ pedido.status_solicitacao === 'A' ? 'Aprovado por:' : 'Reprovado por:' }}</span>
+                  <span class="font-medium" :class="pedido.status_solicitacao === 'A' ? 'text-green-700' : 'text-red-600'">
+                    {{ pedido.aprovador?.name }}
                   </span>
                 </div>
               </div>

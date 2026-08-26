@@ -66,12 +66,12 @@ const route = useRoute();
 const router = useRouter();
 const { toast } = useToast();
 
-// Nome do setor atual (para exibir no modal de aprovação)
+// Nome do setor atual (para exibir no modal de aprovaÃ§Ã£o)
 const setorNome = computed(() => store.state.setorDetails?.nome || "Setor Atual");
 
 const isCAF = computed(() => {
   const nome = setorNome.value?.toUpperCase() || "";
-  return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
+  return nome.includes("CAF") || nome.includes("FARMÃCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
 });
 
 const parentData = inject("setorAtualData", {
@@ -90,7 +90,7 @@ const movimentacaoParaCancelar = ref(null);
 const loadingCancelamento = ref(false);
 const previewLotesData = ref([]);
 
-// Estado para gestão de rascunhos
+// Estado para gestÃ£o de rascunhos
 const rascunhoParaEditar = ref(null);
 const dialogEditarRascunhoOpen = ref(false);
 const dialogEnviarRascunhoOpen = ref(false);
@@ -117,9 +117,9 @@ const isSetorAdmin = computed(() => {
   return perfil.includes("admin") || perfil.includes("gerente");
 });
 
-// Tipo e status vivem na URL para que atalhos do menu (ex.: "Solicitações
-// Pendentes" → ?tab=movimentacoes&status=P) já cheguem filtrados, e para que
-// a tela filtrada continue compartilhável.
+// Tipo e status vivem na URL para que atalhos do menu (ex.: "SolicitaÃ§Ãµes
+// Pendentes" â†’ ?tab=movimentacoes&status=P) jÃ¡ cheguem filtrados, e para que
+// a tela filtrada continue compartilhÃ¡vel.
 const STATUS_VALIDOS = ["P", "A", "R", "C", "X"];
 const TIPOS_VALIDOS = ["entrada", "saida"];
 
@@ -133,7 +133,7 @@ const filterStatus = ref(statusDaRota());
 const filterSolicitante = ref("todos");
 const filterSearch = ref("");
 
-// URL → filtros
+// URL â†’ filtros
 watch(
   () => [route.query.status, route.query.tipo],
   () => {
@@ -142,8 +142,8 @@ watch(
   },
 );
 
-// Filtros → URL. Sem isso, mudar o filtro na mão e clicar de novo no item do
-// menu não voltaria a filtrar (a query já estaria igual e o watch acima não
+// Filtros â†’ URL. Sem isso, mudar o filtro na mÃ£o e clicar de novo no item do
+// menu nÃ£o voltaria a filtrar (a query jÃ¡ estaria igual e o watch acima nÃ£o
 // dispararia).
 watch([filterStatus, filterTipo], ([status, tipo]) => {
   const query = { ...route.query };
@@ -158,7 +158,7 @@ watch([filterStatus, filterTipo], ([status, tipo]) => {
     query.status === route.query.status &&
     query.tipo === route.query.tipo
   ) {
-    return; // nada mudou: evita navegação redundante
+    return; // nada mudou: evita navegaÃ§Ã£o redundante
   }
 
   router.replace({ query });
@@ -166,8 +166,8 @@ watch([filterStatus, filterTipo], ([status, tipo]) => {
 const sortBy = ref("created_at");
 const sortDir = ref("desc");
 
-// Linhas expandidas na tabela (mesmo padrão dos relatórios): clicar na
-// requisição abre os itens logo abaixo dela.
+// Linhas expandidas na tabela (mesmo padrÃ£o dos relatÃ³rios): clicar na
+// requisiÃ§Ã£o abre os itens logo abaixo dela.
 const expandedRows = ref({});
 
 const toggleRow = (id) => {
@@ -219,13 +219,13 @@ const filteredMovimentacoes = computed(() => {
     const term = filterSearch.value.toLowerCase();
     items = items.filter((mov) => {
       const orig = (
-        mov.setor_origem?.nome ||
-        mov.setorOrigem?.nome ||
+        mov.setor_origem?.nome_exibicao || mov.setor_origem?.nome ||
+        mov.setorOrigem?.nome_exibicao || mov.setorOrigem?.nome ||
         ""
       ).toLowerCase();
       const dest = (
-        mov.setor_destino?.nome ||
-        mov.setorDestino?.nome ||
+        mov.setor_destino?.nome_exibicao || mov.setor_destino?.nome ||
+        mov.setorDestino?.nome_exibicao || mov.setorDestino?.nome ||
         ""
       ).toLowerCase();
       const usr = (mov.usuario?.name || "").toLowerCase();
@@ -288,14 +288,14 @@ const verDetalhes = (mov) => {
   dialogDetalhesOpen.value = true;
 };
 
-// A listagem já traz itens.produto, usuario e os setores, então dá para
-// imprimir direto da linha sem uma nova requisição.
+// A listagem jÃ¡ traz itens.produto, usuario e os setores, entÃ£o dÃ¡ para
+// imprimir direto da linha sem uma nova requisiÃ§Ã£o.
 const imprimir = (mov) => {
   if (!imprimirPedido(mov)) {
     toast({
       title: "Erro",
       description:
-        "Não foi possível abrir a janela de impressão. Verifique se pop-ups estão bloqueados.",
+        "NÃ£o foi possÃ­vel abrir a janela de impressÃ£o. Verifique se pop-ups estÃ£o bloqueados.",
       variant: "destructive",
     });
   }
@@ -313,7 +313,7 @@ const abrirModalAprovacao = async (mov) => {
     ]);
 
     let estoqueMap = {};
-    // A API retorna 'status' (não 'success') como flag de sucesso
+    // A API retorna 'status' (nÃ£o 'success') como flag de sucesso
     if (estoqueResponse.status === "fulfilled" && estoqueResponse.value.data.status && estoqueResponse.value.data.data?.estoque) {
       estoqueResponse.value.data.data.estoque.forEach((e) => {
         estoqueMap[e.produto?.id || e.produto_id] = e.quantidade_atual;
@@ -334,7 +334,7 @@ const abrirModalAprovacao = async (mov) => {
   } catch (e) {
     toast({
       title: "Erro",
-      description: "Não foi possível carregar o estoque para validação.",
+      description: "NÃ£o foi possÃ­vel carregar o estoque para validaÃ§Ã£o.",
       variant: "destructive",
     });
   } finally {
@@ -361,14 +361,14 @@ const aprovarMovimentacao = async () => {
     );
     toast({
       title: "Sucesso",
-      description: "Movimentação aprovada com sucesso.",
+      description: "MovimentaÃ§Ã£o aprovada com sucesso.",
     });
     dialogAprovacaoOpen.value = false;
     location.reload(); // Simples reload para atualizar estado global
   } catch (e) {
     toast({
       title: "Erro",
-      description: "Falha ao aprovar movimentação.",
+      description: "Falha ao aprovar movimentaÃ§Ã£o.",
       variant: "destructive",
     });
   } finally {
@@ -386,7 +386,7 @@ const rejeitarMovimentacao = async () => {
         headers: { Authorization: "Bearer " + store.getters.getUserToken },
       },
     );
-    toast({ title: "Sucesso", description: "Movimentação rejeitada." });
+    toast({ title: "Sucesso", description: "MovimentaÃ§Ã£o rejeitada." });
     dialogAprovacaoOpen.value = false;
     location.reload();
   } catch (e) {
@@ -415,7 +415,7 @@ const cancelarMovimentacao = async () => {
         headers: { Authorization: "Bearer " + store.getters.getUserToken },
       },
     );
-    toast({ title: "Sucesso", description: "Solicitação cancelada." });
+    toast({ title: "Sucesso", description: "SolicitaÃ§Ã£o cancelada." });
     dialogCancelamentoOpen.value = false;
     location.reload();
   } catch (e) {
@@ -429,7 +429,7 @@ const cancelarMovimentacao = async () => {
   }
 };
 
-// Ações de rascunho
+// AÃ§Ãµes de rascunho
 const abrirEditarRascunho = (mov) => {
   rascunhoParaEditar.value = mov;
   dialogEditarRascunhoOpen.value = true;
@@ -471,7 +471,7 @@ const excluirRascunho = async () => {
       {},
       { headers: { Authorization: "Bearer " + store.getters.getUserToken } },
     );
-    toast({ title: "Excluído", description: "Rascunho excluído com sucesso." });
+    toast({ title: "ExcluÃ­do", description: "Rascunho excluÃ­do com sucesso." });
     dialogExcluirRascunhoOpen.value = false;
     location.reload();
   } catch (e) {
@@ -491,7 +491,7 @@ const excluirRascunho = async () => {
         @click="dialogMovimentacaoOpen = true"
         class="gap-2 shadow-lg shadow-primary/20"
       >
-        <PlusIcon class="w-4 h-4" /> Nova Requisição
+        <PlusIcon class="w-4 h-4" /> Nova RequisiÃ§Ã£o
       </Button>
     </div>
 
@@ -509,7 +509,7 @@ const excluirRascunho = async () => {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="entrada">Entradas</SelectItem>
-              <SelectItem value="saida">Saídas</SelectItem>
+              <SelectItem value="saida">SaÃ­das</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -550,7 +550,7 @@ const excluirRascunho = async () => {
           <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             v-model="filterSearch"
-            placeholder="Buscar requisição..."
+            placeholder="Buscar requisiÃ§Ã£o..."
             class="!pl-10 pr-4 h-9 bg-white"
           />
         </div>
@@ -614,6 +614,11 @@ const excluirRascunho = async () => {
                 </div>
               </th>
               <th
+                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
+              >
+                Aprovador
+              </th>
+              <th
                 class="py-4 px-6 text-right font-bold text-slate-500 uppercase text-[10px]"
               >
                 Ações
@@ -660,7 +665,7 @@ const excluirRascunho = async () => {
                     class="flex items-center gap-2 text-blue-600 font-bold"
                   >
                     <ArrowUpCircleIcon class="w-5 h-5" />
-                    <span class="text-[11px] uppercase">Saída</span>
+                    <span class="text-[11px] uppercase">SaÃ­da</span>
                   </div>
                 </div>
               </td>
@@ -684,7 +689,7 @@ const excluirRascunho = async () => {
                     : 'text-slate-500'
                 "
               >
-                {{ mov.setor_origem?.nome || mov.setorOrigem?.nome || "-" }}
+                {{ mov.setor_origem?.nome_exibicao || mov.setor_origem?.nome || mov.setorOrigem?.nome_exibicao || mov.setorOrigem?.nome || "-" }}
               </td>
               <td
                 class="py-4 px-6 font-medium transition-colors"
@@ -694,7 +699,7 @@ const excluirRascunho = async () => {
                     : 'text-slate-500'
                 "
               >
-                {{ mov.setor_destino?.nome || mov.setorDestino?.nome || "-" }}
+                {{ mov.setor_destino?.nome_exibicao || mov.setor_destino?.nome || mov.setorDestino?.nome_exibicao || mov.setorDestino?.nome || "-" }}
               </td>
               <td class="py-4 px-6">
                 <div class="flex items-center gap-1.5">
@@ -723,8 +728,18 @@ const excluirRascunho = async () => {
                   {{ getStatusBadge(mov.status_solicitacao).label }}
                 </Badge>
               </td>
-              <td class="py-4 px-6 text-right space-x-1" @click.stop>
+              <!-- Aprovador / responsável pela resposta -->
+              <td class="py-4 px-6">
+                <div v-if="mov.aprovador" class="flex items-center gap-1.5">
+                  <CheckCircle2Icon v-if="mov.status_solicitacao === 'A'" class="w-3.5 h-3.5 text-emerald-500" />
+                  <XCircleIcon v-else-if="mov.status_solicitacao === 'R'" class="w-3.5 h-3.5 text-red-400" />
+                  <span class="text-[11px] font-bold text-slate-600">{{ mov.aprovador?.name }}</span>
+                </div>
+                <span v-else class="text-slate-300 text-xs">—</span>
+              </td>
+
                 <!-- Ver detalhes (sempre visível) -->
+                <td class="py-4 px-6 text-right space-x-1" @click.stop>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -746,31 +761,31 @@ const excluirRascunho = async () => {
                   <PrinterIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Aprovar (saída Pendente) -->
+                <!-- Aprovar (saÃ­da Pendente) -->
                 <Button
                   v-if="isSaida(mov) && mov.status_solicitacao === 'P'"
                   variant="ghost"
                   size="icon"
                   @click="abrirModalAprovacao(mov)"
                   class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                  title="Aprovar movimentação"
+                  title="Aprovar movimentaÃ§Ã£o"
                 >
                   <CheckCircle2Icon class="w-4 h-4" />
                 </Button>
 
-                <!-- Cancelar solicitação (entrada Pendente) -->
+                <!-- Cancelar solicitaÃ§Ã£o (entrada Pendente) -->
                 <Button
                   v-if="isEntrada(mov) && mov.status_solicitacao === 'P'"
                   variant="ghost"
                   size="icon"
                   @click="confirmarCancelamento(mov)"
                   class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
-                  title="Cancelar solicitação"
+                  title="Cancelar solicitaÃ§Ã£o"
                 >
                   <XCircleIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Ações de Rascunho (entrada, destino = setor atual) -->
+                <!-- AÃ§Ãµes de Rascunho (entrada, destino = setor atual) -->
                 <template v-if="isEntrada(mov) && mov.status_solicitacao === 'C'">
                   <!-- Editar rascunho -->
                   <Button
@@ -788,7 +803,7 @@ const excluirRascunho = async () => {
                     size="icon"
                     @click="confirmarEnvioRascunho(mov)"
                     class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                    title="Enviar solicitação"
+                    title="Enviar solicitaÃ§Ã£o"
                   >
                     <SendIcon class="w-4 h-4" />
                   </Button>
@@ -806,7 +821,7 @@ const excluirRascunho = async () => {
               </td>
             </tr>
 
-            <!-- Linha expansível: itens e quantidades da requisição -->
+            <!-- Linha expansÃ­vel: itens e quantidades da requisiÃ§Ã£o -->
             <tr v-if="expandedRows[mov.id]" class="bg-slate-50/80">
               <td colspan="8" class="p-0">
                 <div class="px-6 py-5 border-l-[6px] border-l-slate-200">
@@ -815,7 +830,7 @@ const excluirRascunho = async () => {
                     class="mb-4 text-xs text-slate-500 italic"
                   >
                     <span class="font-bold not-italic text-slate-600"
-                      >Observação:</span
+                      >ObservaÃ§Ã£o:</span
                     >
                     {{ mov.observacao }}
                   </div>
@@ -854,7 +869,7 @@ const excluirRascunho = async () => {
                             colspan="4"
                             class="py-6 text-center text-slate-400 italic text-xs"
                           >
-                            Nenhum item nesta requisição.
+                            Nenhum item nesta requisiÃ§Ã£o.
                           </td>
                         </tr>
                         <tr
@@ -868,7 +883,7 @@ const excluirRascunho = async () => {
                             }}
                           </td>
                           <td class="py-3 px-5 text-xs text-slate-400">
-                            {{ item.lote || "—" }}
+                            {{ item.lote || "â€”" }}
                           </td>
                           <td class="py-3 px-5 text-center">
                             <Badge variant="secondary" class="font-black">{{
@@ -908,9 +923,9 @@ const excluirRascunho = async () => {
       <div class="p-6 bg-white rounded-full shadow-sm mb-4">
         <ArrowLeftRightIcon class="w-12 h-12 text-slate-300" />
       </div>
-      <h3 class="text-slate-800 font-bold text-lg">Sem Movimentações</h3>
+      <h3 class="text-slate-800 font-bold text-lg">Sem MovimentaÃ§Ãµes</h3>
       <p class="text-slate-500 text-sm max-w-xs text-center mt-2">
-        Nenhum registro de transferência foi encontrado para este período ou
+        Nenhum registro de transferÃªncia foi encontrado para este perÃ­odo ou
         filtros.
       </p>
     </div>
@@ -940,12 +955,12 @@ const excluirRascunho = async () => {
           <div class="flex items-center justify-between">
             <div class="space-y-1">
               <h2 class="text-xl font-black uppercase tracking-tighter">
-                Detalhes da Movimentação
+                Detalhes da MovimentaÃ§Ã£o
               </h2>
               <p
                 class="text-primary-foreground/80 text-xs flex items-center gap-1 font-bold"
               >
-                #{{ movimentacaoSelecionada?.id }} •
+                #{{ movimentacaoSelecionada?.id }} â€¢
                 {{ formatarData(movimentacaoSelecionada?.created_at) }}
               </p>
             </div>
@@ -981,7 +996,7 @@ const excluirRascunho = async () => {
               </div>
               <div class="space-y-1">
                 <p class="text-lg font-black text-slate-900 leading-tight">
-                  {{ movimentacaoSelecionada?.setor_origem?.nome || "-" }}
+                  {{ movimentacaoSelecionada?.setor_origem?.nome_exibicao || movimentacaoSelecionada?.setor_origem?.nome || "-" }}
                 </p>
                 <p class="text-xs text-slate-500 flex items-center gap-1">
                   <UserIcon class="w-3 h-3" /> Setor de Origem (Fornecedor)
@@ -999,10 +1014,10 @@ const excluirRascunho = async () => {
               </div>
               <div class="space-y-1">
                 <p class="text-lg font-black text-slate-900 leading-tight">
-                  {{ movimentacaoSelecionada?.setor_destino?.nome || "-" }}
+                  {{ movimentacaoSelecionada?.setor_destino?.nome_exibicao || movimentacaoSelecionada?.setor_destino?.nome || "-" }}
                 </p>
                 <p class="text-xs text-slate-500 flex items-center gap-1">
-                  <UserIcon class="w-3 h-3" /> Responsável pela solicitação:
+                  <UserIcon class="w-3 h-3" /> ResponsÃ¡vel pela solicitaÃ§Ã£o:
                   <strong class="text-slate-700 ml-1">{{ movimentacaoSelecionada?.usuario?.name || "N/A" }}</strong>
                 </p>
               </div>
@@ -1017,6 +1032,23 @@ const excluirRascunho = async () => {
               <FileTextIcon class="w-4 h-4" /> Notas do Solicitante:
             </p>
             "{{ movimentacaoSelecionada?.observacao }}"
+          </div>
+
+          <!-- Card do aprovador/responsável pela resposta -->
+          <div
+            v-if="movimentacaoSelecionada?.aprovador || ['A','R'].includes(movimentacaoSelecionada?.status_solicitacao)"
+            class="p-4 rounded-2xl border shadow-sm"
+            :class="movimentacaoSelecionada?.status_solicitacao === 'A' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'"
+          >
+            <p class="font-bold flex items-center gap-2 mb-1 text-xs uppercase tracking-widest"
+               :class="movimentacaoSelecionada?.status_solicitacao === 'A' ? 'text-emerald-600' : 'text-rose-600'">
+              <CheckCircle2Icon v-if="movimentacaoSelecionada?.status_solicitacao === 'A'" class="w-4 h-4" />
+              <XCircleIcon v-else class="w-4 h-4" />
+              {{ movimentacaoSelecionada?.status_solicitacao === 'A' ? 'Aprovado por' : 'Reprovado por' }}
+            </p>
+            <p class="text-sm font-semibold text-slate-800">
+              {{ movimentacaoSelecionada?.aprovador?.name || 'N/A' }}
+            </p>
           </div>
 
           <div class="space-y-4">
@@ -1088,14 +1120,14 @@ const excluirRascunho = async () => {
       >
         <div class="bg-emerald-600 p-6 text-white">
           <h2 class="text-xl font-black uppercase tracking-tighter">
-            Análise de Solicitação
+            AnÃ¡lise de SolicitaÃ§Ã£o
           </h2>
           <p class="text-emerald-100/80 text-xs font-bold flex items-center gap-2">
             Setor Origem: {{ setorNome }}
-            <span class="text-emerald-200/60">•</span>
+            <span class="text-emerald-200/60">â€¢</span>
             Solicitante: <strong class="text-white">{{ movimentacaoParaAprovar?.usuario?.name || "N/A" }}</strong>
-            <span class="text-emerald-200/60">•</span>
-            Setor Destino: {{ movimentacaoParaAprovar?.setor_destino?.nome || movimentacaoParaAprovar?.setorDestino?.nome || "-" }}
+            <span class="text-emerald-200/60">â€¢</span>
+            Setor Destino: {{ movimentacaoParaAprovar?.setor_destino?.nome_exibicao || movimentacaoParaAprovar?.setor_destino?.nome || "-" }}
           </p>
         </div>
 
@@ -1111,7 +1143,7 @@ const excluirRascunho = async () => {
                 <TruckIcon class="w-6 h-6" />
               </div>
               <p class="text-[10px] font-black uppercase text-slate-400">
-                Origem (Você)
+                Origem (VocÃª)
               </p>
               <p class="text-sm font-bold">{{ setorNome }}</p>
             </div>
@@ -1137,7 +1169,7 @@ const excluirRascunho = async () => {
                 Destino
               </p>
               <p class="text-sm font-bold text-emerald-900">
-                {{ movimentacaoParaAprovar?.setor_destino?.nome || "-" }}
+                {{ movimentacaoParaAprovar?.setor_destino?.nome_exibicao || movimentacaoParaAprovar?.setor_destino?.nome || "-" }}
               </p>
             </div>
           </div>
@@ -1147,7 +1179,7 @@ const excluirRascunho = async () => {
             <h3
               class="text-xs font-black uppercase text-slate-400 tracking-widest px-1"
             >
-              Conferência de Itens e Estoque
+              ConferÃªncia de Itens e Estoque
             </h3>
             <div class="bg-white border rounded-3xl overflow-hidden shadow-sm">
               <table class="w-full text-sm">
@@ -1246,7 +1278,7 @@ const excluirRascunho = async () => {
             <h3
               class="text-xs font-black uppercase text-slate-400 tracking-widest px-1 flex items-center gap-2"
             >
-              <CalendarIcon class="w-4 h-4" /> Lotes que serão consumidos (FIFO — mais antigo primeiro)
+              <CalendarIcon class="w-4 h-4" /> Lotes que serÃ£o consumidos (FIFO â€” mais antigo primeiro)
             </h3>
 
             <!-- No-coverage warning -->
@@ -1260,9 +1292,9 @@ const excluirRascunho = async () => {
                   Cobertura insuficiente em lotes
                 </p>
                 <p class="text-xs text-amber-800">
-                  Alguns produtos não possuem saldo suficiente registrado em
+                  Alguns produtos nÃ£o possuem saldo suficiente registrado em
                   lotes para cobrir a quantidade solicitada. O estoque agregado
-                  será deduzido, mas verifique a consistência dos lotes.
+                  serÃ¡ deduzido, mas verifique a consistÃªncia dos lotes.
                 </p>
               </div>
             </div>
@@ -1289,7 +1321,7 @@ const excluirRascunho = async () => {
                   <tr>
                     <th class="py-2 px-5 text-left font-bold text-slate-400 text-[10px]">Lote</th>
                     <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Vencimento</th>
-                    <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Qtd disponível</th>
+                    <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Qtd disponÃ­vel</th>
                     <th class="py-2 px-5 text-center font-bold text-slate-400 text-[10px]">Qtd a usar</th>
                   </tr>
                 </thead>
@@ -1299,9 +1331,9 @@ const excluirRascunho = async () => {
                     :key="lote.lote_id"
                     class="hover:bg-slate-50/50"
                   >
-                    <td class="py-3 px-5 font-bold text-slate-800">{{ lote.lote || "—" }}</td>
+                    <td class="py-3 px-5 font-bold text-slate-800">{{ lote.lote || "â€”" }}</td>
                     <td class="py-3 px-5 text-center text-slate-600">
-                      {{ lote.data_vencimento ? new Date(lote.data_vencimento).toLocaleDateString('pt-BR') : "—" }}
+                      {{ lote.data_vencimento ? new Date(lote.data_vencimento).toLocaleDateString('pt-BR') : "â€”" }}
                     </td>
                     <td class="py-3 px-5 text-center">
                       <Badge variant="secondary" class="font-black text-[10px]">{{ lote.quantidade_disponivel }}</Badge>
@@ -1346,7 +1378,7 @@ const excluirRascunho = async () => {
               "
             >
               <CheckCircle2Icon v-if="!loadingAprovacao" class="w-4 h-4" />
-              {{ loadingAprovacao ? "Processando..." : "Confirmar Liberação" }}
+              {{ loadingAprovacao ? "Processando..." : "Confirmar LiberaÃ§Ã£o" }}
             </Button>
           </div>
         </DialogFooter>
@@ -1366,13 +1398,13 @@ const excluirRascunho = async () => {
           </div>
           <div class="space-y-2">
             <h2 class="text-xl font-black text-slate-900">
-              Cancelar Solicitação?
+              Cancelar SolicitaÃ§Ã£o?
             </h2>
             <p class="text-sm text-slate-500 leading-relaxed px-4">
-              Esta ação irá invalidar a requisição #{{
+              Esta aÃ§Ã£o irÃ¡ invalidar a requisiÃ§Ã£o #{{
                 movimentacaoParaCancelar?.id
               }}
-              e notificará o setor de origem.
+              e notificarÃ¡ o setor de origem.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -1407,10 +1439,10 @@ const excluirRascunho = async () => {
             <SendIcon class="w-10 h-10" />
           </div>
           <div class="space-y-2">
-            <h2 class="text-xl font-black text-slate-900">Enviar Solicitação?</h2>
+            <h2 class="text-xl font-black text-slate-900">Enviar SolicitaÃ§Ã£o?</h2>
             <p class="text-sm text-slate-500 leading-relaxed px-4">
-              O rascunho #{{ rascunhoParaEnviar?.id }} será enviado como solicitação
-              pendente para aprovação do setor de origem.
+              O rascunho #{{ rascunhoParaEnviar?.id }} serÃ¡ enviado como solicitaÃ§Ã£o
+              pendente para aprovaÃ§Ã£o do setor de origem.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -1419,7 +1451,7 @@ const excluirRascunho = async () => {
               @click="enviarRascunho"
               :disabled="loadingEnvioRascunho"
             >
-              {{ loadingEnvioRascunho ? 'Enviando...' : 'Sim, Enviar Solicitação' }}
+              {{ loadingEnvioRascunho ? 'Enviando...' : 'Sim, Enviar SolicitaÃ§Ã£o' }}
             </Button>
             <Button variant="ghost" class="h-12 font-bold text-slate-400" @click="dialogEnviarRascunhoOpen = false" :disabled="loadingEnvioRascunho">Voltar</Button>
           </div>
@@ -1437,8 +1469,8 @@ const excluirRascunho = async () => {
           <div class="space-y-2">
             <h2 class="text-xl font-black text-slate-900">Excluir Rascunho?</h2>
             <p class="text-sm text-slate-500 leading-relaxed px-4">
-              O rascunho #{{ rascunhoParaExcluir?.id }} será excluído permanentemente.
-              Esta ação não pode ser desfeita.
+              O rascunho #{{ rascunhoParaExcluir?.id }} serÃ¡ excluÃ­do permanentemente.
+              Esta aÃ§Ã£o nÃ£o pode ser desfeita.
             </p>
           </div>
           <div class="flex flex-col gap-2">
