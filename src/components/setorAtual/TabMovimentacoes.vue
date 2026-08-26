@@ -324,12 +324,21 @@ const abrirModalAprovacao = async (mov) => {
       previewLotesData.value = previewResponse.value.data.data || [];
     }
 
-    itensParaAprovacao.value = (mov.itens || []).map((item) => ({
-      ...item,
-      quantidade_liberada:
-        item.quantidade_liberada ?? item.quantidade_solicitada,
-      estoque_atual: estoqueMap[item.produto?.id || item.produto_id] || 0,
-    }));
+    itensParaAprovacao.value = (mov.itens || []).map((item) => {
+      let lotesConsumidos = [];
+      try {
+        if (item.lote) {
+          lotesConsumidos = JSON.parse(item.lote);
+        }
+      } catch(e) { console.error("Erro ao fazer parse dos lotes:", e); }
+      
+      return {
+        ...item,
+        lotesConsumidos,
+        quantidade_liberada: item.quantidade_liberada ?? item.quantidade_solicitada,
+        estoque_atual: estoqueMap[item.produto?.id || item.produto_id] || 0,
+      };
+    });
     dialogAprovacaoOpen.value = true;
   } catch (e) {
     toast({
@@ -1201,6 +1210,12 @@ const excluirRascunho = async () => {
                       Seu Estoque
                     </th>
                     <th
+                      v-if="movimentacaoParaAprovar?.status_solicitacao === 'A'"
+                      class="py-3 px-6 text-center font-bold text-slate-400 text-[10px] w-48"
+                    >
+                      Lotes
+                    </th>
+                    <th
                       class="py-3 px-6 text-center font-bold text-slate-400 text-[10px] w-32"
                     >
                       Liberar
@@ -1231,6 +1246,15 @@ const excluirRascunho = async () => {
                         class="font-black"
                         >{{ item.estoque_atual }}</Badge
                       >
+                    </td>
+                    <td v-if="movimentacaoParaAprovar?.status_solicitacao === 'A'" class="py-4 px-4 text-center">
+                      <div v-if="item.lotesConsumidos && item.lotesConsumidos.length > 0" class="flex flex-col gap-1 items-center">
+                        <div v-for="(loteItem, i) in item.lotesConsumidos" :key="i" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded border flex justify-between items-center w-full max-w-[120px]">
+                          <span class="font-bold truncate" :title="loteItem.lote">{{ loteItem.lote }}</span>
+                          <span class="font-black bg-white px-1 rounded ml-2">{{ loteItem.qtd }}</span>
+                        </div>
+                      </div>
+                      <span v-else class="text-slate-300 text-xs">-</span>
                     </td>
                     <td class="py-4 px-6">
                       <div class="relative">

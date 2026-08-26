@@ -280,7 +280,19 @@ export function imprimirPedido(pedido) {
               (item, index) => `
             <tr>
               <td style="text-align: center; font-weight: bold;">${index + 1}</td>
-              <td>${escapar(item.produto?.nome || `Produto #${item.produto_id}`)}</td>
+              <td>
+                ${escapar(item.produto?.nome || `Produto #${item.produto_id}`)}
+                ${(() => {
+                  if (pedido.status_solicitacao !== 'A' || !item.lote) return '';
+                  try {
+                    const lotes = JSON.parse(item.lote);
+                    if (!lotes.length) return '';
+                    return '<div style="margin-top: 4px; font-size: 11px; color: #64748b;">' + 
+                      'Lotes consumidos: ' + lotes.map(l => `<strong>${escapar(l.lote)}</strong> (${l.qtd})`).join(', ') +
+                      '</div>';
+                  } catch(e) { return ''; }
+                })()}
+              </td>
               <td style="text-align: center; font-weight: bold;">${item.quantidade_solicitada}</td>
               <td style="text-align: center; font-weight: bold; color: ${
                 item.quantidade_liberada > 0 ? "#059669" : "#64748b"
