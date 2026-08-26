@@ -291,37 +291,37 @@
     </div>
 
     <nav class="menu-section">
-      <router-link class="menu-item" to="/relatorios" title="Visão Geral" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios" title="Visão Geral">
         <span class="material-icons menu-icon">analytics</span>
         <span class="menu-text">Visão Geral</span>
       </router-link>
 
-      <router-link class="menu-item" to="/relatorios/estoque" title="Estoque" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios/estoque" title="Estoque">
         <span class="material-icons menu-icon">inventory_2</span>
         <span class="menu-text">Estoque Atual</span>
       </router-link>
 
-      <router-link class="menu-item" to="/relatorios/movimentacoes" title="Movimentações" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios/movimentacoes" title="Movimentações">
         <span class="material-icons menu-icon">swap_horiz</span>
         <span class="menu-text">Movimentações</span>
       </router-link>
 
-      <router-link class="menu-item" to="/relatorios/entradas" title="Entradas por Notas Fiscais" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios/entradas" title="Entradas por Notas Fiscais">
         <span class="material-icons menu-icon">receipt_long</span>
         <span class="menu-text">Entradas (NF)</span>
       </router-link>
 
-      <router-link class="menu-item" to="/relatorios/entradas-por-data" title="Entradas por Data" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios/entradas-por-data" title="Entradas por Data">
         <span class="material-icons menu-icon">event</span>
         <span class="menu-text">Entradas por Data</span>
       </router-link>
 
-      <router-link class="menu-item" to="/relatorios/saidas" title="Saídas" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios/saidas" title="Saídas">
         <span class="material-icons menu-icon">exit_to_app</span>
         <span class="menu-text">Saídas Detalhadas</span>
       </router-link>
 
-      <router-link class="menu-item" to="/relatorios/saidas-por-data" title="Saídas por Data" @click="desativarModoRelatorios">
+      <router-link class="menu-item" to="/relatorios/saidas-por-data" title="Saídas por Data">
         <span class="material-icons menu-icon">calendar_today</span>
         <span class="menu-text">Saídas por Data</span>
       </router-link>
@@ -332,7 +332,6 @@
         class="menu-item"
         to="/relatorios/usuarios"
         title="Usuários"
-        @click="desativarModoRelatorios"
       >
         <span class="material-icons menu-icon">group</span>
         <span class="menu-text">Usuários</span>
@@ -621,10 +620,12 @@ const toggleRelatoriosSubmenu = () => {
 
 const ativarModoRelatorios = () => {
   modoRelatorios.value = true;
+  router.push('/relatorios');
 };
 
 const desativarModoRelatorios = () => {
   modoRelatorios.value = false;
+  router.push('/home');
 };
 
 onMounted(() => {
