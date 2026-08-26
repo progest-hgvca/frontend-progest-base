@@ -359,7 +359,7 @@ onUnmounted(() => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o setor "{{ setor.nome }}"? Esta
+              Tem certeza que deseja excluir o setor "{{ setor.nome_exibicao || setor.nome }}"? Esta
               ação não pode ser desfeita e removerá todos os dados vinculados.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -395,3 +395,4 @@ onUnmounted(() => {
   }
 }
 </style>
+

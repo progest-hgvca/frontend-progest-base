@@ -12,11 +12,16 @@
  */
 export function formatarNomeSetor(setor) {
   if (!setor) return '';
+  
+  if (setor.nome_exibicao) {
+      return setor.nome_exibicao;
+  }
+
   const nomePolo = setor.polo?.nome || '';
   const siglaPolo = setor.polo?.sigla || '';
 
   if (siglaPolo) {
-    return `[${siglaPolo}] ${setor.nome}`;
+    return `${setor.nome} (${siglaPolo})`;
   }
   if (nomePolo) {
     return `${setor.nome} (${nomePolo})`;

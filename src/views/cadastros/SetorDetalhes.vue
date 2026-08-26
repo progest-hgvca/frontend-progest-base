@@ -161,7 +161,7 @@ onMounted(carregarSetor);
             <h1
               class="text-3xl font-black text-slate-900 tracking-tight leading-tight uppercase"
             >
-              {{ setor.nome }}
+              {{ setor.nome_exibicao || setor.nome }}
             </h1>
             <div class="flex items-center gap-2 text-slate-500 font-medium">
               <span
@@ -300,7 +300,7 @@ onMounted(carregarSetor);
               class="text-slate-500 text-base leading-relaxed"
             >
               Você está prestes a remover o setor
-              <span class="font-bold text-slate-900">"{{ setor.nome }}"</span>.
+              <span class="font-bold text-slate-900">"{{ setor.nome_exibicao || setor.nome }}"</span>.
               Esta ação apagará permanentemente o registro e poderá afetar o
               histórico de movimentações vinculadas.
             </AlertDialogDescription>
@@ -322,3 +322,4 @@ onMounted(carregarSetor);
     </div>
   </TemplateAdmin>
 </template>
+

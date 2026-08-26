@@ -42,6 +42,16 @@ const todosSetores = computed(() => {
   return Array.isArray(list?.data) ? list.data : Array.isArray(list) ? list : [];
 });
 
+const perfilBloqueado = computed(() => {
+  if (novoPerfil.value === 'almoxarife') {
+    const setor = todosSetores.value.find(s => s.id === parseInt(novoSetorId.value));
+    if (setor && !setor.estoque) {
+      return true;
+    }
+  }
+  return false;
+});
+
 // Setores já vinculados (para não mostrar no select de adição)
 const setoresVinculadosIds = computed(() =>
   vinculos.value.map((v) => v.setor_id)
@@ -187,9 +197,13 @@ const close = () => emit("update:open", false);
             </div>
           </div>
 
+          <div v-if="perfilBloqueado" class="text-xs text-rose-500 bg-rose-50 border border-rose-100 rounded-md p-2">
+            <strong>Atenção:</strong> O setor selecionado não possui controle de estoque ativo. O perfil Almoxarife não pode ser atribuído a setores sem estoque.
+          </div>
+
           <Button
             @click="vincular"
-            :disabled="!novoSetorId || !novoPerfil || loading"
+            :disabled="!novoSetorId || !novoPerfil || loading || perfilBloqueado"
             class="w-full"
             size="sm"
           >

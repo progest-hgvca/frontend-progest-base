@@ -185,7 +185,7 @@ const formatarData = (date) => {
                   >Nome do Setor</Label
                 >
                 <p class="text-lg font-semibold text-slate-900">
-                  {{ setor.nome }}
+                  {{ setor.nome_exibicao || setor.nome }}
                 </p>
               </div>
 
@@ -432,6 +432,7 @@ const formatarData = (date) => {
                     <div>
                       <div class="font-bold text-slate-800 text-sm">
                         {{
+                          rel.distribuidor?.nome_exibicao ||
                           rel.distribuidor?.nome ||
                           rel.distribuidor?.razao_social ||
                           rel.fornecedor?.nome ||
@@ -477,3 +478,4 @@ const formatarData = (date) => {
     </div>
   </div>
 </template>
+

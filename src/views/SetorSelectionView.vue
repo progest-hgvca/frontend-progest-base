@@ -141,7 +141,7 @@
                       :key="setor.id"
                       :value="setor.id.toString()"
                     >
-                      {{ setor.nome }}
+                      {{ setor.nome_exibicao || setor.nome }}
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -455,3 +455,4 @@ onMounted(() => {
   carregarSetores();
 });
 </script>
+

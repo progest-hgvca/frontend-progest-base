@@ -40,7 +40,7 @@
                   <StoreIcon class="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h5 class="font-bold text-lg mb-1 text-slate-800">{{ setor.nome }}</h5>
+                  <h5 class="font-bold text-lg mb-1 text-slate-800">{{ setor.nome_exibicao || setor.nome }}</h5>
                   <p class="text-sm text-slate-500">
                     {{ setor.polo?.nome || "Polo não informado" }}
                   </p>
@@ -138,3 +138,4 @@ onUnmounted(() => {
   store.commit("clearPageHeader");
 });
 </script>
+

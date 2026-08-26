@@ -41,7 +41,10 @@
               Setor
             </span>
             <span class="text-sm font-medium text-blue-900">
-              {{ setorDetalhes?.nome }}
+              {{ setorDetalhes?.nome_exibicao || setorDetalhes?.nome }}
+            </span>
+            <span v-if="setorDetalhes?.polo?.nome" class="text-xs text-blue-500">
+              {{ setorDetalhes.polo.nome }}
             </span>
           </div>
         </div>
