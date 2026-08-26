@@ -211,9 +211,9 @@
                 <span class="menu-text">Polos</span>
               </router-link>
 
-              <!-- Setores: só super admin -->
+              <!-- Setores: super admin ou admin da CAF -->
               <router-link
-                v-if="isAdminUser"
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
                 class="submenu-item"
                 to="/setores"
                 title="Setores"
@@ -244,9 +244,9 @@
                 <span class="menu-text">Unidades de Medida</span>
               </router-link>
 
-              <!-- Usuários: apenas admin do setor ou super admin (não almoxarife) -->
+              <!-- Usuários: super admin ou admin da CAF -->
               <router-link
-                v-if="isAdminPerfil || isAdminUser"
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
                 class="submenu-item"
                 to="/users"
                 title="Usuários"
