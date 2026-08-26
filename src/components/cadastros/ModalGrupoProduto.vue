@@ -21,8 +21,20 @@ const localData = ref({
   id: null,
   nome: "",
   tipo: "Material",
+  controlado: false,
   status: "A",
 });
+
+/** Só faz sentido marcar como controlado se o grupo for de medicamentos */
+const podeSerControlado = computed(() => localData.value.tipo === "Medicamento");
+
+// Ao trocar para Material, o grupo deixa de ser controlado
+watch(
+  () => localData.value.tipo,
+  (tipo) => {
+    if (tipo !== "Medicamento") localData.value.controlado = false;
+  },
+);
 
 const modalDataStore = computed(() => store.state.modalData.modalData);
 const modalFunction = computed(() => store.state.modalData.modalFunction);
@@ -44,6 +56,7 @@ watch(
       localData.value = JSON.parse(JSON.stringify(newValue));
       if (!localData.value.tipo) localData.value.tipo = "Material";
       if (!localData.value.status) localData.value.status = "A";
+      localData.value.controlado = !!localData.value.controlado;
     }
   },
   { deep: true, immediate: true },
@@ -109,6 +122,45 @@ const handleSave = () => {
         </Select>
         <p v-if="hasError('tipo')" class="text-xs text-destructive mt-1">
           {{ getError("tipo") }}
+        </p>
+      </div>
+
+      <!-- Medicamento controlado (Portaria 344/98) -->
+      <div class="space-y-2 md:col-span-2">
+        <div
+          class="flex items-start gap-3 rounded-lg border p-3 transition-colors"
+          :class="
+            localData.controlado
+              ? 'border-amber-300 bg-amber-50'
+              : 'border-slate-200 bg-slate-50'
+          "
+        >
+          <input
+            id="controlado"
+            type="checkbox"
+            v-model="localData.controlado"
+            :disabled="!podeSerControlado"
+            class="mt-0.5 h-4 w-4 rounded border-slate-300 accent-amber-600 disabled:opacity-40"
+          />
+          <div class="space-y-0.5">
+            <Label
+              for="controlado"
+              class="cursor-pointer"
+              :class="podeSerControlado ? 'text-slate-700' : 'text-slate-400'"
+            >
+              Grupo de medicamentos controlados
+            </Label>
+            <p class="text-xs text-slate-500">
+              {{
+                podeSerControlado
+                  ? "Produtos deste grupo exigem a lista da Portaria 344/98 e entram no relatório de controlados."
+                  : "Disponível apenas para grupos do tipo Medicamento."
+              }}
+            </p>
+          </div>
+        </div>
+        <p v-if="hasError('controlado')" class="text-xs text-destructive mt-1">
+          {{ getError("controlado") }}
         </p>
       </div>
 

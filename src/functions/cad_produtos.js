@@ -10,6 +10,8 @@ var ADD_UP = (content, funcao) => {
       codigo_simpas: content.modalData.codigo_simpas || "",
       codigo_barras: content.modalData.codigo_barras || "",
       grupo_produto_id: content.modalData.grupo_produto_id,
+      // Lista da Portaria 344/98 — usada apenas por grupos controlados
+      lista_portaria: content.modalData.lista_portaria || "",
       unidade_medida_id: content.modalData.unidade_medida_id,
       status: content.modalData.status || "A",
     },
@@ -70,6 +72,7 @@ var listAll = (content, url = null) => {
         sort_dir: content.sort_dir || "asc",
         grupo_produto_id: content.grupo_produto_id || "",
         marca: content.marca_filter || "",
+        controlado: content.controlado || "",
       },
       {
         headers: {

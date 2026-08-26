@@ -160,6 +160,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
     },
     {
+      path: "/relatorios/medicamentos-controlados",
+      name: "relatoriosMedicamentosControlados",
+      component: () => import("@/views/relatorios/MedicamentosControladosReport.vue"),
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin', 'almoxarife'] },
+    },
+    {
       path: "/relatorios/usuarios",
       name: "relatoriosUsuarios",
       component: () => import("@/views/relatorios/UsuariosReport.vue"),

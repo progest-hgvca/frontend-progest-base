@@ -5,12 +5,14 @@
         <div class="container-fluid py-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h4>Relatório de Estoque Atual</h4>
-              <p class="text-muted mb-0">Situação atual do estoque por produto e setor.</p>
+              <h4>Relatório de Medicamentos Controlados</h4>
+              <p class="text-muted mb-0">
+                Estoque, lotes e movimento dos medicamentos sujeitos a controle especial (Portaria SVS/MS 344/98).
+              </p>
             </div>
             <div>
               <button class="btn btn-outline-secondary me-2" @click="resetFilters">Limpar</button>
-              <button class="btn btn-primary" @click="loadEstoque">Atualizar</button>
+              <button class="btn btn-primary" @click="loadRelatorio">Atualizar</button>
             </div>
           </div>
 
@@ -62,15 +64,44 @@
                   </small>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">Grupo de Produto</label>
+                  <label class="form-label">Grupo Controlado</label>
                   <select v-model.number="filters.grupo_produto_id" class="form-select">
                     <option :value="''">Todos</option>
-                    <option v-for="g in gruposProdutos" :key="g.id" :value="g.id">{{ g.nome }}</option>
+                    <option v-for="g in gruposControlados" :key="g.id" :value="g.id">{{ g.nome }}</option>
                   </select>
                 </div>
+                <div class="col-md-3">
+                  <label class="form-label">Lista (Portaria 344/98)</label>
+                  <select v-model="filters.lista_portaria" class="form-select">
+                    <option value="">Todas</option>
+                    <option v-for="l in listasPortaria" :key="l" :value="l">Lista {{ l }}</option>
+                  </select>
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label">Movimento de</label>
+                  <input type="date" v-model="filters.date_from" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Movimento até</label>
+                  <input type="date" v-model="filters.date_to" class="form-control" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                  <div class="form-check">
+                    <input
+                      id="somenteComSaldo"
+                      class="form-check-input"
+                      type="checkbox"
+                      v-model="filters.somente_com_saldo"
+                    />
+                    <label class="form-check-label" for="somenteComSaldo">
+                      Somente com saldo em estoque
+                    </label>
+                  </div>
+                </div>
                 <div class="col-md-3 d-flex align-items-end justify-content-end">
-                  <button class="btn btn-outline-success me-2" @click="exportExcel" :disabled="estoque.length===0">Exportar Excel</button>
-                  <button class="btn btn-outline-danger" @click="exportPdf" :disabled="estoque.length===0">Exportar PDF</button>
+                  <button class="btn btn-outline-success me-2" @click="exportExcel" :disabled="itens.length===0">Exportar Excel</button>
+                  <button class="btn btn-outline-danger" @click="exportPdf" :disabled="itens.length===0">Exportar PDF</button>
                 </div>
               </div>
             </div>
@@ -87,139 +118,141 @@
               <div v-else>
                 <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
                   <span class="badge bg-primary fs-6">
-                    Total: {{ estoque.length }} itens
+                    Total: {{ totalizadores.total_itens || 0 }} itens
                   </span>
-                  <span v-if="totalizadores.total_produtos_disponiveis" class="badge bg-success fs-6">
-                    Disponíveis: {{ totalizadores.total_produtos_disponiveis }}
+                  <span class="badge bg-dark fs-6">
+                    Quantidade em estoque: {{ totalizadores.quantidade_total || 0 }}
                   </span>
-                  <span v-if="totalizadores.total_produtos_indisponiveis" class="badge bg-secondary fs-6">
-                    Indisponíveis: {{ totalizadores.total_produtos_indisponiveis }}
+                  <span v-if="totalizadores.total_entradas_periodo" class="badge bg-success fs-6">
+                    Entradas no período: {{ totalizadores.total_entradas_periodo }}
+                  </span>
+                  <span v-if="totalizadores.total_saidas_periodo" class="badge bg-info fs-6">
+                    Saídas no período: {{ totalizadores.total_saidas_periodo }}
                   </span>
                   <span v-if="totalizadores.total_abaixo_minimo" class="badge bg-warning text-dark fs-6">
                     Abaixo do mínimo: {{ totalizadores.total_abaixo_minimo }}
                   </span>
+                  <span v-if="totalizadores.total_lotes_vencidos" class="badge bg-danger fs-6">
+                    Lotes vencidos: {{ totalizadores.total_lotes_vencidos }}
+                  </span>
+                  <span v-if="totalizadores.total_lotes_a_vencer" class="badge bg-warning text-dark fs-6">
+                    Lotes a vencer (30d): {{ totalizadores.total_lotes_a_vencer }}
+                  </span>
                 </div>
+
+                <!-- Distribuição por lista da Portaria -->
+                <div v-if="listasComSaldo.length" class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+                  <span class="text-muted small text-uppercase fw-semibold me-1">Por lista:</span>
+                  <span v-for="l in listasComSaldo" :key="l.lista" class="badge lista-badge">
+                    {{ l.lista }}: {{ l.quantidade }}
+                  </span>
+                </div>
+
+                <div v-if="periodo" class="text-muted small mb-3">
+                  Movimento considerado de {{ formatDate(periodo.date_from) }} a {{ formatDate(periodo.date_to) }}.
+                </div>
+
                 <div class="table-responsive">
                   <table class="table table-hover">
                     <thead class="table-light">
                       <tr>
                         <th style="width: 50px;"></th>
-                        <th>Produto</th>
-                        <th style="width: 120px;">Cód. simpas</th>
-                        <th style="width: 120px;">Cód. Barras</th>
-                        <th style="width: 100px;">Unid. Medida</th>
+                        <th>Medicamento</th>
+                        <th style="width: 110px;">Cód. simpas</th>
+                        <th style="width: 90px;">Lista</th>
                         <th>Grupo</th>
-                        <th style="width: 120px;">Localização</th>
-                        <th style="width: 120px;" class="text-end">Quantidade</th>
-                        <th style="width: 100px;" class="text-end">Mínimo</th>
-                        <th style="width: 100px;">Status</th>
-                        <th style="width: 250px;">Setor / Polo</th>
+                        <th style="width: 220px;">Setor / Polo</th>
+                        <th style="width: 100px;" class="text-end">Estoque</th>
+                        <th style="width: 90px;" class="text-end">Mínimo</th>
+                        <th style="width: 100px;" class="text-end">Entradas</th>
+                        <th style="width: 100px;" class="text-end">Saídas</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <template v-for="item in estoque" :key="item.id">
-                        <!-- Linha principal do item -->
-                        <tr class="estoque-row" @click="toggleRow(item.id)" style="cursor: pointer;">
+                      <template v-for="item in itens" :key="item.id">
+                        <tr class="controlado-row" @click="toggleRow(item.id)" style="cursor: pointer;">
                           <td>
-                            <span class="material-icons expand-icon" :class="{ 'expanded': expandedRows[item.id] }">
+                            <span class="material-icons expand-icon">
                               {{ expandedRows[item.id] ? 'expand_more' : 'chevron_right' }}
                             </span>
                           </td>
                           <td>
                             <strong>{{ item.produto?.nome || '-' }}</strong>
-                            <span
-                              v-if="isControlado(item)"
-                              class="badge controlado-badge ms-2"
-                              title="Medicamento controlado — Portaria SVS/MS 344/98"
-                            >
-                              Controlado{{ item.produto?.lista_portaria ? ' · ' + item.produto.lista_portaria : '' }}
-                            </span>
+                            <div class="text-muted small">{{ getUnidade(item) }}</div>
                           </td>
                           <td>{{ item.produto?.codigo_simpas || '-' }}</td>
-                          <td>{{ item.produto?.codigo_barras || '-' }}</td>
-                          <td>{{ getUnidade(item) }}</td>
                           <td>
-                            <span class="badge bg-light text-dark">
-                              {{ getGrupo(item) }}
+                            <span class="badge lista-badge">
+                              {{ item.lista_portaria || item.produto?.lista_portaria || 'Sem lista' }}
                             </span>
                           </td>
-                          <td>{{ item.localizacao || '-' }}</td>
+                          <td>
+                            <span class="badge bg-light text-dark">{{ getGrupo(item) }}</span>
+                          </td>
+                          <td>{{ getSetorCompleto(item.setor) }}</td>
                           <td class="text-end">
                             <span class="badge" :class="getQuantidadeBadgeClass(item.quantidade_atual, item.quantidade_minima)">
                               {{ item.quantidade_atual || 0 }}
                             </span>
                           </td>
-                          <td class="text-end text-muted">
-                            {{ item.quantidade_minima || 0 }}
+                          <td class="text-end text-muted">{{ item.quantidade_minima || 0 }}</td>
+                          <td class="text-end text-success fw-semibold">
+                            {{ item.movimento_periodo?.entradas || 0 }}
                           </td>
-                          <td>
-                            <span class="badge" :class="getStatusDisponibilidadeBadgeClass(item.status_disponibilidade)">
-                              {{ getStatusDisponibilidadeText(item.status_disponibilidade) }}
-                            </span>
-                            <span v-if="item.abaixo_minimo" class="badge bg-warning text-dark ms-1" title="Estoque abaixo do mínimo">
-                              <span class="material-icons" style="font-size: 14px;">warning</span>
-                            </span>
-                          </td>
-                          <td>
-                            <div>{{ getSetorCompleto(item.setor) }}</div>
+                          <td class="text-end text-primary fw-semibold">
+                            {{ item.movimento_periodo?.saidas || 0 }}
                           </td>
                         </tr>
-                        
-                        <!-- Linha expansível com lotes -->
+
+                        <!-- Lotes do medicamento -->
                         <tr v-if="expandedRows[item.id]" class="expanded-content">
-                          <td colspan="11" class="p-0">
+                          <td colspan="10" class="p-0">
                             <div class="lotes-container">
                               <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Lotes do Produto</h6>
+                                <h6 class="mb-0">Lotes em estoque</h6>
                                 <div class="d-flex gap-2">
                                   <span v-if="item.lotes_info?.total_lotes" class="badge bg-info">
-                                    {{ item.lotes_info.total_lotes }} {{ item.lotes_info.total_lotes === 1 ? 'lote' : 'lotes' }}
+                                    {{ item.lotes_info.total_lotes }}
+                                    {{ item.lotes_info.total_lotes === 1 ? 'lote' : 'lotes' }}
                                   </span>
                                   <span v-if="item.lotes_info?.quantidade_total_lotes" class="badge bg-success">
                                     Total: {{ item.lotes_info.quantidade_total_lotes }} unidades
                                   </span>
-                                </div>
-                              </div>
-                              
-                              <!-- Alerta de lote próximo ao vencimento -->
-                              <div v-if="item.lotes_info?.lote_proximo_vencimento" class="alert alert-warning py-2 mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                  <span class="material-icons" style="font-size: 20px;">warning</span>
-                                  <div>
-                                    <strong>Lote próximo ao vencimento:</strong> 
-                                    {{ item.lotes_info.lote_proximo_vencimento.lote }} - 
-                                    {{ item.lotes_info.lote_proximo_vencimento.quantidade }} unidades - 
-                                    Vence em {{ item.lotes_info.lote_proximo_vencimento.dias_para_vencer }} dias
-                                    ({{ formatDate(item.lotes_info.lote_proximo_vencimento.data_vencimento) }})
-                                  </div>
+                                  <span class="badge bg-secondary">
+                                    Saldo do movimento: {{ item.movimento_periodo?.saldo_movimento || 0 }}
+                                  </span>
                                 </div>
                               </div>
 
                               <div v-if="!item.lotes_info?.lotes || item.lotes_info.lotes.length === 0" class="text-center text-muted py-3">
-                                Nenhum lote encontrado
+                                Nenhum lote disponível
                               </div>
                               <table v-else class="table table-sm mb-0">
                                 <thead class="table-light">
                                   <tr>
                                     <th style="width: 150px;">Lote</th>
                                     <th style="width: 120px;">Quantidade</th>
-                                    <th style="width: 150px;">Data Fabricação</th>
-                                    <th style="width: 150px;">Data Vencimento</th>
+                                    <th style="width: 150px;">Fabricação</th>
+                                    <th style="width: 150px;">Vencimento</th>
                                     <th style="width: 120px;">Dias p/ Vencer</th>
                                     <th>Status</th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  <tr v-for="(lote, idx) in item.lotes_info.lotes" :key="lote.id || idx" :class="{ 'table-danger': lote.vencido, 'table-warning': !lote.vencido && lote.dias_para_vencer <= 30 }">
+                                  <tr
+                                    v-for="(lote, idx) in item.lotes_info.lotes"
+                                    :key="lote.id || idx"
+                                    :class="{ 'table-danger': lote.vencido, 'table-warning': !lote.vencido && lote.dias_para_vencer <= 30 }"
+                                  >
                                     <td class="fw-semibold">{{ lote.lote || '-' }}</td>
-                                    <td>
-                                      <span class="badge bg-info">{{ lote.quantidade_disponivel }}</span>
-                                    </td>
+                                    <td><span class="badge bg-info">{{ lote.quantidade_disponivel }}</span></td>
                                     <td class="text-muted small">{{ formatDate(lote.data_fabricacao) }}</td>
                                     <td class="text-muted small">{{ formatDate(lote.data_vencimento) }}</td>
                                     <td class="text-center">
                                       <span v-if="lote.vencido" class="badge bg-danger">Vencido</span>
-                                      <span v-else-if="lote.dias_para_vencer <= 30" class="badge bg-warning text-dark">{{ lote.dias_para_vencer }} dias</span>
+                                      <span v-else-if="lote.dias_para_vencer <= 30" class="badge bg-warning text-dark">
+                                        {{ lote.dias_para_vencer }} dias
+                                      </span>
                                       <span v-else class="text-muted">{{ lote.dias_para_vencer }} dias</span>
                                     </td>
                                     <td>
@@ -237,9 +270,14 @@
                     </tbody>
                   </table>
                 </div>
-                <div v-if="estoque.length===0" class="text-center py-5 text-muted">
-                  <span class="material-icons" style="font-size: 48px; opacity: 0.3;">inventory_2</span>
-                  <p class="mt-3 mb-0">Nenhum item em estoque encontrado</p>
+
+                <div v-if="itens.length===0" class="text-center py-5 text-muted">
+                  <span class="material-icons" style="font-size: 48px; opacity: 0.3;">medication</span>
+                  <p class="mt-3 mb-1">Nenhum medicamento controlado encontrado</p>
+                  <p class="small mb-0">
+                    Marque um grupo de produtos como "medicamentos controlados" no cadastro de grupos
+                    para que os produtos apareçam aqui.
+                  </p>
                 </div>
               </div>
             </div>
@@ -261,7 +299,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 export default {
-  name: 'EstoqueReport',
+  name: 'MedicamentosControladosReport',
   components: { TemplateAdmin },
   data() {
     return {
@@ -269,16 +307,32 @@ export default {
         polo_id: '',
         setor_id: '',
         grupo_produto_id: '',
+        lista_portaria: '',
+        date_from: '',
+        date_to: '',
+        somente_com_saldo: false,
       },
-      estoque: [],
+      listasPortaria: [
+        'A1', 'A2', 'A3', 'B1', 'B2',
+        'C1', 'C2', 'C3', 'C4', 'C5',
+        'D1', 'D2', 'E', 'F',
+      ],
+      itens: [],
       totalizadores: {
         total_itens: 0,
-        total_produtos_disponiveis: 0,
-        total_produtos_indisponiveis: 0,
-        total_abaixo_minimo: 0
+        total_produtos: 0,
+        total_setores: 0,
+        quantidade_total: 0,
+        total_abaixo_minimo: 0,
+        total_lotes_vencidos: 0,
+        total_lotes_a_vencer: 0,
+        total_entradas_periodo: 0,
+        total_saidas_periodo: 0,
+        por_lista: {},
       },
+      periodo: null,
       loading: false,
-      expandedRows: {}, // Controla quais linhas estão expandidas
+      expandedRows: {},
     }
   },
   mounted() {
@@ -286,7 +340,7 @@ export default {
     functionsSetores.listAll(this);
     functionsGrupoProduto.listAll(this);
     this.applyDefaultSetorFilter();
-    this.loadEstoque();
+    this.loadRelatorio();
   },
   watch: {
     /**
@@ -297,7 +351,7 @@ export default {
       if (!novo || novo === antigo) return;
       if (!this.filters.setor_id || Number(this.filters.setor_id) === Number(antigo)) {
         this.applyDefaultSetorFilter();
-        this.loadEstoque();
+        this.loadRelatorio();
       }
     },
   },
@@ -339,7 +393,6 @@ export default {
       if (!this.filters.setor_id) return null;
       return this.setores.find(s => Number(s.id) === Number(this.filters.setor_id)) || null;
     },
-    /** Texto exibido no banner e no cabeçalho do PDF */
     setorSelecionadoNome() {
       if (!this.filters.setor_id) {
         const polo = this.polos.find(p => Number(p.id) === Number(this.filters.polo_id));
@@ -390,9 +443,19 @@ export default {
       if (!this.filters.polo_id) return this.setores;
       return this.setores.filter(s => s.polo_id == this.filters.polo_id);
     },
-    gruposProdutos() {
-      return this.$store.state.listGrupoProdutos || [];
-    }
+    /** Apenas grupos marcados como medicamentos controlados */
+    gruposControlados() {
+      const grupos = this.$store.state.listGrupoProdutos || [];
+      const lista = Array.isArray(grupos) ? grupos : (grupos.data || []);
+      return lista.filter(g => !!g.controlado);
+    },
+    listasComSaldo() {
+      const porLista = this.totalizadores.por_lista || {};
+      return Object.keys(porLista).map(lista => ({
+        lista,
+        quantidade: porLista[lista],
+      }));
+    },
   },
   methods: {
     /** Filtro padrão do relatório: o setor em que o usuário está logado */
@@ -404,7 +467,7 @@ export default {
     },
     voltarParaSetorLogado() {
       this.applyDefaultSetorFilter();
-      this.loadEstoque();
+      this.loadRelatorio();
     },
     onPoloChange() {
       this.filters.setor_id = '';
@@ -412,7 +475,7 @@ export default {
     toggleRow(itemId) {
       this.expandedRows[itemId] = !this.expandedRows[itemId];
     },
-    async loadEstoque() {
+    async loadRelatorio() {
       // Não-admin fica restrito ao estoque do setor logado
       if (!this.podeFiltrarSetor && this.setorAtualId) {
         this.filters.setor_id = this.setorAtualId;
@@ -424,49 +487,58 @@ export default {
         if (this.filters.polo_id) payloadFilters.polo_id = this.filters.polo_id;
         if (this.filters.setor_id) payloadFilters.setor_id = this.filters.setor_id;
         if (this.filters.grupo_produto_id) payloadFilters.grupo_produto_id = this.filters.grupo_produto_id;
+        if (this.filters.lista_portaria) payloadFilters.lista_portaria = this.filters.lista_portaria;
+        if (this.filters.date_from) payloadFilters.date_from = this.filters.date_from;
+        if (this.filters.date_to) payloadFilters.date_to = this.filters.date_to;
+        if (this.filters.somente_com_saldo) payloadFilters.somente_com_saldo = true;
 
-        const result = await functionsRelatorios.listEstoqueReport(this, payloadFilters);
+        const result = await functionsRelatorios.listMedicamentosControladosReport(this, payloadFilters);
         if (result && result.success) {
-          this.estoque = result.data || [];
-          
-          // Capturar totalizadores da resposta
-          if (result.totalizadores) {
-            this.totalizadores = result.totalizadores;
-          }
-          
+          this.itens = result.data || [];
+          this.totalizadores = result.totalizadores || this.totalizadores;
+          this.periodo = result.periodo || null;
+
           // Expandir todas as linhas por padrão
           this.expandedRows = {};
-          this.estoque.forEach(item => {
+          this.itens.forEach(item => {
             this.expandedRows[item.id] = true;
           });
         } else {
-          this.estoque = [];
-          this.totalizadores = {
-            total_itens: 0,
-            total_produtos_disponiveis: 0,
-            total_produtos_indisponiveis: 0,
-            total_abaixo_minimo: 0
-          };
+          this.resetDados();
         }
       } catch (e) {
-        console.error('Erro ao carregar relatório de estoque:', e);
-        this.estoque = [];
-        this.totalizadores = {
-          total_itens: 0,
-          total_produtos_disponiveis: 0,
-          total_produtos_indisponiveis: 0,
-          total_abaixo_minimo: 0
-        };
+        console.error('Erro ao carregar relatório de medicamentos controlados:', e);
+        this.resetDados();
       } finally {
         this.loading = false;
       }
+    },
+    resetDados() {
+      this.itens = [];
+      this.periodo = null;
+      this.totalizadores = {
+        total_itens: 0,
+        total_produtos: 0,
+        total_setores: 0,
+        quantidade_total: 0,
+        total_abaixo_minimo: 0,
+        total_lotes_vencidos: 0,
+        total_lotes_a_vencer: 0,
+        total_entradas_periodo: 0,
+        total_saidas_periodo: 0,
+        por_lista: {},
+      };
     },
     resetFilters() {
       this.filters.polo_id = '';
       this.filters.setor_id = '';
       this.filters.grupo_produto_id = '';
+      this.filters.lista_portaria = '';
+      this.filters.date_from = '';
+      this.filters.date_to = '';
+      this.filters.somente_com_saldo = false;
       this.applyDefaultSetorFilter();
-      this.loadEstoque();
+      this.loadRelatorio();
     },
     formatDate(d) {
       if (!d) return '-';
@@ -475,31 +547,30 @@ export default {
       if (parts.length < 3) return d;
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     },
-    getStatusDisponibilidadeText(status) {
-      const statusMap = {
-        'D': 'Disponível',
-        'I': 'Indisponível',
-        'R': 'Reservado',
-        'B': 'Bloqueado'
-      };
-      return statusMap[status] || status || '-';
+    /** A API serializa relacionamentos em snake_case; camelCase fica como fallback */
+    getGrupo(item) {
+      const produto = item.produto || {};
+      const grupo = produto.grupo_produto || produto.grupoProduto;
+      return grupo?.nome || '-';
     },
-    getStatusDisponibilidadeBadgeClass(status) {
-      const classMap = {
-        'D': 'bg-success',
-        'I': 'bg-secondary',
-        'R': 'bg-warning text-dark',
-        'B': 'bg-danger'
-      };
-      return classMap[status] || 'bg-secondary';
+    getUnidade(item) {
+      const produto = item.produto || {};
+      const unidade = produto.unidade_medida || produto.unidadeMedida;
+      return unidade?.nome || '';
+    },
+    getSetorCompleto(setor) {
+      if (!setor) return '-';
+      const nomeSetor = setor.nome || '-';
+      const nomeUnidade = setor.polo?.nome || setor.unidade?.nome;
+      return nomeUnidade ? `${nomeSetor} - ${nomeUnidade}` : nomeSetor;
     },
     getQuantidadeBadgeClass(quantidade, minimo) {
       const qtd = parseFloat(quantidade) || 0;
       const min = parseFloat(minimo) || 0;
-      
+
       if (qtd === 0) return 'bg-secondary';
       if (qtd <= min) return 'bg-danger';
-      if (qtd <= min * 1.2) return 'bg-warning text-dark'; // 20% acima do mínimo
+      if (qtd <= min * 1.2) return 'bg-warning text-dark';
       return 'bg-success';
     },
     getLoteStatusText(vencido, diasParaVencer) {
@@ -514,203 +585,144 @@ export default {
       if (diasParaVencer <= 90) return 'bg-info';
       return 'bg-success';
     },
-    /** A API serializa relacionamentos em snake_case; camelCase fica como fallback */
-    getGrupo(item) {
-      const produto = item.produto || {};
-      const grupo = produto.grupo_produto || produto.grupoProduto;
-      return grupo?.nome || '-';
-    },
-    getUnidade(item) {
-      const produto = item.produto || {};
-      const unidade = produto.unidade_medida || produto.unidadeMedida;
-      return unidade?.nome || '-';
-    },
-    /** Produto pertencente a um grupo de medicamentos controlados */
-    isControlado(item) {
-      const produto = item.produto || {};
-      const grupo = produto.grupo_produto || produto.grupoProduto;
-      return !!grupo?.controlado;
-    },
-    getSetorCompleto(setor) {
-      if (!setor) return '-';
-      const nomeSetor = setor.nome || '-';
-      const nomeUnidade = setor.polo?.nome || setor.unidade?.nome;
-      
-      if (nomeUnidade) {
-        return `${nomeSetor} - ${nomeUnidade}`;
-      }
-      return nomeSetor;
-    },
     exportExcel() {
-      if (!this.estoque || this.estoque.length === 0) return;
-      
-      // Preparar dados para o Excel
+      if (!this.itens || this.itens.length === 0) return;
+
       const data = [];
-      
-      // Cabeçalho
-      data.push(['Produto', 'Cód.simpas', 'Cód.Barras', 'Unid.Medida', 'Grupo', 'Setor / Polo', 'Localização', 'Qtd Atual', 'Qtd Mínima', 'Status', 'Lote', 'Qtd Lote', 'Fabricação', 'Vencimento', 'Dias p/ Vencer', 'Status Lote']);
-      
-      // Dados
-      for (const item of this.estoque) {
+      data.push([
+        'Medicamento', 'Cód.simpas', 'Lista 344/98', 'Grupo', 'Unid.Medida',
+        'Setor / Polo', 'Qtd Atual', 'Qtd Mínima', 'Entradas Período', 'Saídas Período',
+        'Lote', 'Qtd Lote', 'Fabricação', 'Vencimento', 'Dias p/ Vencer', 'Status Lote'
+      ]);
+
+      for (const item of this.itens) {
+        const base = [
+          item.produto?.nome || '-',
+          item.produto?.codigo_simpas || '',
+          item.lista_portaria || item.produto?.lista_portaria || '',
+          this.getGrupo(item),
+          this.getUnidade(item),
+          this.getSetorCompleto(item.setor),
+          item.quantidade_atual,
+          item.quantidade_minima,
+          item.movimento_periodo?.entradas || 0,
+          item.movimento_periodo?.saidas || 0,
+        ];
+
         if (item.lotes_info?.lotes && item.lotes_info.lotes.length > 0) {
           item.lotes_info.lotes.forEach((lote, idx) => {
             data.push([
-              idx === 0 ? item.produto?.nome || '-' : '',
-              idx === 0 ? (item.produto?.codigo_simpas || '') : '',
-              idx === 0 ? (item.produto?.codigo_barras || '') : '',
-              idx === 0 ? this.getUnidade(item) : '',
-              idx === 0 ? this.getGrupo(item) : '',
-              idx === 0 ? this.getSetorCompleto(item.setor) : '',
-              idx === 0 ? (item.localizacao || '') : '',
-              idx === 0 ? item.quantidade_atual : '',
-              idx === 0 ? item.quantidade_minima : '',
-              idx === 0 ? this.getStatusDisponibilidadeText(item.status_disponibilidade) : '',
+              ...(idx === 0 ? base : base.map(() => '')),
               lote.lote || '',
               lote.quantidade_disponivel || '',
               this.formatDate(lote.data_fabricacao),
               this.formatDate(lote.data_vencimento),
-              lote.dias_para_vencer || '',
+              lote.dias_para_vencer ?? '',
               this.getLoteStatusText(lote.vencido, lote.dias_para_vencer)
             ]);
           });
         } else {
-          data.push([
-            item.produto?.nome || '-',
-            item.produto?.codigo_simpas || '',
-            item.produto?.codigo_barras || '',
-            this.getUnidade(item),
-            this.getGrupo(item),
-            this.getSetorCompleto(item.setor),
-            item.localizacao || '',
-            item.quantidade_atual,
-            item.quantidade_minima,
-            this.getStatusDisponibilidadeText(item.status_disponibilidade),
-            'Sem lotes',
-            '',
-            '',
-            '',
-            '',
-            ''
-          ]);
+          data.push([...base, 'Sem lotes', '', '', '', '', '']);
         }
       }
-      
-      // Criar workbook e worksheet
+
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Estoque');
-      
-      // Ajustar largura das colunas
-      const colWidths = [
-        { wch: 35 }, // Produto
-        { wch: 15 }, // Cód.simpas
-        { wch: 15 }, // Cód.Barras
-        { wch: 12 }, // Unid.Medida
-        { wch: 20 }, // Grupo
-        { wch: 40 }, // Setor / Polo
-        { wch: 15 }, // Localização
-        { wch: 10 }, // Qtd Atual
-        { wch: 10 }, // Qtd Mínima
-        { wch: 12 }, // Status
-        { wch: 15 }, // Lote
-        { wch: 10 }, // Qtd Lote
-        { wch: 12 }, // Fabricação
-        { wch: 12 }, // Vencimento
-        { wch: 12 }, // Dias p/ Vencer
-        { wch: 12 }  // Status Lote
+      XLSX.utils.book_append_sheet(wb, ws, 'Controlados');
+
+      ws['!cols'] = [
+        { wch: 35 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 12 },
+        { wch: 35 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 14 },
+        { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }
       ];
-      ws['!cols'] = colWidths;
-      
-      // Baixar arquivo
-      XLSX.writeFile(wb, `relatorio_estoque_${new Date().toISOString().slice(0,10)}.xlsx`);
+
+      XLSX.writeFile(wb, `relatorio_medicamentos_controlados_${new Date().toISOString().slice(0,10)}.xlsx`);
     },
     exportPdf() {
-      if (!this.estoque || this.estoque.length === 0) return;
-      
-      // Criar documento PDF em paisagem (landscape)
-      const doc = new jsPDF('landscape', 'mm', 'a4');
-      
-      // Cabeçalho
-      doc.setFontSize(16);
-      doc.text('Relatorio de Estoque Atual', 14, 15);
-      
-      doc.setFontSize(10);
-      const dataHoje = new Date().toLocaleDateString('pt-BR');
-      doc.text(`Data: ${dataHoje}`, 14, 22);
+      if (!this.itens || this.itens.length === 0) return;
 
-      // Setor do estoque solicitado
+      const doc = new jsPDF('landscape', 'mm', 'a4');
+
+      doc.setFontSize(16);
+      doc.text('Relatorio de Medicamentos Controlados', 14, 15);
+
+      doc.setFontSize(10);
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 22);
+
       const setorLinha = this.setorSelecionadoPolo
         ? `${this.setorSelecionadoNome} - ${this.setorSelecionadoPolo}`
         : this.setorSelecionadoNome;
-      doc.setFontSize(10);
       doc.text(`Setor: ${setorLinha}`, 14, 28);
-      
-      // Adicionar totalizadores
-      if (this.totalizadores.total_itens > 0) {
+
+      if (this.periodo) {
         doc.setFontSize(9);
-        doc.text(`Total: ${this.totalizadores.total_itens} itens | Disponiveis: ${this.totalizadores.total_produtos_disponiveis} | Indisponiveis: ${this.totalizadores.total_produtos_indisponiveis} | Abaixo minimo: ${this.totalizadores.total_abaixo_minimo}`, 14, 34);
+        doc.text(
+          `Movimento de ${this.formatDate(this.periodo.date_from)} a ${this.formatDate(this.periodo.date_to)}`,
+          14,
+          34
+        );
       }
-      
-      // Preparar dados da tabela
+
+      doc.setFontSize(9);
+      doc.text(
+        `Itens: ${this.totalizadores.total_itens || 0} | Estoque: ${this.totalizadores.quantidade_total || 0} | `
+        + `Entradas: ${this.totalizadores.total_entradas_periodo || 0} | Saidas: ${this.totalizadores.total_saidas_periodo || 0} | `
+        + `Lotes vencidos: ${this.totalizadores.total_lotes_vencidos || 0}`,
+        14,
+        40
+      );
+
       const tableData = [];
-      for (const item of this.estoque) {
+      for (const item of this.itens) {
+        const base = [
+          item.produto?.nome || '-',
+          item.produto?.codigo_simpas || '',
+          item.lista_portaria || item.produto?.lista_portaria || '-',
+          this.getSetorCompleto(item.setor),
+          item.quantidade_atual,
+          item.quantidade_minima,
+          item.movimento_periodo?.entradas || 0,
+          item.movimento_periodo?.saidas || 0,
+        ];
+
         if (item.lotes_info?.lotes && item.lotes_info.lotes.length > 0) {
           item.lotes_info.lotes.forEach((lote, idx) => {
             tableData.push([
-              idx === 0 ? (item.produto?.nome || '-') : '',
-              idx === 0 ? (item.produto?.codigo_simpas || '') : '',
-              idx === 0 ? this.getSetorCompleto(item.setor) : '',
-              idx === 0 ? item.quantidade_atual : '',
-              idx === 0 ? item.quantidade_minima : '',
-              idx === 0 ? this.getStatusDisponibilidadeText(item.status_disponibilidade).substring(0, 4) : '',
+              ...(idx === 0 ? base : base.map(() => '')),
               lote.lote || '',
               lote.quantidade_disponivel || '',
               this.formatDate(lote.data_vencimento),
-              lote.dias_para_vencer || '',
               this.getLoteStatusText(lote.vencido, lote.dias_para_vencer).substring(0, 8)
             ]);
           });
         } else {
-          tableData.push([
-            item.produto?.nome || '-',
-            item.produto?.codigo_simpas || '',
-            this.getSetorCompleto(item.setor),
-            item.quantidade_atual,
-            item.quantidade_minima,
-            this.getStatusDisponibilidadeText(item.status_disponibilidade).substring(0, 4),
-            '-',
-            '',
-            '',
-            '',
-            ''
-          ]);
+          tableData.push([...base, '-', '', '', '']);
         }
       }
-      
-      // Gerar tabela
+
       autoTable(doc, {
-        startY: this.totalizadores.total_itens > 0 ? 38 : 32,
-        head: [['Produto', 'Cod.SIM', 'Setor/Polo', 'Qtd', 'Min', 'Status', 'Lote', 'Q.Lote', 'Venc.', 'Dias', 'St.Lote']],
+        startY: 45,
+        head: [['Medicamento', 'Cod.SIM', 'Lista', 'Setor/Polo', 'Qtd', 'Min', 'Ent.', 'Said.', 'Lote', 'Q.Lote', 'Venc.', 'St.Lote']],
         body: tableData,
         theme: 'striped',
-        headStyles: { fillColor: [25, 135, 84], fontSize: 7, fontStyle: 'bold' },
+        headStyles: { fillColor: [180, 83, 9], fontSize: 7, fontStyle: 'bold' },
         bodyStyles: { fontSize: 6 },
         columnStyles: {
-          0: { cellWidth: 50 },  // Produto
-          1: { cellWidth: 15 },  // Cod. SIMPAS
-          2: { cellWidth: 45 },  // Setor/Polo
-          3: { cellWidth: 12 },  // Qtd
-          4: { cellWidth: 12 },  // Min
-          5: { cellWidth: 15 },  // Status
-          6: { cellWidth: 18 },  // Lote
-          7: { cellWidth: 15 },  // Q.Lote
-          8: { cellWidth: 18 },  // Venc.
-          9: { cellWidth: 12 },  // Dias
-          10: { cellWidth: 18 }  // St.Lote
+          0: { cellWidth: 48 },
+          1: { cellWidth: 16 },
+          2: { cellWidth: 12 },
+          3: { cellWidth: 42 },
+          4: { cellWidth: 12 },
+          5: { cellWidth: 12 },
+          6: { cellWidth: 13 },
+          7: { cellWidth: 13 },
+          8: { cellWidth: 20 },
+          9: { cellWidth: 14 },
+          10: { cellWidth: 18 },
+          11: { cellWidth: 18 }
         },
         margin: { left: 14, right: 14 },
         didDrawPage: (data) => {
-          // Rodapé com número de página
           const pageCount = doc.internal.getNumberOfPages();
           doc.setFontSize(8);
           doc.text(
@@ -721,9 +733,8 @@ export default {
           );
         }
       });
-      
-      // Salvar PDF
-      doc.save(`relatorio_estoque_${new Date().toISOString().slice(0,10)}.pdf`);
+
+      doc.save(`relatorio_medicamentos_controlados_${new Date().toISOString().slice(0,10)}.pdf`);
     }
   }
 }
@@ -779,41 +790,33 @@ export default {
   gap: 0.5rem;
 }
 
-.controlado-badge {
+.lista-badge {
   background-color: #fef3c7;
   color: #92400e;
   border: 1px solid #fcd34d;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
-.estoque-row:hover {
-  background-color: #f8f9fa;
+.controlado-row:hover {
+  background-color: #fffbeb;
 }
 
 .expand-icon {
   font-size: 20px;
   color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.expand-icon.expanded {
-  transform: rotate(0deg);
 }
 
 .expanded-content {
-  background-color: #f8f9fa;
+  background-color: #fffbeb;
 }
 
 .lotes-container {
   padding: 1.5rem;
-  border-left: 4px solid #198754;
+  border-left: 4px solid #d97706;
   margin-left: 50px;
 }
 
 .lotes-container h6 {
-  color: #198754;
+  color: #b45309;
   font-weight: 600;
   font-size: 0.95rem;
   text-transform: uppercase;

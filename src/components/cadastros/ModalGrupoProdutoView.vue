@@ -53,6 +53,12 @@ const close = () => emit("update:open", false);
               >
                 {{ item.status === "A" ? "Ativo" : item.status === "I" ? "Inativo" : item.status || "—" }}
               </Badge>
+              <Badge
+                v-if="item.controlado"
+                class="text-[10px] px-2.5 py-0.5 uppercase tracking-widest font-bold rounded-full bg-amber-100 text-amber-700 hover:bg-amber-100"
+              >
+                Controlado
+              </Badge>
               <span class="text-[10px] text-slate-400 font-mono">
                 ID #{{ item.id || "—" }}
               </span>
@@ -79,6 +85,18 @@ const close = () => emit("update:open", false);
             <div>
               <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Tipo / Classificação</p>
               <p class="text-sm text-slate-700 font-medium">{{ item.tipo || "—" }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+              <ShieldCheckIcon class="w-4 h-4 text-amber-500" />
+            </div>
+            <div>
+              <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Medicamento Controlado</p>
+              <p class="text-sm font-medium" :class="item.controlado ? 'text-amber-700' : 'text-slate-700'">
+                {{ item.controlado ? "Sim — Portaria SVS/MS 344/98" : "Não" }}
+              </p>
             </div>
           </div>
 

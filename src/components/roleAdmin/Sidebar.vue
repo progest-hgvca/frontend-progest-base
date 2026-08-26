@@ -326,6 +326,15 @@
         <span class="menu-text">Saídas por Data</span>
       </router-link>
 
+      <router-link
+        class="menu-item"
+        to="/relatorios/medicamentos-controlados"
+        title="Medicamentos Controlados"
+      >
+        <span class="material-icons menu-icon">medication</span>
+        <span class="menu-text">Med. Controlados</span>
+      </router-link>
+
       <!-- Relatório de Usuários: somente para admin -->
       <router-link
         v-if="isAdminPerfil || isAdminUser"

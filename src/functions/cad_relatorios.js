@@ -504,6 +504,84 @@ var listUsuariosReport = (content, filters = {}) => {
 };
 
 /**
+ * Lista o estoque de medicamentos controlados (Portaria 344/98)
+ * @param {Object} content - Contexto do componente Vue (this)
+ * @param {Object} filters - polo_id, setor_id, grupo_produto_id, lista_portaria,
+ *                           produto_id, date_from, date_to, somente_com_saldo
+ */
+var listMedicamentosControladosReport = (content, filters = {}) => {
+  console.log("💊 Carregando relatório de medicamentos controlados: POST /relatorios/medicamentos-controlados/list");
+
+  const payload = {
+    filters: {
+      ...filters,
+    },
+  };
+
+  return content.$axios
+    .post("/relatorios/medicamentos-controlados/list", payload, {
+      headers: {
+        Authorization: "Bearer " + content.$store.getters.getUserToken,
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      if (response.data && response.data.status) {
+        const medicamentos = Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
+
+        const totalizadores = response.data.totalizadores || {
+          total_itens: medicamentos.length,
+          total_produtos: 0,
+          total_setores: 0,
+          quantidade_total: 0,
+          total_abaixo_minimo: 0,
+          total_lotes_vencidos: 0,
+          total_lotes_a_vencer: 0,
+          total_entradas_periodo: 0,
+          total_saidas_periodo: 0,
+          por_lista: {},
+        };
+
+        console.log(`💊 Medicamentos controlados encontrados: ${medicamentos.length}`);
+
+        content.$store.commit("setRelatorioMedicamentosControlados", medicamentos);
+
+        return {
+          success: true,
+          data: medicamentos,
+          totalizadores: totalizadores,
+          periodo: response.data.periodo || null,
+          total: medicamentos.length,
+        };
+      }
+
+      console.warn("⚠️ Resposta da API sem dados válidos:", response.data);
+      content.$store.commit("setRelatorioMedicamentosControlados", []);
+      return { success: false, data: [], error: response.data.message };
+    })
+    .catch((error) => {
+      console.error("❌ Erro ao carregar relatório de medicamentos controlados:", error);
+
+      try {
+        if (content.$toastr && content.$toastr.e) {
+          const mensagem =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Erro ao carregar relatório de medicamentos controlados";
+          content.$toastr.e(mensagem);
+        }
+      } catch (e) {
+        console.warn("Erro ao exibir notificação:", e);
+      }
+
+      content.$store.commit("setRelatorioMedicamentosControlados", []);
+      return { success: false, data: [], error };
+    });
+};
+
+/**
  * Exporta o módulo com os métodos públicos
  */
 export default {
@@ -513,5 +591,6 @@ export default {
   listSaidasPorDataReport,
   listEntradasPorDataReport,
   listEstoqueReport,
+  listMedicamentosControladosReport,
   listUsuariosReport,
 };
