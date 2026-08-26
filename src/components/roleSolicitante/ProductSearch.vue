@@ -24,13 +24,13 @@
                 <SelectValue placeholder="Selecione o tipo de produto" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Medicamento">
+                <SelectItem value="Medicamento" v-if="['Medicamento', 'Ambos'].includes(setorAtual?.tipo)">
                   <div class="flex items-center gap-2">
                     <i class="mdi mdi-pill text-green-600"></i>
                     Medicamento
                   </div>
                 </SelectItem>
-                <SelectItem value="Material">
+                <SelectItem value="Material" v-if="['Material', 'Ambos'].includes(setorAtual?.tipo)">
                   <div class="flex items-center gap-2">
                     <i class="mdi mdi-package-variant text-blue-600"></i>
                     Material
@@ -206,9 +206,10 @@ import { useSolicitacao } from "@/composables/useSolicitacao";
 const router = useRouter();
 const { toast } = useToast();
 
-const { tipo, itens, quantidadeProdutos, setTipo, addItem } = useSolicitacao();
+const { tipo, itens, quantidadeProdutos, setTipo, addItem, setorAtual } = useSolicitacao();
 
-const tipoLocal = ref(tipo.value || "Medicamento");
+const defaultTipo = setorAtual.value?.tipo === 'Material' ? 'Material' : 'Medicamento';
+const tipoLocal = ref(tipo.value || defaultTipo);
 const searchQuery = ref("");
 const products = ref([]);
 const loading = ref(false);
