@@ -51,7 +51,7 @@
           <span class="menu-text">Estoque Local</span>
         </router-link>
 
-        <router-link class="menu-item" to="/pedidos?tab=itens" title="Pedidos">
+        <router-link v-if="!isCAF" class="menu-item" to="/pedidos?tab=itens" title="Pedidos">
           <span class="material-icons menu-icon">shopping_cart</span>
           <span class="menu-text">Pedidos</span>
         </router-link>
