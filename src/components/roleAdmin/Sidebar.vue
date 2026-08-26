@@ -1,5 +1,6 @@
 <template>
   <aside
+    v-show="!modoRelatorios"
     :class="`sidebar ${is_expanded ? 'is-expanded' : ''}`"
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
@@ -157,7 +158,8 @@
         </router-link>
 
         <!-- Submenu: Cadastros -->
-        <div v-if="!hasSetorFornecedor || isAdminPerfil || isAdminUser" class="submenu-section">
+        <!-- Visível para: super admin, admin do setor, ou almoxarife/admin da CAF -->
+        <div v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)" class="submenu-section">
           <button
             class="menu-item submenu-toggle"
             @click="toggleSubmenu"
@@ -176,8 +178,9 @@
           <!-- Submenu Items -->
           <transition name="submenu-transition">
             <div v-show="submenuOpen" class="submenu-items">
+              <!-- Produtos: admin ou almoxarife da CAF -->
               <router-link
-                v-if="!hasSetorFornecedor"
+                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/produtos"
                 title="Produtos"
@@ -186,8 +189,9 @@
                 <span class="menu-text">Produtos</span>
               </router-link>
 
+              <!-- Fornecedores: admin ou almoxarife da CAF -->
               <router-link
-                v-if="!hasSetorFornecedor"
+                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/fornecedores"
                 title="Fornecedores"
@@ -196,8 +200,9 @@
                 <span class="menu-text">Fornecedores</span>
               </router-link>
 
+              <!-- Polos: só super admin -->
               <router-link
-                v-if="!hasSetorFornecedor && isAdminUser"
+                v-if="isAdminUser"
                 class="submenu-item"
                 to="/polos"
                 title="Polos"
@@ -206,6 +211,7 @@
                 <span class="menu-text">Polos</span>
               </router-link>
 
+              <!-- Setores: só super admin -->
               <router-link
                 v-if="isAdminUser"
                 class="submenu-item"
@@ -216,8 +222,9 @@
                 <span class="menu-text">Setores</span>
               </router-link>
 
+              <!-- Grupos de Produtos: admin ou almoxarife da CAF -->
               <router-link
-                v-if="!hasSetorFornecedor"
+                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/grupoProduto"
                 title="Grupos de Produtos"
@@ -226,8 +233,9 @@
                 <span class="menu-text">Grupos de Produtos</span>
               </router-link>
 
+              <!-- Unidades de Medida: admin ou almoxarife da CAF -->
               <router-link
-                v-if="!hasSetorFornecedor"
+                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/unidadesMedida"
                 title="Unidades de Medida"
@@ -235,6 +243,8 @@
                 <span class="material-icons menu-icon">straighten</span>
                 <span class="menu-text">Unidades de Medida</span>
               </router-link>
+
+              <!-- Usuários: apenas admin do setor ou super admin (não almoxarife) -->
               <router-link
                 v-if="isAdminPerfil || isAdminUser"
                 class="submenu-item"
@@ -249,102 +259,91 @@
         </div>
       </template>
 
-      <!-- Submenu: Relatórios (visível apenas para admin e almoxarife) -->
-      <div class="submenu-section" v-if="isAdminPerfil || isAlmoxarifePerfil || isAdminUser">
+      <!-- Botão Relatórios: acessa modo relatórios -->
+      <div v-if="isAdminPerfil || isAlmoxarifePerfil || isAdminUser" class="submenu-section">
         <button
-          class="menu-item submenu-toggle"
-          @click="toggleRelatoriosSubmenu"
+          class="menu-item"
+          @click="ativarModoRelatorios"
           title="Relatórios"
+          :class="{ 'menu-item-relatorios-ativo': modoRelatorios }"
         >
           <span class="material-icons menu-icon">bar_chart</span>
           <span class="menu-text">Relatórios</span>
-          <span
-            class="material-icons expand-icon"
-            :class="{ open: relatoriosSubmenuOpen }"
-          >
-            expand_more
-          </span>
+          <span class="material-icons" style="font-size: 16px; margin-left: auto;">arrow_forward_ios</span>
         </button>
-
-        <transition name="submenu-transition">
-          <div v-show="relatoriosSubmenuOpen" class="submenu-items">
-            <router-link
-              class="submenu-item"
-              to="/relatorios"
-              title="Visão Geral"
-            >
-              <span class="material-icons menu-icon">analytics</span>
-              <span class="menu-text">Visão Geral</span>
-            </router-link>
-
-            <router-link
-              class="submenu-item"
-              to="/relatorios/movimentacoes"
-              title="Movimentações"
-            >
-              <span class="material-icons menu-icon">swap_horiz</span>
-              <span class="menu-text">Movimentações</span>
-            </router-link>
-
-            <router-link
-              class="submenu-item"
-              to="/relatorios/entradas"
-              title="Entradas por Notas Fiscais"
-            >
-              <span class="material-icons menu-icon">receipt_long</span>
-              <span class="menu-text">Entradas por Notas Fiscais</span>
-            </router-link>
-
-            <router-link
-              class="submenu-item"
-              to="/relatorios/entradas-por-data"
-              title="Entradas por Data"
-            >
-              <span class="material-icons menu-icon">event</span>
-              <span class="menu-text">Entradas por Data</span>
-            </router-link>
-
-            <router-link
-              class="submenu-item"
-              to="/relatorios/saidas"
-              title="Saídas"
-            >
-              <span class="material-icons menu-icon">exit_to_app</span>
-              <span class="menu-text">Saídas Detalhadas</span>
-            </router-link>
-
-            <router-link
-              class="submenu-item"
-              to="/relatorios/saidas-por-data"
-              title="Saídas por Data"
-            >
-              <span class="material-icons menu-icon">calendar_today</span>
-              <span class="menu-text">Saídas por Data</span>
-            </router-link>
-
-            <router-link
-              class="submenu-item"
-              to="/relatorios/estoque"
-              title="Estoque"
-            >
-              <span class="material-icons menu-icon">inventory_2</span>
-              <span class="menu-text">Estoque Atual</span>
-            </router-link>
-
-            <!-- Relatório de Usuários: somente para admin -->
-            <router-link
-              v-if="isAdminPerfil"
-              class="submenu-item"
-              to="/relatorios/usuarios"
-              title="Usuários"
-            >
-              <span class="material-icons menu-icon">group</span>
-              <span class="menu-text">Usuários</span>
-            </router-link>
-          </div>
-        </transition>
       </div>
     </nav>
+  </aside>
+
+  <!-- Painel lateral de Relatórios (sobreposto quando ativo) -->
+  <aside
+    v-if="modoRelatorios"
+    :class="`sidebar sidebar-relatorios ${is_expanded ? 'is-expanded' : ''}`"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+  >
+    <!-- Header do painel -->
+    <div class="relatorios-header">
+      <div class="relatorios-title">
+        <span class="material-icons">bar_chart</span>
+        <span class="menu-text">Relatórios</span>
+      </div>
+    </div>
+
+    <nav class="menu-section">
+      <router-link class="menu-item" to="/relatorios" title="Visão Geral" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">analytics</span>
+        <span class="menu-text">Visão Geral</span>
+      </router-link>
+
+      <router-link class="menu-item" to="/relatorios/estoque" title="Estoque" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">inventory_2</span>
+        <span class="menu-text">Estoque Atual</span>
+      </router-link>
+
+      <router-link class="menu-item" to="/relatorios/movimentacoes" title="Movimentações" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">swap_horiz</span>
+        <span class="menu-text">Movimentações</span>
+      </router-link>
+
+      <router-link class="menu-item" to="/relatorios/entradas" title="Entradas por Notas Fiscais" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">receipt_long</span>
+        <span class="menu-text">Entradas (NF)</span>
+      </router-link>
+
+      <router-link class="menu-item" to="/relatorios/entradas-por-data" title="Entradas por Data" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">event</span>
+        <span class="menu-text">Entradas por Data</span>
+      </router-link>
+
+      <router-link class="menu-item" to="/relatorios/saidas" title="Saídas" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">exit_to_app</span>
+        <span class="menu-text">Saídas Detalhadas</span>
+      </router-link>
+
+      <router-link class="menu-item" to="/relatorios/saidas-por-data" title="Saídas por Data" @click="desativarModoRelatorios">
+        <span class="material-icons menu-icon">calendar_today</span>
+        <span class="menu-text">Saídas por Data</span>
+      </router-link>
+
+      <!-- Relatório de Usuários: somente para admin -->
+      <router-link
+        v-if="isAdminPerfil || isAdminUser"
+        class="menu-item"
+        to="/relatorios/usuarios"
+        title="Usuários"
+        @click="desativarModoRelatorios"
+      >
+        <span class="material-icons menu-icon">group</span>
+        <span class="menu-text">Usuários</span>
+      </router-link>
+    </nav>
+    <div class="mt-auto p-3" style="margin-top: auto;">
+      <button @click="desativarModoRelatorios" class="btn-voltar w-100" style="width: 100%; display: flex; justify-content: center; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 8px; align-items: center; gap: 8px; margin-bottom: 10px;" title="Voltar ao sistema">
+        <span class="material-icons">arrow_forward</span>
+        <span class="menu-text">Voltar ao Sistema</span>
+      </button>
+    </div>
   </aside>
 </template>
 
@@ -375,7 +374,7 @@ import {
   BoxesIcon
 } from "lucide-vue-next";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 import { API_URL } from "@/config";
 
@@ -385,11 +384,13 @@ import logoIcon from "@/assets/logo-icon.png";
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 
 const is_expanded = ref(false);
 const submenuOpen = ref(false);
 const consumidoresSubmenuOpen = ref(false);
 const relatoriosSubmenuOpen = ref(false);
+const modoRelatorios = ref(false);
 const setoresConsumidores = ref([]);
 const solicitacoesPendentes = ref(0);
 
@@ -484,7 +485,7 @@ const isSolicitante = computed(() => {
 // Obter o nome do setor atual
 const setorAtualNome = computed(() => {
   const setorDetails = store.state.setorDetails;
-  return setorDetails?.nome || "Setor Atual";
+  return setorDetails?.nome_exibicao || setorDetails?.nome || "Setor Atual";
 });
 
 // Verifica se o setor atual é a CAF
@@ -618,6 +619,14 @@ const toggleRelatoriosSubmenu = () => {
   relatoriosSubmenuOpen.value = !relatoriosSubmenuOpen.value;
 };
 
+const ativarModoRelatorios = () => {
+  modoRelatorios.value = true;
+};
+
+const desativarModoRelatorios = () => {
+  modoRelatorios.value = false;
+};
+
 onMounted(() => {
   const savedSubmenu = localStorage.getItem("submenuOpen");
   submenuOpen.value = savedSubmenu === "true";
@@ -667,6 +676,19 @@ watch(
       (m) => m.status_solicitacao === "P",
     ).length;
   },
+);
+
+// Auto-ativar painel de relatórios ao navegar para /relatorios
+watch(
+  () => route.path,
+  (path) => {
+    if (path.startsWith('/relatorios')) {
+      modoRelatorios.value = true;
+    } else {
+      modoRelatorios.value = false;
+    }
+  },
+  { immediate: true },
 );
 </script>
 
@@ -948,5 +970,104 @@ watch(
   opacity: 1;
 }
 
+/* ======== Painel de Relatórios (modo roxo) ======== */
+.sidebar-relatorios {
+  /* Mudado para não ser fixed, para não sobrepor o conteúdo e empurrá-lo */
+  order: 99;
+  z-index: 10;
+  background: linear-gradient(135deg, #1a237e 0%, #7b1fa2 60%, #9c27b0 100%);
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.3);
 
+  .relatorios-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-voltar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+
+    &:hover {
+      background: rgba(255,255,255,0.22);
+    }
+
+    .material-icons {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .menu-text {
+      opacity: 0;
+      width: 0;
+      transition: opacity 0.3s ease, width 0.3s ease;
+    }
+  }
+
+  &.is-expanded .btn-voltar .menu-text {
+    opacity: 1;
+    width: auto;
+  }
+
+  .relatorios-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    color: rgba(255,255,255,0.9);
+    font-weight: 700;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    .material-icons {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .menu-text {
+      opacity: 0;
+      width: 0;
+      transition: opacity 0.3s ease, width 0.3s ease;
+    }
+  }
+
+  &.is-expanded .relatorios-title .menu-text {
+    opacity: 1;
+    width: auto;
+  }
+
+  .menu-item {
+    &.router-link-active,
+    &.router-link-exact-active {
+      background: rgba(255, 255, 255, 0.2);
+      border-left: 3px solid rgba(255, 255, 255, 0.9);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+}
+
+.menu-item-relatorios-ativo {
+  background: rgba(156, 39, 176, 0.2) !important;
+  border-left: 3px solid #9c27b0 !important;
+}
 </style>
