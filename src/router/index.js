@@ -82,7 +82,7 @@ const router = createRouter({
       path: "/pedidos",
       name: "pedidos",
       component: PedidosView,
-      meta: { requiresAuth: true, requiresSector: true, forbiddenForGlobalAdmin: true, forbiddenForCAF: true },
+      meta: { requiresAuth: true, requiresSector: true, forbiddenForCAF: true },
     },
     /* categoriasProdutos removed in favor of grupoProduto */
     {

@@ -138,16 +138,6 @@
         </router-link>
 
         <router-link
-          v-if="store.getters.isSuperAdmin"
-          class="menu-item" 
-          to="/pedidos?tab=itens" 
-          title="Fazer Solicitação"
-        >
-          <span class="material-icons menu-icon">shopping_cart</span>
-          <span class="menu-text">Fazer Solicitação</span>
-        </router-link>
-
-        <router-link
           v-if="setoresConsumidores.length > 0"
           class="menu-item"
           to="/setores-consumidores"
