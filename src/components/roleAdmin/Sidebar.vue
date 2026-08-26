@@ -158,8 +158,8 @@
         </router-link>
 
         <!-- Submenu: Cadastros -->
-        <!-- Visível para: super admin, admin do setor, ou almoxarife/admin da CAF -->
-        <div v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)" class="submenu-section">
+        <!-- Visível para: super admin, ou almoxarife/admin da CAF, ou admin comum/polo (apenas para ver Usuários/Setores) -->
+        <div v-if="isAdminUser || isAdminPerfil || isAdminPolo || (isCAF && isAlmoxarifePerfil)" class="submenu-section">
           <button
             class="menu-item submenu-toggle"
             @click="toggleSubmenu"
@@ -180,7 +180,7 @@
             <div v-show="submenuOpen" class="submenu-items">
               <!-- Produtos: admin ou almoxarife da CAF -->
               <router-link
-                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/produtos"
                 title="Produtos"
@@ -191,7 +191,7 @@
 
               <!-- Fornecedores: admin ou almoxarife da CAF -->
               <router-link
-                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/fornecedores"
                 title="Fornecedores"
@@ -224,7 +224,7 @@
 
               <!-- Grupos de Produtos: admin ou almoxarife da CAF -->
               <router-link
-                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/grupoProduto"
                 title="Grupos de Produtos"
@@ -235,7 +235,7 @@
 
               <!-- Unidades de Medida: admin ou almoxarife da CAF -->
               <router-link
-                v-if="isAdminUser || isAdminPerfil || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
                 class="submenu-item"
                 to="/unidadesMedida"
                 title="Unidades de Medida"

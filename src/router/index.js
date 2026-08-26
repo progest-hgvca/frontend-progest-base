@@ -113,7 +113,7 @@ const router = createRouter({
       path: "/setores",
       name: "setores",
       component: Setores,
-      meta: { requiresAuth: true, requiresSector: true, globalAdminOnly: true },
+      meta: { requiresAuth: true, requiresSector: true, allowAdminSetores: true },
     },
 
     // Relatórios (placeholders / views de relatórios)
@@ -268,7 +268,12 @@ router.beforeEach(async (to, from, next) => {
   // Se a rota requer setor selecionado e não tem
   if (to.meta.requiresSector && !hasSector) {
     const userObj = store.state.user || JSON.parse(localStorage.getItem('user') || '{}');
-    const isGlobalAdmin = userObj && (userObj.email === "admin@admin.com" || !!userObj.is_admin);
+    const isGlobalAdmin = userObj && (
+      userObj.email === "admin@admin.com" || 
+      userObj.email === "adminti@gmail.com" || 
+      !!userObj.is_admin || 
+      !!userObj.is_super_admin
+    );
     
     if (isGlobalAdmin) {
       // O admin global tem permissão para ignorar o bloqueio de falta de setor para poder configurar o sistema inicial
@@ -348,7 +353,13 @@ router.beforeEach(async (to, from, next) => {
     }
 
     // Define se o usuário logado é o administrador global do sistema
-    const isGlobalAdmin = store.state.user && (store.state.user.email === "admin@admin.com" || !!store.state.user.is_admin);
+    const userObj = store.state.user || JSON.parse(localStorage.getItem('user') || '{}');
+    const isGlobalAdmin = userObj && (
+      userObj.email === "admin@admin.com" || 
+      userObj.email === "adminti@gmail.com" || 
+      !!userObj.is_admin || 
+      !!userObj.is_super_admin
+    );
 
     // ------------------------------------------------------------------
     // Guard 1.5: verificar globalAdminOnly
@@ -356,6 +367,20 @@ router.beforeEach(async (to, from, next) => {
     if (to.meta && to.meta.globalAdminOnly && !isGlobalAdmin) {
       next("/setor-atual");
       return;
+    }
+
+    // ------------------------------------------------------------------
+    // Guard 1.6: verificar allowAdminSetores (Admin CAF, Polo ou SuperAdmin)
+    // ------------------------------------------------------------------
+    if (to.meta && to.meta.allowAdminSetores && !isGlobalAdmin) {
+      const user = store.state.user || {};
+      const isAdminCaf = !!user.is_admin_caf;
+      const isAdminPolo = !!user.is_admin_polo;
+      
+      if (!isAdminCaf && !isAdminPolo) {
+        next("/setor-atual");
+        return;
+      }
     }
 
     // ------------------------------------------------------------------
