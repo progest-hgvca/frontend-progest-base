@@ -211,9 +211,9 @@
                 <span class="menu-text">Polos</span>
               </router-link>
 
-              <!-- Setores: super admin ou admin da CAF -->
+              <!-- Setores: super admin, admin da CAF ou admin polo -->
               <router-link
-                v-if="isAdminUser || (isCAF && isAdminPerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil) || isAdminPolo"
                 class="submenu-item"
                 to="/setores"
                 title="Setores"
@@ -244,9 +244,9 @@
                 <span class="menu-text">Unidades de Medida</span>
               </router-link>
 
-              <!-- Usuários: super admin ou admin da CAF -->
+              <!-- Usuários: super admin, admin da CAF, admin de qualquer setor ou admin polo -->
               <router-link
-                v-if="isAdminUser || (isCAF && isAdminPerfil)"
+                v-if="isAdminUser || isAdminPerfil || isAdminPolo"
                 class="submenu-item"
                 to="/users"
                 title="Usuários"
@@ -439,6 +439,9 @@ const getPerfilAtual = () => {
 
 /** Usuário possui perfil 'admin' no setor atual */
 const isAdminPerfil = computed(() => getPerfilAtual() === 'admin');
+
+/** Verifica se o usuário tem a flag de Admin Polo */
+const isAdminPolo = computed(() => store.state.user?.is_admin_polo || false);
 
 /** Usuário possui perfil 'almoxarife' no setor atual */
 const isAlmoxarifePerfil = computed(() => getPerfilAtual() === 'almoxarife');

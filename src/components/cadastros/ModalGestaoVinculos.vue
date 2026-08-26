@@ -142,6 +142,11 @@ const perfilConfig = {
 const getPerfilConfig = (perfil) =>
   perfilConfig[perfil] || { label: perfil, color: "text-slate-600 border-slate-200 bg-slate-50" };
 
+const canGrantAdmin = computed(() => {
+  const u = store.state.user;
+  return u && (u.is_super_admin || u.is_admin_caf);
+});
+
 const close = () => emit("update:open", false);
 </script>
 
@@ -191,7 +196,7 @@ const close = () => emit("update:open", false);
                 <SelectContent>
                   <SelectItem value="solicitante">Solicitante</SelectItem>
                   <SelectItem value="almoxarife">Almoxarife</SelectItem>
-                  <SelectItem value="admin">Admin do Setor</SelectItem>
+                  <SelectItem v-if="canGrantAdmin" value="admin">Admin do Setor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
