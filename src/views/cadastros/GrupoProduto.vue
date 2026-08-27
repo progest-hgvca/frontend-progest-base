@@ -31,7 +31,7 @@ const store = useStore();
 const { proxy } = getCurrentInstance();
 
 const titleModal = "Grupos de Produtos";
-const varsModalData = { status: "A", nome: "", tipo: "Material" };
+const varsModalData = { status: "A", nome: "", tipo: "Material", controlado: false };
 
 const columns = [
   { key: "id", label: "#", align: "center", sortable: true },
@@ -45,6 +45,7 @@ const searchQuery = ref("");
 const sortBy = ref("nome");
 const sortDir = ref("asc");
 const filterTipo = ref("");
+const filterControlado = ref("");
 
 const listGrupoProdutos = computed(() => {
   const data = store.state.listGrupoProdutos;
@@ -74,6 +75,7 @@ const listAll = (url = null) => {
       sort_by: sortBy.value,
       sort_dir: sortDir.value,
       tipo: filterTipo.value,
+      controlado: filterControlado.value,
     },
     url,
   );
@@ -96,6 +98,11 @@ const handleSort = (key) => {
 
 const handleFilterTipo = (value) => {
   filterTipo.value = value === "all" ? "" : value;
+  listAll();
+};
+
+const handleFilterControlado = (value) => {
+  filterControlado.value = value === "all" ? "" : value;
   listAll();
 };
 
@@ -197,6 +204,23 @@ onMounted(listAll);
                     <SelectItem value="Material">Material</SelectItem>
                   </SelectContent>
                 </Select>
+
+                <!-- Filtro de medicamentos controlados -->
+                <Select
+                  :model-value="filterControlado || 'all'"
+                  @update:model-value="handleFilterControlado"
+                >
+                  <SelectTrigger
+                    class="h-10 w-[180px] text-sm bg-slate-50 border-slate-100 rounded-xl"
+                  >
+                    <SelectValue placeholder="Controle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Controlados e comuns</SelectItem>
+                    <SelectItem value="1">Somente controlados</SelectItem>
+                    <SelectItem value="0">Somente comuns</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <LinkModal01
                 label="NOVA CATEGORIA"
@@ -217,21 +241,42 @@ onMounted(listAll);
 
             <template #cell-nome="{ item }">
               <div class="flex items-center gap-3">
-                <div class="w-2 h-2 rounded-full bg-primary/40 shrink-0"></div>
+                <div
+                  class="w-2 h-2 rounded-full shrink-0"
+                  :class="item.controlado ? 'bg-amber-500' : 'bg-primary/40'"
+                ></div>
                 <span class="font-bold text-slate-700 text-sm tracking-tight">
                   {{ item.nome }}
                 </span>
+                <Badge
+                  v-if="item.controlado"
+                  class="font-black px-2.5 py-0.5 text-[9px] uppercase tracking-widest rounded-full bg-amber-100 text-amber-700 hover:bg-amber-100"
+                  title="Grupo de medicamentos controlados — Portaria SVS/MS 344/98"
+                >
+                  Controlado
+                </Badge>
               </div>
             </template>
 
             <template #cell-tipo="{ item }">
               <div
-                class="flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg w-fit"
+                class="flex items-center gap-2 px-3 py-1 border rounded-lg w-fit"
+                :class="
+                  item.controlado
+                    ? 'bg-amber-50 border-amber-100'
+                    : 'bg-slate-50 border-slate-100'
+                "
               >
-                <ShapesIcon class="w-3.5 h-3.5 text-slate-400" />
-                <span class="text-[11px] font-black text-slate-500 uppercase">{{
-                  item.tipo
-                }}</span>
+                <ShapesIcon
+                  class="w-3.5 h-3.5"
+                  :class="item.controlado ? 'text-amber-500' : 'text-slate-400'"
+                />
+                <span
+                  class="text-[11px] font-black uppercase"
+                  :class="item.controlado ? 'text-amber-600' : 'text-slate-500'"
+                >
+                  {{ item.controlado ? item.tipo + " controlado" : item.tipo }}
+                </span>
               </div>
             </template>
 

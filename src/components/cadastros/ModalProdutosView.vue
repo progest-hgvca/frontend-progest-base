@@ -67,6 +67,12 @@ const close = () => emit("update:open", false);
                       : item.status || "—"
                 }}
               </Badge>
+              <Badge
+                v-if="item.grupo_produto?.controlado"
+                class="text-[10px] px-2.5 py-0.5 uppercase tracking-widest font-bold rounded-full bg-amber-100 text-amber-700 hover:bg-amber-100"
+              >
+                Controlado{{ item.lista_portaria ? " · " + item.lista_portaria : "" }}
+              </Badge>
               <span class="text-[10px] text-slate-400 font-mono">
                 ID #{{ item.id || "—" }}
               </span>
@@ -108,6 +114,24 @@ const close = () => emit("update:open", false);
               </p>
               <p class="text-sm text-slate-700 font-medium">
                 {{ item.grupo_produto?.nome || "—" }}
+              </p>
+            </div>
+          </div>
+
+          <div v-if="item.grupo_produto?.controlado" class="flex items-start gap-3">
+            <div
+              class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0"
+            >
+              <ShieldCheckIcon class="w-4 h-4 text-amber-500" />
+            </div>
+            <div>
+              <p
+                class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold"
+              >
+                Lista da Portaria 344/98
+              </p>
+              <p class="text-sm text-amber-700 font-medium">
+                {{ item.lista_portaria || "Não informada" }}
               </p>
             </div>
           </div>

@@ -11,10 +11,24 @@
         </p>
       </div>
 
-      <Button variant="outline" size="sm" @click="fetchPedidos" :disabled="loading" class="flex items-center gap-1.5">
-        <i class="mdi mdi-refresh" :class="{ 'animate-spin': loading }"></i>
-        Atualizar
-      </Button>
+      <div class="flex items-center gap-2">
+        <!-- Exporta todos os pedidos da lista -->
+        <Button
+          variant="outline"
+          size="sm"
+          @click="exportarTodosExcel"
+          :disabled="loading || pedidos.length === 0"
+          class="flex items-center gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800"
+        >
+          <i class="mdi mdi-file-excel"></i>
+          Exportar Excel
+        </Button>
+
+        <Button variant="outline" size="sm" @click="fetchPedidos" :disabled="loading" class="flex items-center gap-1.5">
+          <i class="mdi mdi-refresh" :class="{ 'animate-spin': loading }"></i>
+          Atualizar
+        </Button>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -160,6 +174,17 @@
                 >
                   <i class="mdi mdi-printer text-lg"></i>
                 </Button>
+
+                <!-- Exportar este pedido em Excel (qualquer status) -->
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  @click.stop="exportarExcel(pedido)"
+                  class="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                  title="Exportar Pedido em Excel"
+                >
+                  <i class="mdi mdi-file-excel text-lg"></i>
+                </Button>
               </div>
             </div>
 
@@ -293,6 +318,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useSolicitacao } from "@/composables/useSolicitacao";
 import { imprimirPedido as gerarImpressaoPedido } from "@/utils/imprimirPedido";
+import {
+  exportarPedidoExcel,
+  exportarPedidosExcel,
+} from "@/utils/exportarPedidoExcel";
 
 const router = useRouter();
 const store = useStore();
@@ -508,6 +537,30 @@ const imprimirPedido = (pedido) => {
       description:
         "Não foi possível abrir a janela de impressão. Verifique se pop-ups estão bloqueados.",
       variant: "destructive",
+    });
+  }
+};
+
+const exportarExcel = async (pedido) => {
+  if (!(await exportarPedidoExcel(pedido))) {
+    toast({
+      title: "Erro",
+      description: "Não foi possível gerar a planilha do pedido.",
+      variant: "destructive",
+    });
+  }
+};
+
+const exportarTodosExcel = async () => {
+  const gerou = await exportarPedidosExcel(pedidos.value, {
+    nomeArquivo: "meus_pedidos",
+    titulo: "Meus Pedidos",
+  });
+
+  if (!gerou) {
+    toast({
+      title: "Nada para exportar",
+      description: "Não há pedidos na lista para gerar a planilha.",
     });
   }
 };

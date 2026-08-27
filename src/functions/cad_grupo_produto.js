@@ -7,6 +7,11 @@ var ADD_UP = (content, funcao) => {
     grupoProduto: {
       nome: content.modalData.nome,
       tipo: content.modalData.tipo || "Material",
+      // Somente medicamentos podem ser marcados como controlados
+      controlado:
+        content.modalData.tipo === "Medicamento"
+          ? !!content.modalData.controlado
+          : false,
       status: content.modalData.status || "A",
     },
   };
@@ -66,6 +71,7 @@ var listAll = (content, url = null) => {
         sort_by: content.sort_by || "nome",
         sort_dir: content.sort_dir || "asc",
         tipo: content.tipo || "",
+        controlado: content.controlado ?? "",
       },
       {
         headers: {
@@ -77,6 +83,7 @@ var listAll = (content, url = null) => {
       if (response.data.status && response.data.data) {
         const enriched = response.data.data.map((item) => ({
           ...item,
+          controlado: !!item.controlado,
           status: item.status === "A" ? "Ativo" : "Inativo",
         }));
 

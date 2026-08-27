@@ -86,6 +86,8 @@ const formattedProdutos = computed(() => {
     nome: produto.nome,
     marca: produto.marca || "N/A",
     grupo_produto: produto.grupo_produto?.nome || "—",
+    controlado: !!(produto.grupo_produto?.controlado ?? produto.controlado),
+    lista_portaria: produto.lista_portaria || "",
     unidade_medida:
       produto.unidade_medida?.sigla || produto.unidade_medida?.nome || "UN",
     status: produto.status === "A" ? "Ativo" : produto.status === "I" ? "Inativo" : produto.status,
@@ -290,10 +292,19 @@ onMounted(() => {
 
             <template #cell-nome="{ item }">
               <div class="flex flex-col">
-                <span
-                  class="font-bold text-slate-800 text-sm tracking-tight"
-                  >{{ item.nome }}</span
-                >
+                <span class="flex items-center gap-2">
+                  <span
+                    class="font-bold text-slate-800 text-sm tracking-tight"
+                    >{{ item.nome }}</span
+                  >
+                  <Badge
+                    v-if="item.controlado"
+                    class="font-black px-2 py-0 text-[9px] uppercase tracking-widest rounded-full bg-amber-100 text-amber-700 hover:bg-amber-100"
+                    :title="`Medicamento controlado — Portaria 344/98${item.lista_portaria ? ' • Lista ' + item.lista_portaria : ''}`"
+                  >
+                    Controlado{{ item.lista_portaria ? " · " + item.lista_portaria : "" }}
+                  </Badge>
+                </span>
                 <span
                   class="text-[10px] text-slate-400 font-medium uppercase tracking-tighter"
                   >{{ item.id }} • SKU IDENTIFIER</span

@@ -81,6 +81,7 @@ export default createStore({
     relatorioSaidasPorData: [],
     relatorioEntradasPorData: [],
     relatorioEstoque: [],
+    relatorioMedicamentosControlados: [],
     relatorioUsuarios: [],
 
     // UI / Filtros
@@ -355,6 +356,13 @@ export default createStore({
       state.relatorioEstoque = [];
     },
 
+    setRelatorioMedicamentosControlados(state, medicamentos) {
+      state.relatorioMedicamentosControlados = medicamentos || [];
+    },
+    clearRelatorioMedicamentosControlados(state) {
+      state.relatorioMedicamentosControlados = [];
+    },
+
     setRelatorioUsuarios(state, usuarios) {
       state.relatorioUsuarios = usuarios || [];
     },
@@ -418,6 +426,7 @@ export default createStore({
     getRelatorioMovimentacoes: (state) => state.relatorioMovimentacoes,
     getRelatorioSaidas: (state) => state.relatorioSaidas,
     getRelatorioSaidasPorData: (state) => state.relatorioSaidasPorData,
+    getRelatorioMedicamentosControlados: (state) => state.relatorioMedicamentosControlados,
   },
 });
 

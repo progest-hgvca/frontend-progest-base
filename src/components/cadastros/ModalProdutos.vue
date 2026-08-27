@@ -23,10 +23,29 @@ const localData = ref({
   marca: "",
   status: "A",
   grupo_produto_id: "",
+  lista_portaria: "",
   unidade_medida_id: "",
   codigo_simpas: "",
   codigo_barras: "",
 });
+
+/** Listas da Portaria SVS/MS 344/98 */
+const LISTAS_PORTARIA = [
+  { valor: "A1", descricao: "A1 — Entorpecentes" },
+  { valor: "A2", descricao: "A2 — Entorpecentes de uso permitido em concentrações especiais" },
+  { valor: "A3", descricao: "A3 — Psicotrópicos" },
+  { valor: "B1", descricao: "B1 — Psicotrópicos" },
+  { valor: "B2", descricao: "B2 — Psicotrópicos anorexígenos" },
+  { valor: "C1", descricao: "C1 — Outras substâncias sujeitas a controle especial" },
+  { valor: "C2", descricao: "C2 — Retinoicas de uso sistêmico" },
+  { valor: "C3", descricao: "C3 — Imunossupressoras" },
+  { valor: "C4", descricao: "C4 — Antirretrovirais" },
+  { valor: "C5", descricao: "C5 — Anabolizantes" },
+  { valor: "D1", descricao: "D1 — Precursoras de entorpecentes/psicotrópicos" },
+  { valor: "D2", descricao: "D2 — Insumos para entorpecentes/psicotrópicos" },
+  { valor: "E", descricao: "E — Plantas proscritas" },
+  { valor: "F", descricao: "F — Substâncias de uso proscrito" },
+];
 
 const modalDataStore = computed(() => store.state.modalData.modalData);
 const modalFunction = computed(() => store.state.modalData.modalFunction);
@@ -66,9 +85,28 @@ const selecionarMarca = (m) => {
   showMarcas.value = false;
 };
 
+/** Grupo selecionado no formulário */
+const grupoSelecionado = computed(() => {
+  const list = store.state.gruposProdutos || [];
+  return (
+    list.find((g) => g.id?.toString() === localData.value.grupo_produto_id?.toString()) ||
+    null
+  );
+});
+
+/** Produto é controlado quando pertence a um grupo controlado */
+const grupoSelecionadoControlado = computed(
+  () => !!grupoSelecionado.value?.controlado,
+);
+
+// Limpa a lista da portaria ao sair de um grupo controlado
+watch(grupoSelecionadoControlado, (controlado) => {
+  if (!controlado) localData.value.lista_portaria = "";
+});
+
 // Formulários inline
 const showGrupoForm = ref(false);
-const novoGrupo = ref({ nome: "", tipo: "Material" });
+const novoGrupo = ref({ nome: "", tipo: "Material", controlado: false });
 const showUnidadeForm = ref(false);
 const novaUnidade = ref({ nome: "", quantidade_unidade_minima: 1 });
 
@@ -89,6 +127,7 @@ watch(
       if (localData.value.grupo_produto_id)
         localData.value.grupo_produto_id =
           localData.value.grupo_produto_id.toString();
+      if (!localData.value.lista_portaria) localData.value.lista_portaria = "";
       if (localData.value.unidade_medida_id)
         localData.value.unidade_medida_id =
           localData.value.unidade_medida_id.toString();
@@ -130,6 +169,7 @@ const salvarGrupoInline = () => {
     grupoProduto: {
       nome: novoGrupo.value.nome,
       tipo: novoGrupo.value.tipo,
+      controlado: novoGrupo.value.tipo === "Medicamento" && novoGrupo.value.controlado,
       status: "A" // Status sempre "A"
     }
   };
@@ -139,7 +179,7 @@ const salvarGrupoInline = () => {
       store.commit("setGruposProdutos", [...gList, r.data.data]);
       localData.value.grupo_produto_id = r.data.data.id.toString();
       showGrupoForm.value = false;
-      novoGrupo.value = { nome: "", tipo: "Material" };
+      novoGrupo.value = { nome: "", tipo: "Material", controlado: false };
       proxy.$toastr?.s("Grupo cadastrado com sucesso!");
     } else {
       proxy.$toastr?.e(r.data?.message || "Erro ao salvar Grupo");
@@ -217,6 +257,16 @@ const handleSave = () => {
   if (!localData.value.unidade_medida_id) {
     store.commit("setModalErrors", {
       unidade_medida_id: ["A unidade de medida é obrigatória."],
+    });
+    return;
+  }
+
+  // Medicamento controlado exige a lista da Portaria 344/98
+  if (grupoSelecionadoControlado.value && !localData.value.lista_portaria) {
+    store.commit("setModalErrors", {
+      lista_portaria: [
+        "Informe a lista da Portaria 344/98 para medicamentos controlados.",
+      ],
     });
     return;
   }
@@ -353,6 +403,43 @@ const handleSave = () => {
             {{ getError("grupo_produto_id") }}
           </p>
           
+          <!-- Lista da Portaria 344/98 — somente para grupos controlados -->
+          <div
+            v-if="grupoSelecionadoControlado"
+            class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2"
+          >
+            <Label class="text-amber-800">
+              Lista da Portaria 344/98 <span class="text-destructive">*</span>
+            </Label>
+            <Select v-model="localData.lista_portaria">
+              <SelectTrigger
+                class="w-full bg-white"
+                :class="{ 'border-red-500': hasError('lista_portaria') }"
+              >
+                <SelectValue placeholder="Selecione a lista" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="l in LISTAS_PORTARIA"
+                  :key="l.valor"
+                  :value="l.valor"
+                >
+                  {{ l.descricao }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p class="text-[11px] text-amber-700">
+              Medicamento controlado: a lista é obrigatória e aparece no relatório
+              de medicamentos controlados.
+            </p>
+            <p
+              v-if="hasError('lista_portaria')"
+              class="text-xs text-destructive"
+            >
+              {{ getError("lista_portaria") }}
+            </p>
+          </div>
+
           <!-- Formulário Inline Grupo Produto -->
           <div v-if="showGrupoForm" class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3 relative animate-in fade-in slide-in-from-top-2">
             <button class="absolute top-2 right-2 text-slate-400 hover:text-red-500" @click="showGrupoForm = false">
@@ -370,6 +457,17 @@ const handleSave = () => {
                   <SelectItem value="Material">Material</SelectItem>
                 </SelectContent>
               </Select>
+              <label
+                v-if="novoGrupo.tipo === 'Medicamento'"
+                class="flex items-center gap-2 text-[11px] font-semibold text-amber-700 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  v-model="novoGrupo.controlado"
+                  class="h-3.5 w-3.5 rounded border-slate-300 accent-amber-600"
+                />
+                Grupo de medicamentos controlados
+              </label>
             </div>
             <Button @click="salvarGrupoInline" class="w-full h-8 text-xs" variant="secondary">Adicionar</Button>
           </div>

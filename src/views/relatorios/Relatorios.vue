@@ -273,6 +273,48 @@
             </div>
           </div>
 
+          <!-- Medicamentos Controlados Section -->
+          <div class="reports-section mb-4" v-if="isAdmin || isAlmoxarife">
+            <div class="section-header">
+              <div class="d-flex align-items-center">
+                <div class="section-icon bg-danger-subtle">
+                  <i class="mdi mdi-pill text-danger"></i>
+                </div>
+                <div>
+                  <h5 class="mb-0 fw-bold">Controle Especial</h5>
+                  <small class="text-muted">Medicamentos sujeitos a controle especial</small>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3 mt-2">
+              <div class="col-md-6">
+                <router-link to="/relatorios/medicamentos-controlados" class="report-card">
+                  <div class="card-accent bg-danger"></div>
+                  <div class="report-icon bg-danger-subtle">
+                    <i class="mdi mdi-pill text-danger"></i>
+                  </div>
+                  <div class="report-content">
+                    <h6 class="fw-bold mb-1">Relatório de Medicamentos Controlados</h6>
+                    <p class="text-muted small mb-2">
+                      Saldo, lotes, validade e movimento dos medicamentos da Portaria SVS/MS 344/98, por lista e setor
+                    </p>
+                    <div class="report-meta">
+                      <span class="badge bg-danger-subtle text-danger me-2">
+                        <i class="mdi mdi-file-excel me-1"></i>Excel
+                      </span>
+                      <span class="badge bg-danger-subtle text-danger">
+                        <i class="mdi mdi-file-pdf-box me-1"></i>PDF
+                      </span>
+                    </div>
+                  </div>
+                  <div class="report-arrow">
+                    <i class="mdi mdi-chevron-right"></i>
+                  </div>
+                </router-link>
+              </div>
+            </div>
+          </div>
+
           <!-- Gestão de Pessoas Section -->
           <div class="reports-section mb-4" v-if="isAdmin">
             <div class="section-header">
@@ -382,12 +424,12 @@ export default {
 
     /**
      * Total dinâmico de relatórios visíveis para o perfil atual:
-     * - Admin: 7 (todos)
-     * - Almoxarife: 6 (todos exceto Usuários)
+     * - Admin: 8 (todos)
+     * - Almoxarife: 7 (todos exceto Usuários)
      */
     totalRelatorios() {
-      if (this.isAdmin) return 7
-      if (this.isAlmoxarife) return 6
+      if (this.isAdmin) return 8
+      if (this.isAlmoxarife) return 7
       return 0
     },
   },
