@@ -31,7 +31,9 @@ coverage
 
 .agente
 .env
-!.env.examplecypress
+.env.*
+!.env.example
+!.env.*.example
 
 cypress
 cypress.config.js
