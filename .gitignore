@@ -38,3 +38,5 @@ coverage
 cypress
 cypress.config.js
 cypress_out.txt
+DEPLOY_AWS.md
+GUIA_DEPLOY_AWS.md
