@@ -17,6 +17,7 @@ services:
       # Rota Agnóstica para testes em IP (HTTP puro)
       - "traefik.http.routers.progest-web.rule=PathPrefix(`/`)"
       - "traefik.http.routers.progest-web.entrypoints=web"
+      - "traefik.http.routers.progest-web.priority=1"
       - "traefik.http.services.progest-web.loadbalancer.server.port=80"
 
 # --- Networks ---
