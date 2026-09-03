@@ -264,6 +264,35 @@ const isSaida = (mov) => {
   return Number(mov.setor_origem_id) === sid || Number(mov.setorOrigem?.id) === sid;
 };
 
+// Em devolução (tipo 'D'), o setor de destino (quem recebe a mercadoria de volta) é quem aprova;
+// Em transferência comum, quem aprova é o setor de origem (quem fornece o item).
+const podeAprovarMov = (mov) => {
+  if (mov.status_solicitacao !== "P") return false;
+  if (mov.tipo === "D") {
+    return isEntrada(mov);
+  }
+  return isSaida(mov);
+};
+
+// Em devolução, quem pode cancelar antes da aprovação é quem solicitou a devolução (origem);
+// Em transferência comum, quem pode cancelar é quem fez o pedido (destino).
+const podeCancelarMov = (mov) => {
+  if (mov.status_solicitacao !== "P") return false;
+  if (mov.tipo === "D") {
+    return isSaida(mov);
+  }
+  return isEntrada(mov);
+};
+
+// Verifica se o rascunho pertence ao setor atual para permitir edição/envio
+const podeEditarRascunho = (mov) => {
+  if (mov.status_solicitacao !== "C") return false;
+  if (mov.tipo === "D") {
+    return isSaida(mov);
+  }
+  return isEntrada(mov);
+};
+
 const formatarData = (data) => {
   if (!data) return "--/--/----";
   return new Date(data).toLocaleDateString("pt-BR");
@@ -714,7 +743,15 @@ const excluirRascunho = async () => {
                     :class="{ 'rotate-90 text-primary': expandedRows[mov.id] }"
                   />
                   <div
-                    v-if="isEntrada(mov)"
+                    v-if="mov.tipo === 'D'"
+                    class="flex items-center gap-2 text-amber-600 font-bold"
+                  >
+                    <ArrowDownCircleIcon v-if="isEntrada(mov)" class="w-5 h-5 text-amber-600" />
+                    <ArrowUpCircleIcon v-else class="w-5 h-5 text-amber-600" />
+                    <span class="text-[11px] uppercase">{{ isEntrada(mov) ? 'Devolução (Entrada)' : 'Devolução (Saída)' }}</span>
+                  </div>
+                  <div
+                    v-else-if="isEntrada(mov)"
                     class="flex items-center gap-2 text-emerald-600 font-bold"
                   >
                     <ArrowDownCircleIcon class="w-5 h-5" />
@@ -832,32 +869,32 @@ const excluirRascunho = async () => {
                   <FileSpreadsheetIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Aprovar (saída Pendente) -->
+                <!-- Aprovar (Pendente) -->
                 <Button
-                  v-if="isSaida(mov) && mov.status_solicitacao === 'P'"
+                  v-if="podeAprovarMov(mov)"
                   variant="ghost"
                   size="icon"
                   @click="abrirModalAprovacao(mov)"
                   class="h-8 w-8 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                  title="Aprovar movimentação"
+                  :title="mov.tipo === 'D' ? 'Aprovar recebimento de devolução' : 'Aprovar movimentação'"
                 >
                   <CheckCircle2Icon class="w-4 h-4" />
                 </Button>
 
-                <!-- Cancelar solicitação (entrada Pendente) -->
+                <!-- Cancelar solicitação (Pendente) -->
                 <Button
-                  v-if="isEntrada(mov) && mov.status_solicitacao === 'P'"
+                  v-if="podeCancelarMov(mov)"
                   variant="ghost"
                   size="icon"
                   @click="confirmarCancelamento(mov)"
                   class="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
-                  title="Cancelar solicitação"
+                  :title="mov.tipo === 'D' ? 'Cancelar devolução' : 'Cancelar solicitação'"
                 >
                   <XCircleIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Ações de Rascunho (entrada, destino = setor atual) -->
-                <template v-if="isEntrada(mov) && mov.status_solicitacao === 'C'">
+                <!-- Ações de Rascunho -->
+                <template v-if="podeEditarRascunho(mov)">
                   <!-- Editar rascunho -->
                   <Button
                     variant="ghost"

@@ -3,91 +3,189 @@
     <DialogContent class="max-w-4xl max-h-[90vh] overflow-y-auto">
       <DialogHeader class="text-start">
         <DialogTitle class="flex gap-2">
-          <i class="mdi mdi-file-document-edit-outline text-primary"></i>
-          {{ rascunho ? 'Editar Rascunho' : 'Nova Requisição' }}
+          <i :class="tipoMovimentacao === 'D' ? 'mdi mdi-undo-variant text-amber-600' : 'mdi mdi-file-document-edit-outline text-primary'"></i>
+          {{ rascunho ? 'Editar Rascunho' : (tipoMovimentacao === 'D' ? 'Nova Devolução de Produtos' : 'Nova Requisição') }}
         </DialogTitle>
         <DialogDescription>
-          Preencha os dados e os itens. Você pode salvar como rascunho ou
-          finalizar a solicitação.
+          {{ tipoMovimentacao === 'D' 
+            ? 'Selecione o setor distribuidor receptor e os itens que deseja devolver ao estoque.' 
+            : 'Preencha os dados e os itens. Você pode salvar como rascunho ou finalizar a solicitação.' }}
         </DialogDescription>
       </DialogHeader>
 
+      <!-- Alternador entre Requisição e Devolução -->
+      <div v-if="!rascunho" class="flex items-center gap-2 my-2 p-1 bg-slate-100 rounded-lg w-fit">
+        <button
+          type="button"
+          @click="tipoMovimentacao = 'T'"
+          :class="[
+            'px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5',
+            tipoMovimentacao === 'T'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          ]"
+        >
+          <i class="mdi mdi-arrow-down-bold-circle-outline"></i>
+          Requisição / Pedido
+        </button>
+        <button
+          type="button"
+          @click="tipoMovimentacao = 'D'"
+          :class="[
+            'px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5',
+            tipoMovimentacao === 'D'
+              ? 'bg-white text-amber-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          ]"
+        >
+          <i class="mdi mdi-undo-variant"></i>
+          Devolução ao Distribuidor
+        </button>
+      </div>
+
       <form @submit.prevent="finalizarSolicitacao" novalidate>
-        <!-- Setor Origem (Distribuidor) -> Setor Destino flow -->
+        <!-- Setor Origem -> Setor Destino flow -->
         <div class="flex flex-wrap items-center gap-4 mb-4">
-          <!-- Setor Origem (Distribuidor) -->
-          <div class="flex-grow md:flex-grow-0 md:w-[300px]">
-            <Label
-              for="setorOrigem"
-              class="text-xs text-muted-foreground block mb-1"
-            >
-              Setor Distribuidor <span class="text-danger">*</span>
-            </Label>
-            <Select
-              v-model="form.setorOrigemId"
-              @update:modelValue="onSetorOrigemChange"
-            >
-              <SelectTrigger
-                id="setorOrigem"
-                :class="{ 'border-red-500': erros.setorOrigem }"
+          <!-- Quando Requisição: Distribuidor é Origem, Setor Atual é Destino -->
+          <!-- Quando Devolução: Setor Atual é Origem (devolve), Distribuidor é Destino (recebe) -->
+          
+          <template v-if="tipoMovimentacao === 'T'">
+            <!-- Origem (Distribuidor) -->
+            <div class="flex-grow md:flex-grow-0 md:w-[300px]">
+              <Label
+                for="setorOrigem"
+                class="text-xs text-muted-foreground block mb-1"
               >
-                <SelectValue placeholder="Selecione o setor distribuidor" />
-              </SelectTrigger>
-              <SelectContent>
-                <div
-                  class="px-2 py-2 sticky top-0 bg-white border-b z-10"
-                  @keydown.stop
+                Setor Distribuidor (Origem) <span class="text-danger">*</span>
+              </Label>
+              <Select
+                v-model="form.setorOrigemId"
+                @update:modelValue="onSetorOrigemChange"
+              >
+                <SelectTrigger
+                  id="setorOrigem"
+                  :class="{ 'border-red-500': erros.setorOrigem }"
                 >
-                  <Input
-                    v-model="pesquisaFornecedor"
-                    placeholder="Pesquisar distribuidor..."
-                    class="h-8 shadow-sm text-sm"
-                  />
-                </div>
-                <SelectItem
-                  v-for="fornecedor in fornecedoresFiltrados"
-                  :key="fornecedor.id"
-                  :value="String(fornecedor.id)"
-                >
-                  {{ fornecedor.tipo }} — {{ fornecedor.nome }}
-                </SelectItem>
-                <div
-                  v-if="fornecedoresFiltrados.length === 0"
-                  class="py-6 text-center text-sm text-muted-foreground"
-                >
-                  Nenhum distribuidor encontrado.
-                </div>
-              </SelectContent>
-            </Select>
-            <div v-if="erros.setorOrigem" class="text-red-500 text-sm mt-1">
-              {{ erros.setorOrigem }}
+                  <SelectValue placeholder="Selecione o setor distribuidor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div
+                    class="px-2 py-2 sticky top-0 bg-white border-b z-10"
+                    @keydown.stop
+                  >
+                    <Input
+                      v-model="pesquisaFornecedor"
+                      placeholder="Pesquisar distribuidor..."
+                      class="h-8 shadow-sm text-sm"
+                    />
+                  </div>
+                  <SelectItem
+                    v-for="fornecedor in fornecedoresFiltrados"
+                    :key="fornecedor.id"
+                    :value="String(fornecedor.id)"
+                  >
+                    {{ fornecedor.tipo }} — {{ fornecedor.nome }}
+                  </SelectItem>
+                  <div
+                    v-if="fornecedoresFiltrados.length === 0"
+                    class="py-6 text-center text-sm text-muted-foreground"
+                  >
+                    Nenhum distribuidor encontrado.
+                  </div>
+                </SelectContent>
+              </Select>
+              <div v-if="erros.setorOrigem" class="text-red-500 text-sm mt-1">
+                {{ erros.setorOrigem }}
+              </div>
             </div>
-            <div
-              v-if="fornecedoresDisponiveis.length === 0"
-              class="text-amber-600 text-sm mt-1"
-            >
-              <i class="mdi mdi-alert-outline"></i>
-              Nenhum distribuidor configurado para este setor.
-            </div>
-          </div>
 
-          <!-- Seta visual (hidden on mobile) -->
-          <div class="hidden md:flex items-center pt-3">
-            <i class="mdi mdi-arrow-right text-2xl text-muted-foreground"></i>
-          </div>
-
-          <!-- Setor Destino (Você) -->
-          <div class="flex-shrink-0">
-            <label class="text-xs text-muted-foreground block mb-1"
-              >Setor de Destino (Você)</label
-            >
-            <div
-              class="p-2 px-3 bg-muted rounded-lg flex items-center gap-2 border h-10"
-            >
-              <i class="mdi mdi-map-marker text-primary"></i>
-              <span class="font-medium text-sm">{{ setorDestinoNome }}</span>
+            <!-- Seta visual -->
+            <div class="hidden md:flex items-center pt-3">
+              <i class="mdi mdi-arrow-right text-2xl text-muted-foreground"></i>
             </div>
-          </div>
+
+            <!-- Destino (Você) -->
+            <div class="flex-shrink-0">
+              <label class="text-xs text-muted-foreground block mb-1"
+                >Setor Solicitante (Você)</label
+              >
+              <div
+                class="p-2 px-3 bg-muted rounded-lg flex items-center gap-2 border h-10"
+              >
+                <i class="mdi mdi-map-marker text-primary"></i>
+                <span class="font-medium text-sm">{{ setorDestinoNome }}</span>
+              </div>
+            </div>
+          </template>
+
+          <template v-else>
+            <!-- Devolução: Origem é Você -->
+            <div class="flex-shrink-0">
+              <label class="text-xs text-muted-foreground block mb-1"
+                >Setor Devolvente (Você - Origem)</label
+              >
+              <div
+                class="p-2 px-3 bg-amber-50 text-amber-900 rounded-lg flex items-center gap-2 border border-amber-200 h-10"
+              >
+                <i class="mdi mdi-map-marker text-amber-600"></i>
+                <span class="font-medium text-sm">{{ setorDestinoNome }}</span>
+              </div>
+            </div>
+
+            <!-- Seta visual de retorno -->
+            <div class="hidden md:flex items-center pt-3">
+              <i class="mdi mdi-arrow-right text-2xl text-amber-600"></i>
+            </div>
+
+            <!-- Devolução: Destino é o Distribuidor receptor -->
+            <div class="flex-grow md:flex-grow-0 md:w-[300px]">
+              <Label
+                for="setorDestinoDevolucao"
+                class="text-xs text-muted-foreground block mb-1"
+              >
+                Devolver Para (Distribuidor Receptor) <span class="text-danger">*</span>
+              </Label>
+              <Select
+                v-model="form.setorOrigemId"
+                @update:modelValue="onSetorOrigemChange"
+              >
+                <SelectTrigger
+                  id="setorDestinoDevolucao"
+                  :class="{ 'border-red-500': erros.setorOrigem }"
+                >
+                  <SelectValue placeholder="Selecione onde devolver" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div
+                    class="px-2 py-2 sticky top-0 bg-white border-b z-10"
+                    @keydown.stop
+                  >
+                    <Input
+                      v-model="pesquisaFornecedor"
+                      placeholder="Pesquisar distribuidor receptor..."
+                      class="h-8 shadow-sm text-sm"
+                    />
+                  </div>
+                  <SelectItem
+                    v-for="fornecedor in fornecedoresFiltrados"
+                    :key="fornecedor.id"
+                    :value="String(fornecedor.id)"
+                  >
+                    {{ fornecedor.tipo }} — {{ fornecedor.nome }}
+                  </SelectItem>
+                  <div
+                    v-if="fornecedoresFiltrados.length === 0"
+                    class="py-6 text-center text-sm text-muted-foreground"
+                  >
+                    Nenhum distribuidor encontrado.
+                  </div>
+                </SelectContent>
+              </Select>
+              <div v-if="erros.setorOrigem" class="text-red-500 text-sm mt-1">
+                {{ erros.setorOrigem }}
+              </div>
+            </div>
+          </template>
         </div>
 
         <!-- Observação -->
@@ -114,7 +212,7 @@
           </p>
 
           <div class="row g-3 p-3 border rounded bg-light align-items-end">
-            <div class="col-md-6 relative">
+            <div class="col-md-5 relative">
               <Label for="produtoSearch">
                 Produto
                 <span class="text-danger">*</span>
@@ -186,7 +284,7 @@
               ></div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-2">
               <Label for="produtoQuantidade">
                 Quantidade
                 <span class="text-danger">*</span>
@@ -197,6 +295,18 @@
                 min="1"
                 v-model.number="itemAtual.quantidade"
                 placeholder="Ex: 10"
+              />
+            </div>
+
+            <div class="col-md-2">
+              <Label for="produtoLote">
+                Lote <span class="text-muted text-[10px]">(opcional)</span>
+              </Label>
+              <Input
+                id="produtoLote"
+                type="text"
+                v-model="itemAtual.lote"
+                placeholder="Ex: LT-123"
               />
             </div>
 
@@ -288,13 +398,14 @@
               Fechar
             </Button>
             <Button
-              variant="default"
+              :variant="tipoMovimentacao === 'D' ? 'outline' : 'default'"
               type="submit"
               :disabled="loading || !podeFinalizar"
+              :class="tipoMovimentacao === 'D' ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''"
             >
               <template v-if="!loadingFinalizar">
-                <i class="mdi mdi-send me-1"></i>
-                Finalizar e Solicitar
+                <i :class="tipoMovimentacao === 'D' ? 'mdi mdi-undo-variant me-1' : 'mdi mdi-send me-1'"></i>
+                {{ tipoMovimentacao === 'D' ? 'Registrar Devolução' : 'Finalizar e Solicitar' }}
               </template>
               <template v-else>
                 <span class="spinner-border spinner-border-sm me-1"></span>
@@ -371,6 +482,7 @@ export default {
   },
   data() {
     return {
+      tipoMovimentacao: "T", // 'T' = Requisição, 'D' = Devolução
       loading: false,
       loadingRascunho: false,
       loadingFinalizar: false,
@@ -386,6 +498,7 @@ export default {
       itemAtual: {
         produtoId: "",
         quantidade: 1,
+        lote: "",
       },
       erros: {},
       tipoSetorOrigem: null,
@@ -558,18 +671,21 @@ export default {
 
       if (existente) {
         existente.quantidade += this.itemAtual.quantidade;
+        if (this.itemAtual.lote) existente.lote = this.itemAtual.lote;
       } else {
         this.form.itens.push({
           produtoId: produto.id,
           produtoNome: produto.nome,
           produtoMarca: produto.marca,
           quantidade: this.itemAtual.quantidade,
+          lote: this.itemAtual.lote || null,
         });
       }
 
       // Reset item atual
       this.limparSelecaoProduto();
       this.itemAtual.quantidade = 1;
+      this.itemAtual.lote = "";
     },
 
     removerItem(index) {
@@ -635,16 +751,18 @@ export default {
       this.loading = true;
 
       try {
+        const isDevolucao = this.tipoMovimentacao === "D";
         const payload = {
           usuario_id: this.$store.state.user?.id,
-          setor_origem_id: parseInt(this.form.setorOrigemId),
-          setor_destino_id: parseInt(this.setorId),
-          tipo: "T", // Transferência
+          setor_origem_id: isDevolucao ? parseInt(this.setorId) : parseInt(this.form.setorOrigemId),
+          setor_destino_id: isDevolucao ? parseInt(this.form.setorOrigemId) : parseInt(this.setorId),
+          tipo: isDevolucao ? "D" : "T",
           observacao: this.form.observacao || "",
           status_solicitacao: status,
           itens: this.form.itens.map((item) => ({
             produto_id: item.produtoId,
             quantidade_solicitada: item.quantidade,
+            lote: item.lote || null,
           })),
         };
 
