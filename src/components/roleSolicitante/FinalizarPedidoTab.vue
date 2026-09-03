@@ -64,6 +64,36 @@
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <!-- Alternador entre Pedido Normal e Devolução de Materiais -->
+          <div v-if="!pedidoEmEdicaoId" class="flex items-center gap-2 mb-4 p-1 bg-slate-100 rounded-lg w-fit">
+            <button
+              type="button"
+              @click="finalidade = 'S'"
+              :class="[
+                'px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5',
+                finalidade === 'S'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              ]"
+            >
+              <i class="mdi mdi-cart-arrow-down"></i>
+              Pedido / Requisição
+            </button>
+            <button
+              type="button"
+              @click="finalidade = 'D'"
+              :class="[
+                'px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5',
+                finalidade === 'D'
+                  ? 'bg-white text-amber-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              ]"
+            >
+              <i class="mdi mdi-undo-variant"></i>
+              Devolução ao Distribuidor
+            </button>
+          </div>
+
           <!-- Linha 1: Tipo de Produto + Setor Fornecedor → Setor Destino -->
           <div class="flex flex-wrap items-center gap-4 mb-4">
             <!-- Tipo de Produto -->
@@ -87,9 +117,9 @@
 
             <!-- Setor Distribuidor (primeiro) -->
             <div class="flex-shrink-0 w-[240px]">
-              <label class="text-xs text-muted-foreground block mb-1"
-                >Setor Distribuidor</label
-              >
+              <label class="text-xs text-muted-foreground block mb-1">
+                {{ finalidade === 'D' ? 'Devolver Para (Distribuidor)' : 'Setor Distribuidor' }}
+              </label>
               <Select
                 v-model="distribuidorLocal"
                 @update:modelValue="handleDistribuidorChange"
@@ -253,11 +283,14 @@
           <Button
             @click="enviarPedido"
             :disabled="submitting || distribuidoresDisponiveis.length === 0"
-            class="flex items-center gap-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+            :class="[
+              'flex items-center gap-2 w-full sm:w-auto text-white',
+              finalidade === 'D' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'
+            ]"
           >
             <LoadingSpinner v-if="submitting && submittingType === 'P'" size="sm" class="mr-1" />
-            <i v-else class="mdi mdi-send"></i>
-            {{ pedidoEmEdicaoId ? "Enviar Pedido" : "Finalizar Pedido" }}
+            <i v-else :class="finalidade === 'D' ? 'mdi mdi-undo-variant' : 'mdi mdi-send'"></i>
+            {{ pedidoEmEdicaoId ? "Enviar Pedido" : (finalidade === 'D' ? "Registrar Devolução" : "Finalizar Pedido") }}
           </Button>
         </div>
       </div>
@@ -284,9 +317,12 @@ import {
 import LoadingSpinner from "@/components/ui/loading-spinner/LoadingSpinner.vue";
 import { useToast } from "@/components/ui/toast";
 import { useSolicitacao } from "@/composables/useSolicitacao";
+import { useStore } from "vuex";
 
 const router = useRouter();
+const store = useStore();
 const { toast } = useToast();
+const finalidade = ref("S"); // 'S' = Pedido, 'D' = Devolução
 
 const {
   tipo,
@@ -387,6 +423,13 @@ const processarEnvio = async (statusTarget) => {
     return;
   }
 
+  // Se for devolução, ajusta tipo e inverte origem (solicitante) e destino (distribuidor)
+  if (finalidade.value === "D") {
+    pedidoData.tipo = "D";
+    pedidoData.setor_origem_id = Number(store.state.setorAtualId);
+    pedidoData.setor_destino_id = Number(distribuidorLocal.value);
+  }
+
   try {
     submitting.value = true;
     submittingType.value = statusTarget;
@@ -432,9 +475,13 @@ const processarEnvio = async (statusTarget) => {
     }
 
     if (response.data.status) {
-      const mensagemSucesso = statusTarget === "C"
+      let mensagemSucesso = statusTarget === "C"
         ? "Rascunho salvo com sucesso!"
         : "Pedido enviado com sucesso! Aguarde a aprovação.";
+
+      if (finalidade.value === "D" && statusTarget === "P") {
+        mensagemSucesso = "Devolução registrada com sucesso! Aguarde a conferência do distribuidor.";
+      }
 
       toast({
         title: "Sucesso",

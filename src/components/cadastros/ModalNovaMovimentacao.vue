@@ -479,6 +479,10 @@ export default {
       type: Object,
       default: null,
     },
+    modoInicial: {
+      type: String,
+      default: "T", // 'T' = Requisição, 'D' = Devolução
+    },
   },
   data() {
     return {
@@ -554,6 +558,7 @@ export default {
   watch: {
     open(newVal) {
       if (newVal) {
+        this.tipoMovimentacao = this.modoInicial || "T";
         this.carregarFornecedores().then(() => {
           if (this.rascunho) {
             this.preencherFormComRascunho();

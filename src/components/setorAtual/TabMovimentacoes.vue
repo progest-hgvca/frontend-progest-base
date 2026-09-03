@@ -53,6 +53,7 @@ import {
   PrinterIcon,
   FileSpreadsheetIcon,
   ChevronRightIcon,
+  RotateCcwIcon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -84,6 +85,17 @@ const parentData = inject("setorAtualData", {
 });
 
 const dialogMovimentacaoOpen = ref(false);
+const modoInicialMovimentacao = ref("T");
+
+const abrirModalRequisicao = () => {
+  modoInicialMovimentacao.value = "T";
+  dialogMovimentacaoOpen.value = true;
+};
+
+const abrirModalDevolucao = () => {
+  modoInicialMovimentacao.value = "D";
+  dialogMovimentacaoOpen.value = true;
+};
 const dialogDetalhesOpen = ref(false);
 const dialogAprovacaoOpen = ref(false);
 const movimentacaoSelecionada = ref(null);
@@ -562,10 +574,19 @@ const excluirRascunho = async () => {
 <template>
   <div class="flex flex-col gap-4 pb-10">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3">
       <Button
-        v-if="!isCAF && !isSetorAdmin"
-        @click="dialogMovimentacaoOpen = true"
+        v-if="!isCAF"
+        @click="abrirModalDevolucao"
+        variant="outline"
+        class="gap-2 border-amber-300 text-amber-700 bg-amber-50/70 hover:bg-amber-100 hover:text-amber-800 shadow-sm"
+      >
+        <RotateCcwIcon class="w-4 h-4 text-amber-600" /> Nova Devolução
+      </Button>
+
+      <Button
+        v-if="!isCAF"
+        @click="abrirModalRequisicao"
         class="gap-2 shadow-lg shadow-primary/20"
       >
         <PlusIcon class="w-4 h-4" /> Nova Requisição
@@ -1043,6 +1064,7 @@ const excluirRascunho = async () => {
       v-model:open="dialogMovimentacaoOpen"
       :setorId="setorId"
       :setorNome="setorNome"
+      :modoInicial="modoInicialMovimentacao"
     />
 
     <!-- Modal Editar Rascunho -->
