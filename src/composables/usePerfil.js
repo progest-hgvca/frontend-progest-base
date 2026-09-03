@@ -24,7 +24,7 @@ export function usePerfil() {
     if (!user) return false
 
     // GOD MODE: Super Admin tem todos os poderes, menos o de Solicitante
-    if (store.getters.isSuperAdmin) {
+    if (store?.getters?.isSuperAdmin) {
       if (perfilAlvo === 'solicitante') return false;
       return true;
     }

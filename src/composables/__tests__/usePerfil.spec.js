@@ -15,6 +15,9 @@ describe('usePerfil.js', () => {
       state: {
         user: { id: 1 },
         listUsuariosSetor: []
+      },
+      getters: {
+        isSuperAdmin: false
       }
     }
     useStore.mockReturnValue(mockStore)
