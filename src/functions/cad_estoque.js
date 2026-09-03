@@ -1,4 +1,5 @@
 import { feedback } from "@/components/ui/feedback-modal";
+import { setorCookie } from "@/utils/setorCookie";
 
 var ADD_UP = (content, funcao) => {
   content.$axios
@@ -59,12 +60,16 @@ var listAll = (content, url = null) => {
   let fetchUrl = url;
   if (!fetchUrl) {
     const setorId =
+      content.setorId ||
+      content.setor?.id ||
+      content.setor?.value?.id ||
       content.$store.state.setorAtualId ||
       content.$store.state.setorDetails?.id ||
+      setorCookie.getSectorId() ||
       null;
 
     if (!setorId) {
-      console.warn("⚠️ Sem setor ID para listar estoque (setorAtualId e setorDetails.id estão null)");
+      console.warn("⚠️ Sem setor ID para listar estoque");
       content.$store.commit("setisSearching", false);
       return Promise.resolve({ success: false, data: [] });
     }

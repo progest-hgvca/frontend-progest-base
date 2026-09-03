@@ -37,6 +37,7 @@ import functionsMovimentacao from "@/functions/cad_movimentacao";
 import functionsEntrada from "@/functions/cad_entradas";
 import functionsSetor from "@/functions/cad_setores";
 import functionsUsuarioSetor from "@/functions/cad_usuario_setor";
+import { setorCookie } from "@/utils/setorCookie";
 
 const route = useRoute();
 const router = useRouter();
@@ -136,9 +137,15 @@ const changeTab = (tab) => {
 const carregarDadosOperacionais = async () => {
   if (!setor.value.id) return;
 
-  const ctx = { ...context, loading: false };
+  const ctx = { ...context, loading: false, setorId: setor.value.id };
 
-  if (setor.value.estoque) await functionsEstoque.listAll(ctx);
+  if (setor.value.estoque) {
+    await functionsEstoque.listAll(ctx);
+  } else {
+    estoqueItems.value = [];
+    resumoEstoque.value = {};
+    setorEstoque.value = {};
+  }
   await functionsMovimentacao.listAll(ctx);
   await functionsEntrada.listAll(ctx);
   if (functionsUsuarioSetor.listAll) await functionsUsuarioSetor.listAll(ctx);
@@ -180,7 +187,18 @@ watch(activeTab, () => {
 
 const loadSetorDetails = async () => {
   loading.value = true;
-  const currentId = store.state.setorAtualId;
+  // Resetar dados operacionais para garantir que o setor anterior não persista na tela
+  estoqueItems.value = [];
+  resumoEstoque.value = {};
+  setorEstoque.value = {};
+  movimentacoesItems.value = [];
+  entradasItems.value = [];
+  usuariosItems.value = [];
+
+  const currentId =
+    store.state.setorAtualId ||
+    setorCookie.getSectorId() ||
+    store.state.setorDetails?.id;
   
   if (currentId) {
     const result = await functionsSetor.buscarSetorPorId(currentId);

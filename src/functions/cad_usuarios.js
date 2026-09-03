@@ -187,9 +187,10 @@ var listData = (content) => {
 
 // Mantém apenas a função de tipos de vínculo que é obrigatória
 var listRegimesContratacao = (content, url = null) => {
+  const fetchUrl = url == null ? "/regime-contratacao/list" : url;
   return content.$axios
     .post(
-      url == null ? "/regime-contratacao/list" : url,
+      fetchUrl,
       {},
       {
         headers: {
@@ -198,15 +199,31 @@ var listRegimesContratacao = (content, url = null) => {
       }
     )
     .then((response) => {
-      content.$store.commit("setListRegimesContratacao", response.data.data);
-      console.log("setListRegimesContratacao", response.data.data);
-      return response.data.data;
+      const regimes = response.data?.data || [];
+      content.$store.commit("setListRegimesContratacao", regimes);
+      console.log("setListRegimesContratacao", regimes);
+      return regimes;
     })
     .catch((error) => {
-      console.error("Erro ao carregar tipos de vínculo:", error);
-      // Inicializa com array vazio para evitar erros no frontend
+      console.warn("Tentativa em /regime-contratacao/list falhou, tentando fallback...", error);
+      if (url == null) {
+        return content.$axios
+          .post("/tipo-vinculo/list", {}, {
+            headers: {
+              Authorization: "Bearer " + content.$store.getters.getUserToken,
+            },
+          })
+          .then((res) => {
+            const regimes = res.data?.data || [];
+            content.$store.commit("setListRegimesContratacao", regimes);
+            return regimes;
+          })
+          .catch(() => {
+            content.$store.commit("setListRegimesContratacao", []);
+            return [];
+          });
+      }
       content.$store.commit("setListRegimesContratacao", []);
-      // Retornar array vazio para que chamadores possam continuar sem rejeição
       return [];
     });
 };

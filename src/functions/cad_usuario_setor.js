@@ -1,8 +1,15 @@
 // Módulo para gerenciar vínculos entre usuários e setores (usuario_setor pivot)
+import { setorCookie } from "@/utils/setorCookie";
 
 var listAll = (content, setorId = null) => {
-  // Se setorId não foi passado, tenta pegar do store
-  const idSetor = setorId || content.$store.state.setorAtualId;
+  // Se setorId não foi passado, tenta pegar do context, store ou cookie
+  const idSetor =
+    setorId ||
+    content.setorId ||
+    content.setor?.id ||
+    content.$store.state.setorAtualId ||
+    content.$store.state.setorDetails?.id ||
+    setorCookie.getSectorId();
 
   if (!idSetor) {
     console.warn("⚠️ Sem setor ID para listar usuários");

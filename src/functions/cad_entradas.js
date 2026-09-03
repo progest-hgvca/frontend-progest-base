@@ -1,3 +1,5 @@
+import { setorCookie } from "@/utils/setorCookie";
+
 /**
  * Funções para gerenciamento de entradas de estoque
  */
@@ -12,8 +14,14 @@
 var listAll = (content, filters = {}, perPage = 50, page = 1) => {
   console.log("📥 Carregando entradas de estoque: POST /entrada/list");
 
-  // Obter setor_id do store se não foi passado nos filtros
-  const setorId = filters.setor_id || content.$store.state.setorAtualId;
+  // Obter setor_id do context, filters ou store
+  const setorId =
+    filters.setor_id ||
+    content.setorId ||
+    content.setor?.id ||
+    content.$store.state.setorAtualId ||
+    content.$store.state.setorDetails?.id ||
+    setorCookie.getSectorId();
 
   const payload = {
     filters: {

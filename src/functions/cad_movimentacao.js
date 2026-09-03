@@ -1,6 +1,4 @@
-/**
- * Funções para gerenciamento de movimentações (solicitações/transferências/saídas)
- */
+import { setorCookie } from "@/utils/setorCookie";
 
 var listBySetor = (content, setorId, perPage = 5000, page = 1) => {
   if (!setorId) {
@@ -113,8 +111,15 @@ var listBySetor = (content, setorId, perPage = 5000, page = 1) => {
 };
 
 var listAll = (content, filters = {}, perPage = 50, page = 1) => {
-  // Obter setor_id do store se não foi passado nos filtros
-  const setorId = filters.setor_id || content.$store.state.setorAtualId;
+  // Obter setor_id do context, filters ou store
+  const setorId =
+    filters.setor_id ||
+    content.setorId ||
+    content.setor?.id ||
+    content.setor?.value?.id ||
+    content.$store.state.setorAtualId ||
+    content.$store.state.setorDetails?.id ||
+    setorCookie.getSectorId();
 
   if (!setorId) {
     console.warn("⚠️ Sem setor ID para listar movimentações");

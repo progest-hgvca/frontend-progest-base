@@ -83,11 +83,16 @@ provide("setorAtualContext", context);
 
 const carregarDadosOperacionais = async () => {
   if (!setor.value.id) return;
-  const ctx = { ...context, loading: false };
+  const ctx = { ...context, loading: false, setorId: setor.value.id };
 
-  if (setor.value.estoque) await functionsEstoque.listAll(ctx);
-  // Backend esperado: listBySetor ou listAll que use o store.state.setorDetails
-  await functionsMovimentacao.listAll(ctx); // Assume que usa o setor carregado
+  if (setor.value.estoque) {
+    await functionsEstoque.listAll(ctx);
+  } else {
+    estoqueItems.value = [];
+    resumoEstoque.value = {};
+    setorEstoque.value = {};
+  }
+  await functionsMovimentacao.listAll(ctx);
   await functionsEntrada.listAll(ctx);
   if (functionsUsuarioSetor.listAll) await functionsUsuarioSetor.listAll(ctx);
 };
@@ -95,6 +100,13 @@ const carregarDadosOperacionais = async () => {
 const carregarSetor = async () => {
   try {
     loading.value = true;
+    estoqueItems.value = [];
+    resumoEstoque.value = {};
+    setorEstoque.value = {};
+    movimentacoesItems.value = [];
+    entradasItems.value = [];
+    usuariosItems.value = [];
+
     const setorId = route.params.id;
     const response = await axios.post(
       `/setores/listData`,
