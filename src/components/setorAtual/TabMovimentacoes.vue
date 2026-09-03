@@ -86,13 +86,22 @@ const parentData = inject("setorAtualData", {
 
 const dialogMovimentacaoOpen = ref(false);
 const modoInicialMovimentacao = ref("T");
+const movimentacaoParaDevolver = ref(null);
 
 const abrirModalRequisicao = () => {
+  movimentacaoParaDevolver.value = null;
   modoInicialMovimentacao.value = "T";
   dialogMovimentacaoOpen.value = true;
 };
 
 const abrirModalDevolucao = () => {
+  movimentacaoParaDevolver.value = null;
+  modoInicialMovimentacao.value = "D";
+  dialogMovimentacaoOpen.value = true;
+};
+
+const abrirDevolucaoDeMovimentacao = (mov) => {
+  movimentacaoParaDevolver.value = mov;
   modoInicialMovimentacao.value = "D";
   dialogMovimentacaoOpen.value = true;
 };
@@ -302,6 +311,14 @@ const podeEditarRascunho = (mov) => {
   if (mov.tipo === "D") {
     return isSaida(mov);
   }
+  return isEntrada(mov);
+};
+
+// Verifica se a movimentação é elegível para devolução direta
+const podeDevolverMovimentacao = (mov) => {
+  if (mov.status_solicitacao !== "A") return false;
+  if (mov.tipo === "D") return false; // Não devolver algo que já foi devolução
+  // O setor atual deve ter recebido os itens (entrada) para poder devolvê-los
   return isEntrada(mov);
 };
 
@@ -890,6 +907,18 @@ const excluirRascunho = async () => {
                   <FileSpreadsheetIcon class="w-4 h-4" />
                 </Button>
 
+                <!-- Devolver itens desta requisição aprovada -->
+                <Button
+                  v-if="podeDevolverMovimentacao(mov)"
+                  variant="ghost"
+                  size="icon"
+                  @click="abrirDevolucaoDeMovimentacao(mov)"
+                  class="h-8 w-8 text-amber-600 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+                  title="Realizar devolução desta requisição aprovada"
+                >
+                  <RotateCcwIcon class="w-4 h-4 text-amber-600" />
+                </Button>
+
                 <!-- Aprovar (Pendente) -->
                 <Button
                   v-if="podeAprovarMov(mov)"
@@ -1065,6 +1094,8 @@ const excluirRascunho = async () => {
       :setorId="setorId"
       :setorNome="setorNome"
       :modoInicial="modoInicialMovimentacao"
+      :movimentacaoOrigem="movimentacaoParaDevolver"
+      @update:open="(val) => { if (!val) movimentacaoParaDevolver = null; }"
     />
 
     <!-- Modal Editar Rascunho -->

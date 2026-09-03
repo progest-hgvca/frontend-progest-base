@@ -483,6 +483,10 @@ export default {
       type: String,
       default: "T", // 'T' = Requisição, 'D' = Devolução
     },
+    movimentacaoOrigem: {
+      type: Object,
+      default: null,
+    },
   },
   data() {
     return {
@@ -562,6 +566,8 @@ export default {
         this.carregarFornecedores().then(() => {
           if (this.rascunho) {
             this.preencherFormComRascunho();
+          } else if (this.movimentacaoOrigem) {
+            this.preencherComMovimentacaoOrigem();
           } else {
             this.resetForm();
           }
@@ -848,6 +854,50 @@ export default {
         produtoMarca: it.produto?.marca || "",
         quantidade: it.quantidade_solicitada,
       }));
+    },
+
+    async preencherComMovimentacaoOrigem() {
+      const mov = this.movimentacaoOrigem;
+      if (!mov) return;
+      this.tipoMovimentacao = "D";
+
+      // O distribuidor para onde devolveremos é a origem da requisição original
+      const distribuidorId = String(mov.setor_origem_id || mov.setorOrigem?.id || "");
+      this.form.setorOrigemId = distribuidorId;
+      this.form.observacao = `Devolução referente à movimentação #${mov.id}`;
+
+      if (distribuidorId) {
+        const fornecedor = this.fornecedoresDisponiveis.find(
+          (f) => String(f.id) === distribuidorId
+        );
+        if (fornecedor) {
+          this.tipoSetorOrigem = fornecedor.tipo;
+          await this.carregarProdutosPorTipo(fornecedor.tipo);
+        }
+      }
+
+      this.form.itens = (mov.itens || []).map((it) => {
+        let loteNome = "";
+        if (it.lote) {
+          try {
+            const parsed = JSON.parse(it.lote);
+            if (Array.isArray(parsed) && parsed[0]?.lote) {
+              loteNome = parsed[0].lote;
+            } else if (typeof it.lote === "string") {
+              loteNome = it.lote;
+            }
+          } catch (e) {
+            loteNome = it.lote;
+          }
+        }
+        return {
+          produtoId: it.produto_id || it.produto?.id,
+          produtoNome: it.produto?.nome || it.produto?.nome_completo || `Produto #${it.produto_id}`,
+          produtoMarca: it.produto?.marca || "",
+          quantidade: Number(it.quantidade_liberada || it.quantidade_solicitada || 1),
+          lote: loteNome,
+        };
+      });
     },
 
     fecharModal() {
