@@ -41,6 +41,7 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   ArrowDownIcon,
+  BanknoteIcon,
 } from "lucide-vue-next";
 
 // Emits para comunicar com o componente pai
@@ -97,6 +98,20 @@ const resumoEstoque = computed(
 const setorEstoque = computed(
   () => parentData.setorEstoque?.value || parentData.setorEstoque || {},
 );
+
+const user = computed(() => store.state.user || {});
+const canViewFinanceiro = computed(() => {
+  if (resumoEstoque.value?.pode_ver_valores === true) return true;
+  const isSuper = user.value.email?.toLowerCase() === "adminti@gmail.com" || user.value.email?.toLowerCase() === "admin@admin.com" || user.value.is_super_admin;
+  const nomeSetor = (setorEstoque.value?.nome || store.state.setorDetails?.nome || "").toUpperCase();
+  const isCAF = nomeSetor.includes("CAF") || nomeSetor.includes("CENTRAL DE ABASTECIMENTO");
+  return isSuper && isCAF;
+});
+
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || isNaN(val)) return "R$ 0,00";
+  return Number(val).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+};
 
 const visualizarDetalhes = async (item) => {
   const itemCompleto = estoqueItems.value.find((e) => e.estoque_id === item.id);
@@ -178,6 +193,8 @@ const formattedEstoque = computed(() => {
     grupo: item.produto?.grupo_produto?.nome || "N/A",
     quantidade_atual: item.quantidade_atual || 0,
     quantidade_minima: item.quantidade_minima || 0,
+    valor_total: item.valor_total !== null && item.valor_total !== undefined ? item.valor_total : null,
+    preco_medio: item.preco_medio !== null && item.preco_medio !== undefined ? item.preco_medio : null,
     unidade: item.produto?.unidade_medida?.nome || "",
     abaixo_minimo: item.abaixo_minimo,
   }));
@@ -225,6 +242,9 @@ const filteredEstoque = computed(() => {
     } else if (sortBy.value === 'minimo') {
       valA = Number(a.quantidade_minima);
       valB = Number(b.quantidade_minima);
+    } else if (sortBy.value === 'valor_total') {
+      valA = Number(a.valor_total || 0);
+      valB = Number(b.valor_total || 0);
     } else if (sortBy.value === 'status') {
       valA = a.abaixo_minimo ? 1 : 0;
       valB = b.abaixo_minimo ? 1 : 0;
@@ -275,9 +295,37 @@ watch(searchQuery, () => {
     <template v-else>
       <!-- Dashboard Summary -->
       <div
-        class="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        :class="['grid gap-4', canViewFinanceiro ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3']"
         v-if="Object.keys(resumoEstoque).length > 0"
       >
+        <!-- Card de Patrimônio Financeiro (Exclusivo CAF + Admin/Almoxarife) -->
+        <Card
+          v-if="canViewFinanceiro"
+          class="bg-indigo-50/30 border-indigo-100 shadow-none overflow-hidden relative group"
+        >
+          <div
+            class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-100/50 rounded-full blur-2xl transition-all group-hover:scale-110"
+          ></div>
+          <CardContent class="p-6 relative">
+            <div class="flex items-center gap-4">
+              <div
+                class="p-3 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200"
+              >
+                <BanknoteIcon class="w-6 h-6" />
+              </div>
+              <div>
+                <p
+                  class="text-[10px] font-bold uppercase tracking-wider text-indigo-600/70"
+                >
+                  Patrimônio em Estoque
+                </p>
+                <p class="text-2xl font-black text-indigo-900">
+                  {{ formatCurrency(resumoEstoque.valor_total_patrimonio) }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         <Card
           class="bg-blue-50/30 border-blue-100 shadow-none overflow-hidden relative group"
         >
@@ -436,6 +484,18 @@ watch(searchQuery, () => {
                     </div>
                   </th>
                   <th
+                    v-if="canViewFinanceiro"
+                    @click="handleSort('valor_total')"
+                    class="text-right font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors"
+                  >
+                    <div class="flex items-center justify-end gap-1">
+                      Valor Total (R$)
+                      <ArrowUpDownIcon v-if="sortBy !== 'valor_total'" class="w-3 h-3 opacity-50" />
+                      <ArrowUpIcon v-else-if="sortDir === 'asc'" class="w-3 h-3 text-primary" />
+                      <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
+                    </div>
+                  </th>
+                  <th
                     @click="handleSort('status')"
                     class="text-center font-bold text-slate-500 uppercase tracking-wider py-4 px-6 text-[10px] cursor-pointer hover:bg-slate-100 transition-colors"
                   >
@@ -533,6 +593,9 @@ watch(searchQuery, () => {
                         }}</span>
                       </div>
                     </td>
+                    <td v-if="canViewFinanceiro" class="py-4 px-6 text-right font-semibold text-slate-700">
+                      {{ formatCurrency(item.valor_total) }}
+                    </td>
                     <td class="py-4 px-6 text-center">
                       <Badge
                         :variant="
@@ -566,7 +629,7 @@ watch(searchQuery, () => {
                   </tr>
                 </template>
                 <tr v-else>
-                  <td :colspan="readOnly ? 5 : 6" class="py-12 text-center">
+                  <td :colspan="readOnly ? (canViewFinanceiro ? 6 : 5) : (canViewFinanceiro ? 7 : 6)" class="py-12 text-center">
                     <div
                       class="flex flex-col items-center justify-center gap-2"
                     >

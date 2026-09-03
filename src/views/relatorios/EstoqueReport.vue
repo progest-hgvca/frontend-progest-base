@@ -98,6 +98,9 @@
                   <span v-if="totalizadores.total_abaixo_minimo" class="badge bg-warning text-dark fs-6">
                     Abaixo do mínimo: {{ totalizadores.total_abaixo_minimo }}
                   </span>
+                  <span v-if="hasValoresFinanceiros && totalizadores.valor_total_estoque" class="badge fs-6" style="background-color: #4f46e5; color: white;">
+                    Patrimônio CAF: {{ formatCurrency(totalizadores.valor_total_estoque) }}
+                  </span>
                 </div>
                 <div class="table-responsive">
                   <table class="table table-hover">
@@ -112,6 +115,7 @@
                         <th style="width: 120px;">Localização</th>
                         <th style="width: 120px;" class="text-end">Quantidade</th>
                         <th style="width: 100px;" class="text-end">Mínimo</th>
+                        <th v-if="hasValoresFinanceiros" style="width: 130px;" class="text-end">Valor Total (R$)</th>
                         <th style="width: 100px;">Status</th>
                         <th style="width: 250px;">Setor / Polo</th>
                       </tr>
@@ -152,6 +156,9 @@
                           <td class="text-end text-muted">
                             {{ item.quantidade_minima || 0 }}
                           </td>
+                          <td v-if="hasValoresFinanceiros" class="text-end font-semibold text-dark">
+                            {{ formatCurrency(item.valor_total) }}
+                          </td>
                           <td>
                             <span class="badge" :class="getStatusDisponibilidadeBadgeClass(item.status_disponibilidade)">
                               {{ getStatusDisponibilidadeText(item.status_disponibilidade) }}
@@ -167,7 +174,7 @@
                         
                         <!-- Linha expansível com lotes -->
                         <tr v-if="expandedRows[item.id]" class="expanded-content">
-                          <td colspan="11" class="p-0">
+                          <td :colspan="hasValoresFinanceiros ? 12 : 11" class="p-0">
                             <div class="lotes-container">
                               <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Lotes do Produto</h6>
@@ -201,11 +208,13 @@
                               <table v-else class="table table-sm mb-0">
                                 <thead class="table-light">
                                   <tr>
-                                    <th style="width: 150px;">Lote</th>
-                                    <th style="width: 120px;">Quantidade</th>
-                                    <th style="width: 150px;">Data Fabricação</th>
-                                    <th style="width: 150px;">Data Vencimento</th>
-                                    <th style="width: 120px;">Dias p/ Vencer</th>
+                                    <th style="width: 140px;">Lote</th>
+                                    <th style="width: 110px;">Quantidade</th>
+                                    <th v-if="hasValoresFinanceiros" style="width: 120px;" class="text-end">Valor Unit.</th>
+                                    <th v-if="hasValoresFinanceiros" style="width: 130px;" class="text-end">Subtotal Lote</th>
+                                    <th style="width: 130px;">Data Fabricação</th>
+                                    <th style="width: 130px;">Data Vencimento</th>
+                                    <th style="width: 110px;">Dias p/ Vencer</th>
                                     <th>Status</th>
                                   </tr>
                                 </thead>
@@ -214,6 +223,12 @@
                                     <td class="fw-semibold">{{ lote.lote || '-' }}</td>
                                     <td>
                                       <span class="badge bg-info">{{ lote.quantidade_disponivel }}</span>
+                                    </td>
+                                    <td v-if="hasValoresFinanceiros" class="text-end text-muted font-semibold">
+                                      {{ formatCurrency(lote.valor_unitario) }}
+                                    </td>
+                                    <td v-if="hasValoresFinanceiros" class="text-end font-bold text-dark">
+                                      {{ formatCurrency(lote.valor_total_lote) }}
                                     </td>
                                     <td class="text-muted small">{{ formatDate(lote.data_fabricacao) }}</td>
                                     <td class="text-muted small">{{ formatDate(lote.data_vencimento) }}</td>
@@ -275,7 +290,8 @@ export default {
         total_itens: 0,
         total_produtos_disponiveis: 0,
         total_produtos_indisponiveis: 0,
-        total_abaixo_minimo: 0
+        total_abaixo_minimo: 0,
+        valor_total_estoque: 0
       },
       loading: false,
       expandedRows: {}, // Controla quais linhas estão expandidas
@@ -390,6 +406,9 @@ export default {
       if (!this.filters.polo_id) return this.setores;
       return this.setores.filter(s => s.polo_id == this.filters.polo_id);
     },
+    hasValoresFinanceiros() {
+      return Array.isArray(this.estoque) && this.estoque.some(e => e.pode_ver_valores === true);
+    },
     gruposProdutos() {
       return this.$store.state.listGrupoProdutos || [];
     }
@@ -474,6 +493,10 @@ export default {
       const parts = str.split('-');
       if (parts.length < 3) return d;
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    },
+    formatCurrency(val) {
+      if (val === null || val === undefined || isNaN(val)) return '-';
+      return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     },
     getStatusDisponibilidadeText(status) {
       const statusMap = {

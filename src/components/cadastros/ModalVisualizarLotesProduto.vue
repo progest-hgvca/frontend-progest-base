@@ -60,6 +60,12 @@
                       {{ unidadeAbreviacao }}
                     </span>
                   </div>
+                  <div class="mb-2" v-if="canViewFinanceiro">
+                    <strong>Valor Total em Estoque:</strong>
+                    <span class="ms-2 font-bold text-indigo-700">
+                      {{ formatarMoeda(totalValorFinanceiro) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -86,6 +92,8 @@
                     <th class="text-center">#</th>
                     <th class="text-start">Lote</th>
                     <th class="text-center">Quantidade Disponível</th>
+                    <th v-if="canViewFinanceiro" class="text-end">Valor Unitário</th>
+                    <th v-if="canViewFinanceiro" class="text-end">Subtotal Lote</th>
                     <th class="text-center">Data de Fabricação</th>
                     <th class="text-center">Data de Vencimento</th>
                     <th class="text-center">Status</th>
@@ -100,6 +108,12 @@
                     <td class="text-center">
                       {{ formatarQuantidade(lote.quantidade_disponivel) }}
                       {{ unidadeAbreviacao }}
+                    </td>
+                    <td v-if="canViewFinanceiro" class="text-end font-semibold text-slate-700">
+                      {{ formatarMoeda(lote.valor_unitario) }}
+                    </td>
+                    <td v-if="canViewFinanceiro" class="text-end font-bold text-slate-800">
+                      {{ formatarMoeda(lote.valor_total_lote !== undefined && lote.valor_total_lote !== null ? lote.valor_total_lote : (lote.valor_unitario ? lote.valor_unitario * lote.quantidade_disponivel : null)) }}
                     </td>
                     <td class="text-center">
                       {{ formatarData(lote.data_fabricacao) }}
@@ -125,6 +139,11 @@
                       <strong class="text-primary">
                         {{ totalQuantidade }}
                         {{ unidadeAbreviacao }}
+                      </strong>
+                    </td>
+                    <td v-if="canViewFinanceiro" colspan="2" class="text-end">
+                      <strong class="text-indigo-700 font-bold">
+                        {{ formatarMoeda(totalValorFinanceiro) }}
                       </strong>
                     </td>
                     <td colspan="3"></td>
@@ -242,6 +261,27 @@ export default {
       }, 0);
       return Number.isInteger(total) ? total.toString() : total.toFixed(3);
     },
+    canViewFinanceiro() {
+      if (this.lotes.length > 0 && this.lotes.some(l => l.valor_unitario !== null && l.valor_unitario !== undefined)) {
+        return true;
+      }
+      const u = this.$store.state.user || {};
+      const isSuper = u.email?.toLowerCase() === 'adminti@gmail.com' || u.email?.toLowerCase() === 'admin@admin.com' || u.is_super_admin;
+      const setorNome = (this.displaySetor?.nome || this.$store.state.setorDetails?.nome || '').toUpperCase();
+      const isCAF = setorNome.includes('CAF') || setorNome.includes('CENTRAL DE ABASTECIMENTO');
+      return isSuper && isCAF;
+    },
+    totalValorFinanceiro() {
+      const total = this.lotes.reduce((acc, lote) => {
+        const val = parseFloat(lote.valor_total_lote);
+        if (!isNaN(val)) return acc + val;
+        const vUnit = parseFloat(lote.valor_unitario);
+        const qtd = parseFloat(lote.quantidade_disponivel) || 0;
+        if (!isNaN(vUnit)) return acc + (vUnit * qtd);
+        return acc;
+      }, 0);
+      return total;
+    },
     temProduto() {
       return !!(this.produto && this.produto.id);
     },
@@ -281,12 +321,11 @@ export default {
   methods: {
     formatarData(data) {
       if (!data) return "-";
-
-      // Extrair apenas a parte da data (YYYY-MM-DD) ignorando o timestamp
-      const dataLimpa = data.split("T")[0]; // Remove tudo após o 'T'
-      const [ano, mes, dia] = dataLimpa.split("-");
-
-      return `${dia}/${mes}/${ano}`;
+      return new Date(data).toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    },
+    formatarMoeda(valor) {
+      if (valor === null || valor === undefined || isNaN(valor)) return "-";
+      return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     },
     formatarQuantidade(quantidade) {
       const qtd = parseFloat(quantidade) || 0;

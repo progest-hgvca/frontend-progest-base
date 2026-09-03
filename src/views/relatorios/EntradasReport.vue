@@ -51,7 +51,12 @@
             <div class="card-body">
               <div v-if="loading" class="text-center py-4">Carregando...</div>
               <div v-else>
-                <div class="mb-3">Total de entradas: <strong>{{ entries.length }}</strong></div>
+                <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
+                  <span>Total de entradas: <strong>{{ entries.length }}</strong></span>
+                  <span v-if="hasValoresFinanceiros && totalFinanceiroEntradas > 0" class="badge fs-6" style="background-color: #4f46e5; color: white;">
+                    Total Financeiro CAF: {{ formatCurrency(totalFinanceiroEntradas) }}
+                  </span>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-striped">
                     <thead>
@@ -62,6 +67,7 @@
                         <th>Nota Fiscal</th>
                         <th>Fornecedor</th>
                         <th>Setor</th>
+                        <th v-if="hasValoresFinanceiros" class="text-end">Valor Total NF</th>
                         <th>Total Itens</th>
                       </tr>
                     </thead>
@@ -79,6 +85,9 @@
                           <td>{{ e.nota_fiscal || '-' }}</td>
                           <td>{{ formatFornecedor(e.fornecedor) }}</td>
                           <td>{{ e.setor?.nome || '-' }}</td>
+                          <td v-if="hasValoresFinanceiros" class="text-end font-bold text-dark">
+                            {{ formatCurrency(e.valor_total_nota) }}
+                          </td>
                           <td>
                             <span class="badge bg-info">{{ e.itens?.length || 0 }} itens</span>
                           </td>
@@ -86,7 +95,7 @@
                         
                         <!-- Linha expansível com tabela de produtos -->
                         <tr v-if="expandedRows[e.id]" class="expanded-content">
-                          <td colspan="7" class="p-0">
+                          <td :colspan="hasValoresFinanceiros ? 8 : 7" class="p-0">
                             <div class="produtos-container">
                               <table class="table table-sm mb-0">
                                 <thead class="table-light">
@@ -96,13 +105,15 @@
                                     <th style="width: 120px;">Cód. simpas</th>
                                     <th style="width: 120px;">Cód. Barras</th>
                                     <th style="width: 100px;">Lote</th>
+                                    <th v-if="hasValoresFinanceiros" style="width: 120px;" class="text-end">Valor Unit.</th>
+                                    <th v-if="hasValoresFinanceiros" style="width: 130px;" class="text-end">Subtotal</th>
                                     <th style="width: 110px;">Fabricação</th>
                                     <th style="width: 110px;">Vencimento</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   <tr v-if="!e.itens || e.itens.length === 0">
-                                    <td colspan="7" class="text-center text-muted">Nenhum produto nesta entrada</td>
+                                    <td :colspan="hasValoresFinanceiros ? 9 : 7" class="text-center text-muted">Nenhum produto nesta entrada</td>
                                   </tr>
                                   <tr v-else v-for="(item, idx) in e.itens" :key="idx">
                                     <td>
@@ -112,6 +123,12 @@
                                     <td class="text-muted small">{{ item.produto?.codigo_simpas || '-' }}</td>
                                     <td class="text-muted small">{{ item.produto?.codigo_barras || '-' }}</td>
                                     <td class="text-muted small">{{ item.lote || '-' }}</td>
+                                    <td v-if="hasValoresFinanceiros" class="text-end text-muted font-semibold">
+                                      {{ formatCurrency(item.valor_unitario) }}
+                                    </td>
+                                    <td v-if="hasValoresFinanceiros" class="text-end font-bold text-dark">
+                                      {{ formatCurrency(item.subtotal) }}
+                                    </td>
                                     <td class="text-muted small">{{ formatDate(item.data_fabricacao) }}</td>
                                     <td class="text-muted small">{{ formatDate(item.data_vencimento) }}</td>
                                   </tr>
@@ -183,6 +200,15 @@ export default {
         return this.setores;
       }
       return this.setores.filter(s => s.polo_id == this.filters.polo_id);
+    },
+    hasValoresFinanceiros() {
+      return Array.isArray(this.entries) && this.entries.some(e => e.pode_ver_valores === true);
+    },
+    totalFinanceiroEntradas() {
+      return this.entries.reduce((acc, e) => {
+        const val = parseFloat(e.valor_total_nota);
+        return acc + (isNaN(val) ? 0 : val);
+      }, 0);
     }
   },
   methods: {
@@ -249,6 +275,10 @@ export default {
       const parts = str.split('-');
       if (parts.length<3) return d;
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    },
+    formatCurrency(val) {
+      if (val === null || val === undefined || isNaN(val)) return '-';
+      return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     },
     exportExcel() {
       if (!this.entries || this.entries.length===0) return;
