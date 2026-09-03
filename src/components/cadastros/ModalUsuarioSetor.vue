@@ -281,7 +281,7 @@ const submit = async () => {
             <!-- Lista com busca -->
             <div
               v-if="isUserListOpen"
-              class="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+              class="absolute z-[2500] mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
             >
               <div class="border-b border-slate-100 p-2">
                 <div

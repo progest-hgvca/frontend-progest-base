@@ -42,7 +42,7 @@
                   >
                     <SelectValue placeholder="Selecione um fornecedor" />
                   </SelectTrigger>
-                  <SelectContent class="z-[9999]">
+                  <SelectContent>
                     <div
                       class="px-2 py-2 sticky top-0 bg-white border-b z-10"
                       @keydown.stop
@@ -106,7 +106,7 @@
                 <SelectTrigger id="novoFornecedorTipo" class="w-full">
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
-                <SelectContent class="z-[9999]">
+                <SelectContent>
                   <SelectItem value="J">Pessoa Jurídica</SelectItem>
                   <SelectItem value="F">Pessoa Física</SelectItem>
                 </SelectContent>
@@ -185,7 +185,7 @@
                     >
                       <SelectValue placeholder="Selecione um produto" />
                     </SelectTrigger>
-                    <SelectContent class="z-[9999]">
+                    <SelectContent>
                       <div
                         class="px-2 py-2 sticky top-0 bg-white border-b z-10"
                         @keydown.stop
@@ -366,7 +366,7 @@
                     <SelectTrigger id="novoProdutoGrupo">
                       <SelectValue placeholder="Selecionar grupo" />
                     </SelectTrigger>
-                    <SelectContent class="z-[9999]">
+                    <SelectContent>
                       <SelectItem
                         v-for="grupo in gruposDisponiveis"
                         :key="grupo.id"
@@ -396,7 +396,7 @@
                     <SelectTrigger id="novoProdutoUnidade" class="w-full">
                       <SelectValue placeholder="Selecionar unidade" />
                     </SelectTrigger>
-                    <SelectContent class="z-[9999]">
+                    <SelectContent>
                       <SelectItem
                         v-for="unidade in unidadesMedidaDisponiveis"
                         :key="unidade.id"
@@ -424,7 +424,7 @@
                 <SelectTrigger id="novoProdutoStatus" class="w-full">
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
-                <SelectContent class="z-[9999]">
+                <SelectContent>
                   <SelectItem value="A">Ativo</SelectItem>
                   <SelectItem value="I">Inativo</SelectItem>
                 </SelectContent>
@@ -483,7 +483,7 @@
                       <SelectTrigger id="novoGrupoProdutoTipo" class="w-full">
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
-                      <SelectContent class="z-[9999]">
+                      <SelectContent>
                         <SelectItem value="Material">Material</SelectItem>
                         <SelectItem value="Medicamento">Medicamento</SelectItem>
                       </SelectContent>

@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -107,4 +107,16 @@ textarea.text-uppercase::placeholder,
     @apply bg-background text-foreground;
   }
 }
+
+/* ==========================================================================
+   PROGEST DESIGN SYSTEM — HIERARQUIA DE CAMADAS & Z-INDEX
+   Garante a ordem estrita de sobreposição e evita elementos ocultos:
+   - 10 a 99:    Elementos de página (sticky table header, sidebar, floating triggers)
+   - 2000:       Modais Primários (DialogContent, DialogScrollContent, cadastros e visualizações)
+   - 2500:       Listas de seleção, dropdowns e autocompletes (SelectContent, DropdownMenuContent)
+   - 3000:       Modais Secundários / Confirmação de Ações (AlertDialogContent)
+   - 4000:       Caixas de Erros, Avisos e Alertas do Sistema (FeedbackModal)
+   - 99999:      Toasts & Notificações Flutuantes (ToastViewport)
+   ========================================================================== */
+
 

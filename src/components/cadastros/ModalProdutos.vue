@@ -327,7 +327,7 @@ const handleSave = () => {
             />
             <div
               v-if="showMarcas && marcasFiltradas.length > 0"
-              class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto"
+              class="absolute z-[2500] w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto"
             >
               <div
                 v-for="m in marcasFiltradas"

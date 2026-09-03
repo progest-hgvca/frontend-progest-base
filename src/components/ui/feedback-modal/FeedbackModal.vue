@@ -114,7 +114,8 @@ const btnClass = computed(() => {
 <template>
   <Dialog :open="isOpen" @update:open="(v) => (isOpen = v)">
     <DialogContent
-      class="sm:max-w-md"
+      overlayClass="z-[4000]"
+      class="z-[4000] sm:max-w-md"
       :class="{ 'sm:max-w-lg': state.type === 'validation' }"
     >
       <DialogHeader class="space-y-3">

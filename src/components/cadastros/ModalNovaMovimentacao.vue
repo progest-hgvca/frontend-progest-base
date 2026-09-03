@@ -33,7 +33,7 @@
               >
                 <SelectValue placeholder="Selecione o setor distribuidor" />
               </SelectTrigger>
-              <SelectContent class="z-[9999]">
+              <SelectContent>
                 <div
                   class="px-2 py-2 sticky top-0 bg-white border-b z-10"
                   @keydown.stop
@@ -149,7 +149,7 @@
               <!-- Dropdown List -->
               <div
                 v-if="showProdutoList && form.setorOrigemId"
-                class="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto"
+                class="absolute z-[2500] w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto"
               >
                 <div v-if="loadingProdutos" class="p-3 text-center text-muted">
                   <span class="spinner-border spinner-border-sm me-2"></span>
@@ -181,7 +181,7 @@
               <!-- Clique fora para fechar (backdrop transparente simples) -->
               <div
                 v-if="showProdutoList"
-                class="fixed inset-0 z-40 bg-transparent"
+                class="fixed inset-0 z-[2400] bg-transparent"
                 @click="showProdutoList = false"
               ></div>
             </div>
