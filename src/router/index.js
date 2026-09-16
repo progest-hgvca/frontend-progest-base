@@ -172,6 +172,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
+      path: "/relatorios/financeiro",
+      name: "relatoriosFinanceiro",
+      component: () => import("@/views/relatorios/RelatoriosFinanceirosView.vue"),
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
+    },
+    {
       path: "/:pathMatch(.*)*",
       redirect: (to) => {
         const isAuthenticated = localStorage.getItem("token");
