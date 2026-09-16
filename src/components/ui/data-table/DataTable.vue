@@ -41,6 +41,8 @@ interface Props {
   data: any[];
   loading?: boolean;
   hasVinculosAction?: boolean;
+  hideEditAction?: boolean;
+  hideStatusAction?: boolean;
   pagination?: {
     current_page: number;
     last_page: number;
@@ -225,12 +227,14 @@ const onSort = (key: string) => {
                         Visualizar
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        v-if="!hideEditAction"
                         class="text-sm cursor-pointer"
                         @click="emit('edit', item)"
                       >
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        v-if="!hideStatusAction"
                         class="text-sm cursor-pointer"
                         :class="item.status === 'Ativo' || item.status === 'A'
                           ? 'text-destructive focus:text-destructive focus:bg-destructive/10'
@@ -255,22 +259,21 @@ const onSort = (key: string) => {
       <p class="text-xs text-muted-foreground">
         Mostrando
         <span class="font-medium">{{
-          (pagination.current_page - 1) * pagination.per_page + 1
-        }}</span
-        >–<span class="font-medium">{{
+          (pagination.current_page - 1) * (pagination.per_page || 15) + (pagination.total > 0 ? 1 : 0)
+        }}</span>–<span class="font-medium">{{
           Math.min(
-            pagination.current_page * pagination.per_page,
-            pagination.total,
+            pagination.current_page * (pagination.per_page || 15),
+            pagination.total || 0,
           )
         }}</span>
-        de <span class="font-medium">{{ pagination.total }}</span> registros
+        de <span class="font-medium">{{ pagination.total || 0 }}</span> registros
       </p>
       <div class="flex items-center gap-1">
         <Button
           variant="outline"
           size="icon-sm"
           class="hidden lg:flex"
-          :disabled="pagination.current_page === 1"
+          :disabled="(pagination.current_page || 1) <= 1"
           @click="onPaginate(1)"
         >
           <ChevronsLeft class="h-3.5 w-3.5" />
@@ -278,19 +281,19 @@ const onSort = (key: string) => {
         <Button
           variant="outline"
           size="icon-sm"
-          :disabled="pagination.current_page === 1"
-          @click="onPaginate(pagination.current_page - 1)"
+          :disabled="(pagination.current_page || 1) <= 1"
+          @click="onPaginate((pagination.current_page || 1) - 1)"
         >
           <ChevronLeft class="h-3.5 w-3.5" />
         </Button>
         <span class="text-xs font-medium px-2 text-slate-600">
-          {{ pagination.current_page }} / {{ pagination.last_page }}
+          {{ pagination.current_page || 1 }} / {{ pagination.last_page || 1 }}
         </span>
         <Button
           variant="outline"
           size="icon-sm"
-          :disabled="pagination.current_page === pagination.last_page"
-          @click="onPaginate(pagination.current_page + 1)"
+          :disabled="(pagination.current_page || 1) >= (pagination.last_page || 1)"
+          @click="onPaginate((pagination.current_page || 1) + 1)"
         >
           <ChevronRight class="h-3.5 w-3.5" />
         </Button>
@@ -298,8 +301,8 @@ const onSort = (key: string) => {
           variant="outline"
           size="icon-sm"
           class="hidden lg:flex"
-          :disabled="pagination.current_page === pagination.last_page"
-          @click="onPaginate(pagination.last_page)"
+          :disabled="(pagination.current_page || 1) >= (pagination.last_page || 1)"
+          @click="onPaginate(pagination.last_page || 1)"
         >
           <ChevronsRight class="h-3.5 w-3.5" />
         </Button>
