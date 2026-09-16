@@ -360,9 +360,93 @@ var ADD_UP = (content, funcao = "ADD") => {
     });
 };
 
+var registrarConsumoInterno = (content, payload) => {
+  return content.$axios
+    .post("/movimentacao/consumo-interno", payload, {
+      headers: {
+        Authorization: "Bearer " + (content.$store ? content.$store.getters.getUserToken : ""),
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      if (response.data && response.data.status) {
+        try {
+          if (content.$toastr && content.$toastr.s) content.$toastr.s(response.data.message || "Consumo registrado com sucesso!");
+        } catch (e) {
+          console.warn("Erro ao exibir notificação:", e);
+        }
+        return response.data;
+      }
+      return Promise.reject(response.data);
+    })
+    .catch((error) => {
+      console.error("Erro no consumo interno:", error);
+      const status = error.response?.status;
+      if (status === 422) {
+        const errs = error.response?.data?.erros || error.response?.data?.errors || {};
+        return Promise.reject({
+          validation: true,
+          errors: errs,
+          message: error.response?.data?.message || "Erros de validação"
+        });
+      }
+      
+      const mensagem = error.response?.data?.message || "Erro na requisição";
+      try {
+        if (content.$toastr && content.$toastr.e) content.$toastr.e(mensagem);
+      } catch (e) {
+        console.warn("Erro ao exibir notificação:", e);
+      }
+      return Promise.reject(error);
+    });
+};
+
+var devolverItem = (content, movimentacaoId, payload) => {
+  return content.$axios
+    .post(`/movimentacao/${movimentacaoId}/devolver`, payload, {
+      headers: {
+        Authorization: "Bearer " + (content.$store ? content.$store.getters.getUserToken : ""),
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      if (response.data && response.data.status) {
+        try {
+          if (content.$toastr && content.$toastr.s) content.$toastr.s(response.data.message || "Devolução registrada com sucesso!");
+        } catch (e) {
+          console.warn("Erro ao exibir notificação:", e);
+        }
+        return response.data;
+      }
+      return Promise.reject(response.data);
+    })
+    .catch((error) => {
+      console.error("Erro na devolução:", error);
+      const status = error.response?.status;
+      if (status === 422) {
+        const errs = error.response?.data?.erros || error.response?.data?.errors || {};
+        return Promise.reject({
+          validation: true,
+          errors: errs,
+          message: error.response?.data?.message || "Erros de validação"
+        });
+      }
+      
+      const mensagem = error.response?.data?.message || "Erro na requisição";
+      try {
+        if (content.$toastr && content.$toastr.e) content.$toastr.e(mensagem);
+      } catch (e) {
+        console.warn("Erro ao exibir notificação:", e);
+      }
+      return Promise.reject(error);
+    });
+};
+
 export default {
   listBySetor,
   listAll,
   listData,
   ADD_UP,
+  registrarConsumoInterno,
+  devolverItem,
 };

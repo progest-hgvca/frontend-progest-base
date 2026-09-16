@@ -726,6 +726,7 @@ watch(searchQuery, () => {
       :estoqueId="estoqueIdSelecionado"
       :quantidadeAtual="quantidadeAtualSelecionada"
       :quantidadeMinima="quantidadeMinimaSelecionada"
+      @consumoSucesso="emit('reloadEstoque')"
     />
   </div>
 </template>

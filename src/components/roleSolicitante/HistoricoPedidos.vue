@@ -12,6 +12,16 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <div class="relative">
+          <i class="mdi mdi-magnify absolute left-2 top-2 text-muted-foreground"></i>
+          <Input 
+            v-model="searchLote" 
+            placeholder="Buscar por lote..." 
+            class="pl-8 h-8 text-sm w-48"
+            @keyup.enter="fetchPedidos"
+          />
+        </div>
+
         <!-- Exporta todos os pedidos da lista -->
         <Button
           variant="outline"
@@ -71,6 +81,9 @@
               <Badge :variant="getStatusVariant(pedido.status_solicitacao)">
                 {{ getStatusLabel(pedido.status_solicitacao) }}
               </Badge>
+              <Badge v-if="pedido.tem_devolucao" variant="outline" class="border-amber-500 text-amber-700 bg-amber-50">
+                <i class="mdi mdi-keyboard-return mr-1"></i> Devolução
+              </Badge>
             </div>
             <div class="text-sm text-muted-foreground">
               {{ formatDate(pedido.data_hora) }}
@@ -97,14 +110,16 @@
                   </span>
                 </div>
                 <!-- Aprovador (quando aprovado ou reprovado) -->
-                <div v-if="pedido.aprovador" class="flex items-center gap-2">
-                  <i class="mdi mdi-account-check text-muted-foreground"></i>
-                  <span class="text-muted-foreground">{{ pedido.status_solicitacao === 'A' ? 'Aprovado por:' : 'Reprovado por:' }}</span>
-                  <span class="font-medium" :class="pedido.status_solicitacao === 'A' ? 'text-green-700' : 'text-red-600'">
-                    {{ pedido.aprovador?.name }}
-                  </span>
+                <div class="flex items-center gap-2 mt-2">
+                    <i class="mdi mdi-account-check text-muted-foreground"></i>
+                    <span class="text-muted-foreground">
+                      {{ pedido.status_solicitacao === 'A' ? 'Aprovado por:' : (pedido.status_solicitacao === 'R' ? 'Reprovado por:' : 'Responsável:') }}
+                    </span>
+                    <span class="font-medium" :class="pedido.status_solicitacao === 'A' ? 'text-green-700' : (pedido.status_solicitacao === 'R' ? 'text-red-600' : 'text-yellow-600')">
+                      {{ pedido.aprovador?.name || 'Aguardando avaliação' }}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
               <!-- Botões de Ação -->
               <div class="flex items-center gap-1.5 self-end sm:self-auto">
@@ -231,16 +246,44 @@
                       ({{ item.produto.marca }})
                     </span>
                   </div>
-                  <div class="flex items-center gap-4 text-xs font-medium">
-                    <span class="text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">
-                      Solicitado: {{ item.quantidade_solicitada }}
-                    </span>
-                    <span
-                      v-if="item.quantidade_liberada > 0"
-                      class="text-green-700 bg-green-100 px-2 py-0.5 rounded"
-                    >
-                      Liberado: {{ item.quantidade_liberada }}
-                    </span>
+                    <div class="flex items-center gap-4 text-xs font-medium">
+                      <span class="text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">
+                        Solicitado: {{ item.quantidade_solicitada }}
+                      </span>
+                      <span
+                        v-if="item.quantidade_liberada > 0"
+                        class="text-green-700 bg-green-100 px-2 py-0.5 rounded"
+                      >
+                        Liberado: {{ item.quantidade_liberada }}
+                      </span>
+                      <Button
+                        v-if="item.quantidade_liberada > 0"
+                        variant="ghost"
+                        size="sm"
+                        @click.stop="abrirModalDevolucao(pedido, item)"
+                        class="h-6 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                        title="Devolver Item"
+                      >
+                        <i class="mdi mdi-keyboard-return mr-1"></i> Devolver
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Histórico de Devoluções do Pedido -->
+                <div v-if="pedido.devolucoes && pedido.devolucoes.length > 0" class="mt-4 border border-amber-200 bg-amber-50/30 rounded-md p-3">
+                  <h4 class="text-sm font-semibold text-amber-800 mb-2 flex items-center gap-1">
+                    <i class="mdi mdi-history"></i> Histórico de Devoluções
+                  </h4>
+                  <div class="space-y-1.5">
+                    <div v-for="dev in pedido.devolucoes" :key="dev.id" class="text-xs text-slate-700 flex flex-wrap gap-x-3 gap-y-1 items-center bg-white border border-amber-100 p-2 rounded">
+                      <span><strong>Item:</strong> {{ pedido.itens?.find(i => i.id === dev.item_movimentacao_id)?.produto?.nome || 'Item #' + dev.item_movimentacao_id }}</span>
+                      <span><strong>Lote:</strong> <span class="bg-amber-100 px-1 py-0.5 rounded">{{ dev.lote }}</span></span>
+                      <span><strong>Qtd:</strong> <span class="text-amber-700 font-bold">{{ dev.quantidade }}</span></span>
+                      <span><strong>Data:</strong> {{ formatDate(dev.created_at) }}</span>
+                      <span v-if="dev.usuario" class="text-muted-foreground"><strong>Por:</strong> {{ dev.usuario.name }}</span>
+                      <span v-if="dev.motivo" class="w-full text-slate-500 italic mt-1 break-words">"{{ dev.motivo }}"</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -293,6 +336,8 @@
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    
+    <ModalDevolverItem ref="modalDevolucao" @sucesso="fetchPedidos" />
   </div>
 </template>
 
@@ -322,11 +367,16 @@ import {
   exportarPedidoExcel,
   exportarPedidosExcel,
 } from "@/utils/exportarPedidoExcel";
+import { Input } from "@/components/ui/input";
+import ModalDevolverItem from "./ModalDevolverItem.vue";
 
 const router = useRouter();
 const store = useStore();
 const { toast } = useToast();
 const { carregarPedidoParaEdicao } = useSolicitacao();
+
+const searchLote = ref("");
+const modalDevolucao = ref(null);
 
 const pedidos = ref([]);
 const loading = ref(true);
@@ -382,7 +432,7 @@ const fetchPedidos = async () => {
 
     const response = await axios.post(
       "/movimentacao/listBySetor",
-      { setor_id: setorId, per_page: 5000 },
+      { setor_id: setorId, per_page: 5000, lote: searchLote.value },
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -401,6 +451,12 @@ const fetchPedidos = async () => {
     });
   } finally {
     loading.value = false;
+  }
+};
+
+const abrirModalDevolucao = (pedido, item) => {
+  if (modalDevolucao.value) {
+    modalDevolucao.value.openModal(pedido.id, item);
   }
 };
 
