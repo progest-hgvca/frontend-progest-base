@@ -97,6 +97,7 @@
                     <th class="text-center">Data de Fabricação</th>
                     <th class="text-center">Data de Vencimento</th>
                     <th class="text-center">Status</th>
+                    <th class="text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -127,6 +128,16 @@
                       >
                         {{ getStatusVencimentoTexto(lote.data_vencimento) }}
                       </span>
+                    </td>
+                    <td class="text-center">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm btn-outline-danger"
+                        title="Registrar Baixa / Consumo Interno"
+                        @click="abrirBaixa(lote)"
+                      >
+                        <i class="mdi mdi-package-down"></i>
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -186,6 +197,8 @@
       </div>
     </DialogContent>
   </Dialog>
+  
+  <ModalConsumoInterno ref="modalConsumoInterno" :setor="setor" @sucesso="onConsumoSucesso" />
 </template>
 
 <script>
@@ -197,6 +210,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import ModalConsumoInterno from "../setorAtual/ModalConsumoInterno.vue";
 
 export default {
   name: "ModalVisualizarLotesProduto",
@@ -207,6 +221,7 @@ export default {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    ModalConsumoInterno,
   },
   props: {
     idModal: {
@@ -319,6 +334,19 @@ export default {
     },
   },
   methods: {
+    abrirBaixa(lote) {
+      if (this.$refs.modalConsumoInterno) {
+        this.$refs.modalConsumoInterno.openModal(this.produto, lote);
+      }
+    },
+    onConsumoSucesso() {
+      // Refresh the lots and notify parent to refresh main list
+      this.$emit('consumoSucesso');
+      this.$store.commit("setListEstoqueLote", []);
+      
+      this.$toast?.s("Estoque atualizado.");
+      this.fecharModal();
+    },
     formatarData(data) {
       if (!data) return "-";
       return new Date(data).toLocaleDateString("pt-BR", { timeZone: "UTC" });

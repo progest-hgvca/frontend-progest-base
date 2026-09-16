@@ -70,7 +70,7 @@
     </div>
 
     <!-- Products List -->
-    <div v-if="!loading" class="space-y-3">
+    <div v-if="!loading" class="space-y-3 pb-32">
       <div
         v-if="filteredProducts.length === 0"
         class="text-center py-8 text-muted-foreground"

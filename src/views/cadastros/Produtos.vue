@@ -73,6 +73,8 @@ const marcasParaFiltro = computed(() => {
   return marcas.sort();
 });
 
+const canManageProdutos = computed(() => store.getters.isSuperAdmin || store.getters.getUser?.perfil === 'admin' || (store.getters.getSetoresComAcesso || []).some(s => s.perfil === 'admin'));
+
 const listProdutos = computed(() => {
   const data = store.state.listProdutos;
   if (!data) return [];
@@ -213,6 +215,8 @@ onMounted(() => {
             :columns="columns"
             :data="formattedProdutos"
             :loading="store.state.isSearching"
+            :hideEditAction="!canManageProdutos"
+            :hideStatusAction="!canManageProdutos"
             @search="handleSearch"
             @sort="handleSort"
             @view="handleView"
@@ -273,6 +277,7 @@ onMounted(() => {
               </div>
 
               <LinkModal01
+                v-if="canManageProdutos"
                 label="CADASTRAR PRODUTO"
                 :titleModal="titleModal"
                 :varsModalData="varsModalData"
