@@ -11,7 +11,7 @@ var listBySetor = (content, setorId, perPage = 5000, page = 1) => {
     page: page,
   };
 
-  content.$axios
+  return content.$axios
     .post("/movimentacao/listByUnidade", payload, {
       headers: {
         Authorization: "Bearer " + content.$store.getters.getUserToken,
@@ -401,7 +401,7 @@ var registrarConsumoInterno = (content, payload) => {
     });
 };
 
-var devolverItem = (content, movimentacaoId, payload) => {
+var devolverPedido = (content, movimentacaoId, payload) => {
   return content.$axios
     .post(`/movimentacao/${movimentacaoId}/devolver`, payload, {
       headers: {
@@ -448,5 +448,5 @@ export default {
   listData,
   ADD_UP,
   registrarConsumoInterno,
-  devolverItem,
+  devolverPedido,
 };

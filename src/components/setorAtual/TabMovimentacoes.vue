@@ -56,7 +56,7 @@ import {
   RotateCcwIcon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
-import ModalDevolverItem from "@/components/roleSolicitante/ModalDevolverItem.vue";
+import ModalDevolucaoPedido from "@/components/roleSolicitante/ModalDevolucaoPedido.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { imprimirPedido } from "@/utils/imprimirPedido";
 import {
@@ -351,25 +351,10 @@ const selecionarAba = (aba) => {
   }
 };
 
-const modalDevolucao = ref(null);
-
-const abrirModalDevolucao = (mov, item) => {
-  if (modalDevolucao.value) {
-    modalDevolucao.value.openModal(mov.id, item);
-  }
-};
+const pedidoParaDevolver = ref(null);
 
 const abrirDevolucaoEntrada = (mov) => {
-  const itensValidos = (mov.itens || []).filter((it) => Number(it.quantidade_liberada) > 0);
-  if (itensValidos.length === 1) {
-    abrirModalDevolucao(mov, itensValidos[0]);
-  } else {
-    expandedRows.value[mov.id] = true;
-    toast({
-      title: "Devolução de Item",
-      description: "Selecione na lista de itens expandida abaixo o item que deseja devolver.",
-    });
-  }
+  pedidoParaDevolver.value = mov;
 };
 
 const onDevolucaoSucesso = () => {
@@ -1064,14 +1049,14 @@ const excluirRascunho = async () => {
                   <XCircleIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Devolver Item (entrada Aprovada) -->
+                <!-- Devolver Pedido (entrada Aprovada) -->
                 <Button
-                  v-if="isEntrada(mov) && mov.status_solicitacao === 'A'"
+                  v-if="isEntrada(mov) && mov.status_solicitacao === 'A' && mov.tipo !== 'D'"
                   variant="ghost"
                   size="icon"
                   @click="abrirDevolucaoEntrada(mov)"
                   class="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
-                  title="Realizar devolução ao fornecedor"
+                  title="Realizar devolução deste pedido"
                 >
                   <RotateCcwIcon class="w-4 h-4" />
                 </Button>
@@ -1153,17 +1138,23 @@ const excluirRascunho = async () => {
                             Qtd. Liberada
                           </th>
                           <th
-                            v-if="isEntrada(mov) && mov.status_solicitacao === 'A'"
-                            class="py-2.5 px-5 text-right font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                            v-if="mov.tipo === 'D'"
+                            class="py-2.5 px-5 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider"
                           >
-                            Ações
+                            Qtd. Devolvendo
+                          </th>
+                          <th
+                            v-if="mov.tipo !== 'D' && isEntrada(mov) && mov.status_solicitacao === 'A'"
+                            class="py-2.5 px-5 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                          >
+                            Qtd. Devolvida
                           </th>
                         </tr>
                       </thead>
                       <tbody class="divide-y divide-slate-100">
                         <tr v-if="!mov.itens || mov.itens.length === 0">
                           <td
-                            :colspan="isEntrada(mov) && mov.status_solicitacao === 'A' ? 5 : 4"
+                            :colspan="4 + (mov.tipo === 'D' ? 1 : 0) + (isEntrada(mov) && mov.status_solicitacao === 'A' ? 2 : 0)"
                             class="py-6 text-center text-slate-400 italic text-xs"
                           >
                             Nenhum item nesta requisição.
@@ -1200,20 +1191,21 @@ const excluirRascunho = async () => {
                             >
                           </td>
                           <td
-                            v-if="isEntrada(mov) && mov.status_solicitacao === 'A'"
-                            class="py-3 px-5 text-right"
+                            v-if="mov.tipo === 'D'"
+                            class="py-3 px-5 text-center font-bold text-amber-600"
                           >
-                            <Button
-                              v-if="Number(item.quantidade_liberada) > 0"
-                              variant="outline"
-                              size="sm"
-                              class="h-7 text-xs font-semibold text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700 gap-1"
-                              @click.stop="abrirModalDevolucao(mov, item)"
-                              title="Devolver item para o fornecedor/distribuidor"
+                            {{ item.quantidade_devolvendo }}
+                          </td>
+                          <td
+                            v-if="mov.tipo !== 'D' && isEntrada(mov) && mov.status_solicitacao === 'A'"
+                            class="py-3 px-5 text-center"
+                          >
+                            <Badge
+                              v-if="calcularQtdDevolvida(mov, item.id) > 0"
+                              class="font-black bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100"
+                              >{{ calcularQtdDevolvida(mov, item.id) }}</Badge
                             >
-                              <RotateCcwIcon class="w-3.5 h-3.5" />
-                              Devolver
-                            </Button>
+                            <span v-else class="text-slate-300 font-bold italic text-xs">—</span>
                           </td>
                         </tr>
                       </tbody>
@@ -1243,8 +1235,12 @@ const excluirRascunho = async () => {
       </p>
     </div>
 
-    <!-- Modals -->
-    <ModalDevolverItem ref="modalDevolucao" @sucesso="onDevolucaoSucesso" />
+    <!-- Modal de Devolução (Pedido Completo) -->
+    <ModalDevolucaoPedido 
+      :movimentacao="pedidoParaDevolver"
+      @sucesso="onDevolucaoSucesso" 
+      @update:open="(val) => { if (!val) pedidoParaDevolver = null; }"
+    />
 
     <ModalNovaMovimentacao
       v-model:open="dialogMovimentacaoOpen"

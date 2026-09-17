@@ -190,6 +190,18 @@
                   <i class="mdi mdi-printer text-lg"></i>
                 </Button>
 
+                <!-- APROVADO: Devolver -->
+                <Button
+                  v-if="pedido.status_solicitacao === 'A'"
+                  variant="outline"
+                  size="sm"
+                  @click.stop="abrirModalDevolucao(pedido)"
+                  class="h-7 text-xs font-semibold text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-1"
+                  title="Devolver itens deste pedido"
+                >
+                  <i class="mdi mdi-keyboard-return"></i> Devolver
+                </Button>
+
                 <!-- Exportar este pedido em Excel (qualquer status) -->
                 <Button
                   variant="ghost"
@@ -256,16 +268,12 @@
                       >
                         Liberado: {{ item.quantidade_liberada }}
                       </span>
-                      <Button
-                        v-if="item.quantidade_liberada > 0"
-                        variant="ghost"
-                        size="sm"
-                        @click.stop="abrirModalDevolucao(pedido, item)"
-                        class="h-6 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                        title="Devolver Item"
+                      <span
+                        v-if="calcularQtdDevolvida(pedido, item.id) > 0"
+                        class="text-amber-700 bg-amber-100 px-2 py-0.5 rounded"
                       >
-                        <i class="mdi mdi-keyboard-return mr-1"></i> Devolver
-                      </Button>
+                        Devolvido: {{ calcularQtdDevolvida(pedido, item.id) }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -336,7 +344,11 @@
       </AlertDialogContent>
     </AlertDialog>
     
-    <ModalDevolverItem ref="modalDevolucao" @sucesso="fetchPedidos" />
+    <ModalDevolucaoPedido 
+      :movimentacao="pedidoParaDevolver"
+      @sucesso="fetchPedidos"
+      @update:open="(val) => { if (!val) pedidoParaDevolver = null; }"
+    />
   </div>
 </template>
 
@@ -367,7 +379,7 @@ import {
   exportarPedidosExcel,
 } from "@/utils/exportarPedidoExcel";
 import { Input } from "@/components/ui/input";
-import ModalDevolverItem from "./ModalDevolverItem.vue";
+import ModalDevolucaoPedido from "./ModalDevolucaoPedido.vue";
 import { setorCookie } from "@/utils/setorCookie";
 
 const router = useRouter();
@@ -376,7 +388,7 @@ const { toast } = useToast();
 const { carregarPedidoParaEdicao } = useSolicitacao();
 
 const searchLote = ref("");
-const modalDevolucao = ref(null);
+const pedidoParaDevolver = ref(null);
 
 const pedidos = ref([]);
 const loading = ref(true);
@@ -387,15 +399,25 @@ const showDeleteDialog = ref(false);
 const pedidoSelecionado = ref(null);
 
 const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("pt-BR", {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const calcularQtdDevolvida = (mov, itemId) => {
+  if (!mov.devolucoes || mov.devolucoes.length === 0) return 0;
+  let total = 0;
+  for (let d of mov.devolucoes) {
+    if (d.item_movimentacao_id === itemId) {
+      total += Number(d.quantidade);
+    }
+  }
+  return total;
 };
 
 const getStatusLabel = (status) => {
@@ -477,10 +499,9 @@ watch(
   }
 );
 
-const abrirModalDevolucao = (pedido, item) => {
-  if (modalDevolucao.value) {
-    modalDevolucao.value.openModal(pedido.id, item);
-  }
+// Abre modal de devolução no nível do pedido
+const abrirModalDevolucao = (pedido) => {
+  pedidoParaDevolver.value = pedido;
 };
 
 const editarPedido = (pedido) => {

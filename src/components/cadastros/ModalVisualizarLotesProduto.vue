@@ -223,6 +223,7 @@ export default {
     DialogTrigger,
     ModalConsumoInterno,
   },
+  emits: ["consumoSucesso", "close"],
   props: {
     idModal: {
       type: String,
