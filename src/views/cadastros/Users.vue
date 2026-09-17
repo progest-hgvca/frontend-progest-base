@@ -23,7 +23,6 @@ import {
   FingerprintIcon,
   FilterIcon,
   BriefcaseIcon,
-  LinkIcon,
 } from "lucide-vue-next";
 import {
   AlertDialog,
@@ -295,7 +294,7 @@ onMounted(async () => {
             <!-- Status Column -->
             <template #cell-status="{ item }">
               <Badge
-                :variant="item.status === 'Ativo' || 'A' ? 'default' : 'destructive'"
+                :variant="(item.status === 'Ativo' || item.status === 'A') ? 'default' : 'destructive'"
                 class="font-black px-4 py-1.5 text-[10px] uppercase tracking-widest rounded-full"
               >
                 {{ item.status }}
@@ -313,7 +312,7 @@ onMounted(async () => {
                 <div class="flex flex-col">
                   <span
                     class="font-bold text-slate-800 text-sm tracking-tight capitalize leading-tight"
-                    >{{ item.name.toLowerCase() }}</span
+                    >{{ (item.name || '').toLowerCase() }}</span
                   >
                   <div class="flex items-center gap-1.5 mt-0.5">
                     <FingerprintIcon class="w-3 h-3 text-slate-300" />
@@ -425,7 +424,7 @@ onMounted(async () => {
             <AlertDialogDescription class="text-slate-500">
               Tem certeza que deseja
               <strong>{{ itemToToggle?.status === 'Ativo' ? 'inativar' : 'ativar' }}</strong>
-              o usuário <strong class="text-slate-700">"{{ itemToToggle?.nome }}"</strong>?
+              o usuário <strong class="text-slate-700">"{{ itemToToggle?.name || itemToToggle?.nome }}"</strong>?
               <span v-if="itemToToggle?.status === 'Ativo'" class="block mt-2 text-amber-600 text-xs">
                 Usuários inativos não conseguem acessar o sistema.
               </span>

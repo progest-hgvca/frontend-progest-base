@@ -48,10 +48,10 @@ interface Props {
     last_page?: number;
     per_page?: number;
     total?: number;
-  };
+  } | null;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const emit = defineEmits(["search", "paginate", "sort", "view", "edit", "toggle-status", "manage-vinculos"]);
 
 const searchQuery = ref("");
@@ -259,14 +259,14 @@ const onSort = (key: string) => {
       <p class="text-xs text-muted-foreground">
         Mostrando
         <span class="font-medium">{{
-          (pagination.current_page - 1) * (pagination.per_page || 15) + (pagination.total > 0 ? 1 : 0)
+          ((pagination.current_page ?? 1) - 1) * (pagination.per_page || 15) + ((pagination.total ?? 0) > 0 ? 1 : 0)
         }}</span>–<span class="font-medium">{{
           Math.min(
-            pagination.current_page * (pagination.per_page || 15),
-            pagination.total || 0,
+            (pagination.current_page ?? 1) * (pagination.per_page || 15),
+            pagination.total ?? 0,
           )
         }}</span>
-        de <span class="font-medium">{{ pagination.total || 0 }}</span> registros
+        de <span class="font-medium">{{ pagination.total ?? 0 }}</span> registros
       </p>
       <div class="flex items-center gap-1">
         <Button
