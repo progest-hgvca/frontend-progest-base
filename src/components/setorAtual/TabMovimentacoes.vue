@@ -95,7 +95,7 @@ const abrirModalRequisicao = () => {
   dialogMovimentacaoOpen.value = true;
 };
 
-const abrirModalDevolucao = () => {
+const abrirModalNovaDevolucao = () => {
   movimentacaoParaDevolver.value = null;
   modoInicialMovimentacao.value = "D";
   dialogMovimentacaoOpen.value = true;
@@ -652,7 +652,7 @@ const excluirRascunho = async () => {
     <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3">
       <Button
         v-if="!isCAF"
-        @click="abrirModalDevolucao"
+        @click="abrirModalNovaDevolucao"
         variant="outline"
         class="gap-2 border-amber-300 text-amber-700 bg-amber-50/70 hover:bg-amber-100 hover:text-amber-800 shadow-sm"
       >
