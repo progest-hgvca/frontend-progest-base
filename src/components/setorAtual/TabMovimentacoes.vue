@@ -56,6 +56,7 @@ import {
   RotateCcwIcon,
 } from "lucide-vue-next";
 import ModalNovaMovimentacao from "@/components/cadastros/ModalNovaMovimentacao.vue";
+import ModalDevolverItem from "@/components/roleSolicitante/ModalDevolverItem.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { imprimirPedido } from "@/utils/imprimirPedido";
 import {
@@ -77,7 +78,7 @@ const setorNome = computed(() => store.state.setorDetails?.nome || "Setor Atual"
 
 const isCAF = computed(() => {
   const nome = setorNome.value?.toUpperCase() || "";
-  return nome.includes("CAF") || nome.includes("FARMÃCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
+  return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
 });
 
 const parentData = inject("setorAtualData", {
@@ -320,6 +321,63 @@ const podeDevolverMovimentacao = (mov) => {
   if (mov.tipo === "D") return false; // Não devolver algo que já foi devolução
   // O setor atual deve ter recebido os itens (entrada) para poder devolvê-los
   return isEntrada(mov);
+};
+
+const countTodas = computed(() => listMovimentacoes.value.length);
+const countSaidas = computed(() => listMovimentacoes.value.filter(isSaida).length);
+const countEntradas = computed(() => listMovimentacoes.value.filter(isEntrada).length);
+const countPendentes = computed(() => listMovimentacoes.value.filter(m => m.status_solicitacao === "P").length);
+
+const activeTab = computed(() => {
+  if (filterStatus.value === "P") return "pendentes";
+  if (filterTipo.value === "saida") return "saidas";
+  if (filterTipo.value === "entrada") return "entradas";
+  return "todas";
+});
+
+const selecionarAba = (aba) => {
+  if (aba === "todas") {
+    filterTipo.value = "todos";
+    filterStatus.value = "todos";
+  } else if (aba === "saidas") {
+    filterTipo.value = "saida";
+    filterStatus.value = "todos";
+  } else if (aba === "entradas") {
+    filterTipo.value = "entrada";
+    filterStatus.value = "todos";
+  } else if (aba === "pendentes") {
+    filterTipo.value = "todos";
+    filterStatus.value = "P";
+  }
+};
+
+const modalDevolucao = ref(null);
+
+const abrirModalDevolucao = (mov, item) => {
+  if (modalDevolucao.value) {
+    modalDevolucao.value.openModal(mov.id, item);
+  }
+};
+
+const abrirDevolucaoEntrada = (mov) => {
+  const itensValidos = (mov.itens || []).filter((it) => Number(it.quantidade_liberada) > 0);
+  if (itensValidos.length === 1) {
+    abrirModalDevolucao(mov, itensValidos[0]);
+  } else {
+    expandedRows.value[mov.id] = true;
+    toast({
+      title: "Devolução de Item",
+      description: "Selecione na lista de itens expandida abaixo o item que deseja devolver.",
+    });
+  }
+};
+
+const onDevolucaoSucesso = () => {
+  toast({
+    title: "Sucesso",
+    description: "Devolução registrada com sucesso.",
+  });
+  window.location.reload();
 };
 
 const formatarData = (data) => {
@@ -610,6 +668,61 @@ const excluirRascunho = async () => {
       </Button>
     </div>
 
+    <!-- Tabs de Navegação de Movimentações -->
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
+      <button
+        type="button"
+        @click="selecionarAba('todas')"
+        class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+        :class="activeTab === 'todas' ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'"
+      >
+        <ArrowLeftRightIcon class="w-4 h-4" />
+        Todas as Movimentações
+        <Badge :class="activeTab === 'todas' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" class="ml-1 text-xs">
+          {{ countTodas }}
+        </Badge>
+      </button>
+
+      <button
+        type="button"
+        @click="selecionarAba('saidas')"
+        class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+        :class="activeTab === 'saidas' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'"
+      >
+        <ArrowUpCircleIcon class="w-4 h-4" />
+        Saídas
+        <Badge :class="activeTab === 'saidas' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" class="ml-1 text-xs">
+          {{ countSaidas }}
+        </Badge>
+      </button>
+
+      <button
+        type="button"
+        @click="selecionarAba('entradas')"
+        class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+        :class="activeTab === 'entradas' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'"
+      >
+        <ArrowDownCircleIcon class="w-4 h-4" />
+        Entradas
+        <Badge :class="activeTab === 'entradas' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" class="ml-1 text-xs">
+          {{ countEntradas }}
+        </Badge>
+      </button>
+
+      <button
+        type="button"
+        @click="selecionarAba('pendentes')"
+        class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+        :class="activeTab === 'pendentes' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'"
+      >
+        <ClockIcon class="w-4 h-4" />
+        Movimentações Pendentes
+        <Badge v-if="countPendentes > 0" :class="activeTab === 'pendentes' ? 'bg-white text-amber-600' : 'bg-amber-100 text-amber-800'" class="ml-1 text-xs font-black">
+          {{ countPendentes }}
+        </Badge>
+      </button>
+    </div>
+
     <!-- Filters -->
     <Card class="border-slate-200 shadow-sm bg-slate-50/50">
       <CardContent class="p-4 flex flex-wrap items-center gap-4">
@@ -789,11 +902,18 @@ const excluirRascunho = async () => {
                     <span class="text-[11px] uppercase">{{ isEntrada(mov) ? 'Devolução (Entrada)' : 'Devolução (Saída)' }}</span>
                   </div>
                   <div
+                    v-else-if="mov.tipo === 'C'"
+                    class="flex items-center gap-1.5 text-purple-600 font-bold"
+                  >
+                    <span class="text-[11px] uppercase">Consumo</span>
+                  </div>
+                  <div
                     v-else-if="isEntrada(mov)"
                     class="flex items-center gap-2 text-emerald-600 font-bold"
                   >
                     <ArrowDownCircleIcon class="w-5 h-5" />
                     <span class="text-[11px] uppercase">Entrada</span>
+                    <Badge v-if="mov.tem_devolucao" class="text-[9px] h-4 px-1 bg-amber-100 text-amber-800 border-amber-300 font-semibold">Devolvido</Badge>
                   </div>
                   <div
                     v-else
@@ -801,6 +921,7 @@ const excluirRascunho = async () => {
                   >
                     <ArrowUpCircleIcon class="w-5 h-5" />
                     <span class="text-[11px] uppercase">Saída</span>
+                    <Badge v-if="mov.tem_devolucao" class="text-[9px] h-4 px-1 bg-amber-100 text-amber-800 border-amber-300 font-semibold">Devolvido</Badge>
                   </div>
                 </div>
               </td>
@@ -943,6 +1064,18 @@ const excluirRascunho = async () => {
                   <XCircleIcon class="w-4 h-4" />
                 </Button>
 
+                <!-- Devolver Item (entrada Aprovada) -->
+                <Button
+                  v-if="isEntrada(mov) && mov.status_solicitacao === 'A'"
+                  variant="ghost"
+                  size="icon"
+                  @click="abrirDevolucaoEntrada(mov)"
+                  class="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                  title="Realizar devolução ao fornecedor"
+                >
+                  <RotateCcwIcon class="w-4 h-4" />
+                </Button>
+
                 <!-- Ações de Rascunho -->
                 <template v-if="podeEditarRascunho(mov)">
                   <!-- Editar rascunho -->
@@ -1019,12 +1152,18 @@ const excluirRascunho = async () => {
                           >
                             Qtd. Liberada
                           </th>
+                          <th
+                            v-if="isEntrada(mov) && mov.status_solicitacao === 'A'"
+                            class="py-2.5 px-5 text-right font-bold text-slate-400 text-[10px] uppercase tracking-wider"
+                          >
+                            Ações
+                          </th>
                         </tr>
                       </thead>
                       <tbody class="divide-y divide-slate-100">
                         <tr v-if="!mov.itens || mov.itens.length === 0">
                           <td
-                            colspan="4"
+                            :colspan="isEntrada(mov) && mov.status_solicitacao === 'A' ? 5 : 4"
                             class="py-6 text-center text-slate-400 italic text-xs"
                           >
                             Nenhum item nesta requisição.
@@ -1041,7 +1180,7 @@ const excluirRascunho = async () => {
                             }}
                           </td>
                           <td class="py-3 px-5 text-xs text-slate-400">
-                            {{ item.lote || "â€”" }}
+                            {{ item.lote || "—" }}
                           </td>
                           <td class="py-3 px-5 text-center">
                             <Badge variant="secondary" class="font-black">{{
@@ -1059,6 +1198,22 @@ const excluirRascunho = async () => {
                               class="text-slate-300 font-bold italic text-xs"
                               >Aguardando</span
                             >
+                          </td>
+                          <td
+                            v-if="isEntrada(mov) && mov.status_solicitacao === 'A'"
+                            class="py-3 px-5 text-right"
+                          >
+                            <Button
+                              v-if="Number(item.quantidade_liberada) > 0"
+                              variant="outline"
+                              size="sm"
+                              class="h-7 text-xs font-semibold text-amber-600 border-amber-300 hover:bg-amber-50 hover:text-amber-700 gap-1"
+                              @click.stop="abrirModalDevolucao(mov, item)"
+                              title="Devolver item para o fornecedor/distribuidor"
+                            >
+                              <RotateCcwIcon class="w-3.5 h-3.5" />
+                              Devolver
+                            </Button>
                           </td>
                         </tr>
                       </tbody>
@@ -1089,6 +1244,8 @@ const excluirRascunho = async () => {
     </div>
 
     <!-- Modals -->
+    <ModalDevolverItem ref="modalDevolucao" @sucesso="onDevolucaoSucesso" />
+
     <ModalNovaMovimentacao
       v-model:open="dialogMovimentacaoOpen"
       :setorId="setorId"

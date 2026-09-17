@@ -84,7 +84,7 @@
           class="menu-item"
           to="/setor-atual?tab=movimentacoes"
           title="Movimentações"
-          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && $route.query.status !== 'P' }"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && !$route.query.status && !$route.query.tipo }"
         >
           <span class="material-icons menu-icon">swap_horiz</span>
           <span class="menu-text">Movimentações</span>
@@ -92,8 +92,28 @@
 
         <router-link
           class="menu-item"
+          to="/setor-atual?tab=movimentacoes&tipo=saida"
+          title="Saídas"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && $route.query.tipo === 'saida' }"
+        >
+          <span class="material-icons menu-icon">arrow_upward</span>
+          <span class="menu-text">Saídas</span>
+        </router-link>
+
+        <router-link
+          class="menu-item"
+          to="/setor-atual?tab=movimentacoes&tipo=entrada"
+          title="Entradas"
+          active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && $route.query.tipo === 'entrada' }"
+        >
+          <span class="material-icons menu-icon">arrow_downward</span>
+          <span class="menu-text">Entradas</span>
+        </router-link>
+
+        <router-link
+          class="menu-item"
           to="/setor-atual?tab=movimentacoes&status=P"
-          title="Solicitações Pendentes"
+          title="Movimentações Pendentes"
           active-class="no-active" exact-active-class="no-active" :class="{ 'router-link-active router-link-exact-active': $route.query.tab === 'movimentacoes' && $route.query.status === 'P' }"
         >
           <span class="menu-icon-wrapper">
@@ -102,7 +122,7 @@
               {{ solicitacoesPendentes > 99 ? "99+" : solicitacoesPendentes }}
             </span>
           </span>
-          <span class="menu-text">Solicitações Pendentes</span>
+          <span class="menu-text">Movimentações Pendentes</span>
         </router-link>
 
         <router-link

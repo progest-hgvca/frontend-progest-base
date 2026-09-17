@@ -536,7 +536,7 @@ onMounted(loadDashboardData);
               >
                 <CardTitle class="text-lg flex items-center gap-2">
                   <ClockIcon class="w-5 h-5 text-indigo-500" />
-                  {{ setorAtual.estoque ? 'Solicitações Pendentes' : 'Meus Pedidos Recentes' }}
+                  {{ setorAtual.estoque ? 'Movimentações Pendentes' : 'Meus Pedidos Recentes' }}
                 </CardTitle>
                 <Button
                   v-if="true"
@@ -622,7 +622,7 @@ onMounted(loadDashboardData);
                     <ClockIcon class="w-6 h-6" />
                   </div>
                   <p class="text-slate-500 text-sm font-medium">
-                    {{ setorAtual.estoque ? 'Nenhuma solicitação pendente.' : 'Nenhum pedido recente.' }}
+                    {{ setorAtual.estoque ? 'Nenhuma movimentação pendente.' : 'Nenhum pedido recente.' }}
                   </p>
                 </div>
               </CardContent>
