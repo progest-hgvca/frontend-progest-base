@@ -341,7 +341,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import axios from "axios";
@@ -368,6 +368,7 @@ import {
 } from "@/utils/exportarPedidoExcel";
 import { Input } from "@/components/ui/input";
 import ModalDevolverItem from "./ModalDevolverItem.vue";
+import { setorCookie } from "@/utils/setorCookie";
 
 const router = useRouter();
 const store = useStore();
@@ -427,19 +428,35 @@ const fetchPedidos = async () => {
   loading.value = true;
   try {
     const token = localStorage.getItem("token");
-    const setorId = store.state.setorAtualId;
+    const rawSetorId = store.state.setorAtualId || store.state.setorDetails?.id || (setorCookie?.getSectorId ? setorCookie.getSectorId() : null);
+
+    if (!rawSetorId) {
+      pedidos.value = [];
+      loading.value = false;
+      return;
+    }
+
+    const sid = Number(rawSetorId);
 
     const response = await axios.post(
       "/movimentacao/listBySetor",
-      { setor_id: setorId, per_page: 5000, lote: searchLote.value },
+      { setor_id: sid, per_page: 5000, lote: searchLote.value },
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
     if (response.data.status) {
       const data = response.data.data?.data || response.data.data || [];
-      pedidos.value = data.filter(
-        (mov) => mov.tipo === "S" && mov.setor_destino_id === Number(setorId)
-      );
+      const currentUserId = store.state.user?.id;
+      pedidos.value = data.filter((mov) => {
+        const destId = Number(mov.setor_destino_id ?? mov.setorDestino?.id);
+        const origId = Number(mov.setor_origem_id ?? mov.setorOrigem?.id);
+        const isUserReq = currentUserId && Number(mov.usuario_id) === Number(currentUserId);
+        return (
+          ((mov.tipo === "S" || mov.tipo === "T") && destId === sid) ||
+          (mov.tipo === "D" && origId === sid) ||
+          (isUserReq && (destId === sid || !destId))
+        );
+      });
     }
   } catch (error) {
     console.error("Erro ao buscar pedidos:", error);
@@ -452,6 +469,13 @@ const fetchPedidos = async () => {
     loading.value = false;
   }
 };
+
+watch(
+  () => [store.state.setorAtualId, store.state.setorDetails?.id],
+  () => {
+    fetchPedidos();
+  }
+);
 
 const abrirModalDevolucao = (pedido, item) => {
   if (modalDevolucao.value) {

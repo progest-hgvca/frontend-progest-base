@@ -1,4 +1,5 @@
-﻿import { createStore } from "vuex";
+import { createStore } from "vuex";
+import { setorCookie } from "@/utils/setorCookie";
 
 export default createStore({
   state: {
@@ -12,8 +13,8 @@ export default createStore({
     // CONTEXTO: SETOR ATUAL (Selecionado)
     // ============================================
     // Identificação do setor selecionado (do cookie/url)
-    setorAtualId: null,
-    setorAtualNome: null,
+    setorAtualId: setorCookie.getSectorId() ? Number(setorCookie.getSectorId()) : null,
+    setorAtualNome: setorCookie.getSectorName() || null,
 
     // Detalhes completos do setor selecionado
     // { id, nome, tipo, status, estoque_flag, descricao, unidade: {...}, ... }
@@ -144,6 +145,10 @@ export default createStore({
     // Detalhes do setor atual (compatibilidade com anterior)
     setSetorDetails(state, details) {
       state.setorDetails = details || null;
+      if (details?.id && !state.setorAtualId) {
+        state.setorAtualId = Number(details.id);
+        state.setorAtualNome = details.nome;
+      }
     },
     clearSetorDetails(state) {
       state.setorDetails = null;
