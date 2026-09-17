@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useStore } from "vuex";
-import api from "@/lib/axios";
+import axios from "axios";
 
 // UI Components
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -83,7 +83,7 @@ async function buscarRelatorio(page = 1) {
       ? "/api/relatorios/financeiro/entradas"
       : "/api/relatorios/financeiro/saidas";
       
-    const { data } = await api.post(`${endpoint}?page=${page}`, { filters: filters.value });
+    const { data } = await axios.post(`${endpoint}?page=${page}`, { filters: filters.value });
     if (data.status) {
       results.value = data.data.data;
       pagination.value = {
