@@ -56,27 +56,27 @@ const router = createRouter({
       path: "/users",
       name: "users",
       component: Users,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
 
     {
       path: "/setor/:id",
       name: "setorDetalhes",
       component: SetorDetalhes,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
       props: true,
     },
     {
       path: "/perfis",
       name: "perfis",
       component: Perfis,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/produtos",
       name: "produtos",
       component: Produtos,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/pedidos",
@@ -89,19 +89,19 @@ const router = createRouter({
       path: "/grupoProduto",
       name: "grupoProduto",
       component: GrupoProduto,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/unidadesMedida",
       name: "unidadesMedida",
       component: UnidadesMedida,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/fornecedores",
       name: "fornecedores",
       component: Fornecedores,
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/polos",
@@ -113,7 +113,7 @@ const router = createRouter({
       path: "/setores",
       name: "setores",
       component: Setores,
-      meta: { requiresAuth: true, requiresSector: true, allowAdminSetores: true },
+      meta: { requiresAuth: true, requiresSector: true, allowAdminSetores: true, roles: ['admin'] },
     },
 
     // Relatórios (placeholders / views de relatórios)
@@ -188,13 +188,13 @@ const router = createRouter({
       path: "/setores-consumidores",
       name: "SetoresConsumidoresList",
       component: () => import("../views/SetoresConsumidoresListView.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
     {
       path: "/setores-consumidores/:id",
       name: "SetorConsumidor",
       component: () => import("../views/SetorConsumidorView.vue"),
-      meta: { requiresAuth: true, requiresSector: true },
+      meta: { requiresAuth: true, requiresSector: true, roles: ['admin'] },
     },
   ],
 });
@@ -253,6 +253,62 @@ router.beforeEach(async (to, from, next) => {
         userObj.roles.includes("solicitante")) ||
       (userObj.perfil &&
         userObj.perfil.toString().toLowerCase().includes("solicitante"))
+    )
+      return true;
+
+    return false;
+  };
+
+  // Helper to determine if logged user is 'almoxarife' for the current sector
+  const checkIsAlmoxarife = async () => {
+    const user = store.state.user;
+    if (!user) return false;
+
+    try {
+      let list = store.state.listUsuariosSetor || [];
+
+      // If not loaded yet, try to fetch user-setor vínculos
+      if (
+        (!list || list.length === 0) &&
+        functionsUsuarioSetor &&
+        functionsUsuarioSetor.listAll
+      ) {
+        try {
+          await functionsUsuarioSetor.listAll({ $axios: axios, $store: store });
+          list = store.state.listUsuariosSetor || [];
+        } catch (e) {
+          console.warn(
+            "checkIsAlmoxarife: erro ao carregar usuarios do setor",
+            e,
+          );
+        }
+      }
+
+      const found = list.find((u) => {
+        const userId =
+          u.usuario_id || u.user_id || u.id || (u.usuario && u.usuario.id);
+        const perfil = (u.perfil || (u.pivot && u.pivot.perfil) || "")
+          .toString()
+          .toLowerCase();
+        return (
+          userId === user.id &&
+          (perfil === "almoxarife" || perfil.includes("almoxarife"))
+        );
+      });
+
+      if (found) return true;
+    } catch (e) {
+      console.warn("Erro ao avaliar almoxarife no guard:", e);
+    }
+
+    // fallback to roles/perfil on user object
+    const userObj = store.state.user || {};
+    if (
+      (userObj.roles &&
+        userObj.roles.includes &&
+        userObj.roles.includes("almoxarife")) ||
+      (userObj.perfil &&
+        userObj.perfil.toString().toLowerCase().includes("almoxarife"))
     )
       return true;
 
@@ -339,15 +395,25 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // Bloquear acesso a rotas de gerenciamento para solicitantes
+  // Bloquear acesso a rotas de gerenciamento para solicitantes e almoxarifes
   if (isAuthenticated && hasSector) {
+    // Define se o usuário logado é o administrador global do sistema
+    const userObj = store.state.user || JSON.parse(localStorage.getItem('user') || '{}');
+    const isGlobalAdmin = userObj && (
+      userObj.email === "admin@admin.com" || userObj.email === "adminti@gmail.com" || userObj.is_super_admin || 
+      !!userObj.is_admin || 
+      !!userObj.is_super_admin
+    );
+
     const isSolic = await checkIsSolicitante();
+    const isAlmox = await checkIsAlmoxarife();
 
     // ------------------------------------------------------------------
     // Guard 1: bloquear solicitante de rotas de gerenciamento
     // ------------------------------------------------------------------
     const allowedForSolicitante = [
       "/dashboard",
+      "/home",
       "/setor-atual",
       "/pedidos",
       "/setor-selection",
@@ -364,14 +430,33 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
 
-    // Define se o usuário logado é o administrador global do sistema
-    const userObj = store.state.user || JSON.parse(localStorage.getItem('user') || '{}');
-    const isGlobalAdmin = userObj && (
-      userObj.email === "admin@admin.com" || userObj.email === "adminti@gmail.com" || userObj.is_super_admin || 
-      userObj.email === "adminti@gmail.com" || 
-      !!userObj.is_admin || 
-      !!userObj.is_super_admin
-    );
+    // ------------------------------------------------------------------
+    // Guard 1.1: bloquear almoxarife e solicitante de todas as rotas de cadastros
+    // (Produtos, Fornecedores, Grupos de Produtos, Unidades de Medida,
+    //  Polos, Setores, Usuários, Perfis, Setores Consumidores)
+    // ------------------------------------------------------------------
+    const rotasCadastros = [
+      "/produtos",
+      "/fornecedores",
+      "/grupoProduto",
+      "/unidadesMedida",
+      "/polos",
+      "/setores",
+      "/users",
+      "/perfis",
+      "/setores-consumidores",
+    ];
+
+    const isCadastroPath =
+      rotasCadastros.some((p) => to.path === p || to.path.startsWith(p + "/")) ||
+      (to.path.startsWith("/setor/") &&
+        to.path !== "/setor-atual" &&
+        to.path !== "/setor-selection");
+
+    if ((isSolic || isAlmox) && isCadastroPath && !isGlobalAdmin) {
+      next("/setor-atual");
+      return;
+    }
 
     // ------------------------------------------------------------------
     // Guard 1.5: verificar globalAdminOnly

@@ -74,6 +74,22 @@ const isSolicitante = computed(() => {
   return !!found;
 });
 
+const isAlmoxarife = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
+  const list = store.state.listUsuariosSetor || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
+    const perfil = (u.perfil || u.pivot?.perfil || "").toString().toLowerCase();
+    return userId === user.value.id && (perfil === "almoxarife" || perfil.includes("almoxarife"));
+  });
+  if (found) return true;
+  const userObj = user.value || {};
+  return (
+    (userObj.roles && userObj.roles.includes && userObj.roles.includes("almoxarife")) ||
+    (userObj.perfil && userObj.perfil.toString().toLowerCase().includes("almoxarife"))
+  );
+});
+
 const loadDashboardData = async () => {
   loading.value = true;
   const setorId = store.state.setorAtualId;
@@ -418,7 +434,7 @@ onMounted(loadDashboardData);
                 </Button>
 
                 <Button
-                  v-if="!isSolicitante"
+                  v-if="!isSolicitante && !isAlmoxarife"
                   @click="navigateTo('/produtos')"
                   class="w-full justify-start h-14 gap-4 bg-white hover:bg-primary/5 text-slate-700 border-slate-200 shadow-none group"
                 >

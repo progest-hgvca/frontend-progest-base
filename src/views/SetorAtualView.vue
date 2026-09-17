@@ -111,6 +111,24 @@ const isSolicitante = computed(() => {
   return !!found;
 });
 
+const isAlmoxarife = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
+  const user = store.state.user;
+  if (!user) return false;
+  const list = usuariosItems.value || [];
+  const found = list.find((u) => {
+    const userId = u.usuario_id || u.user_id || u.id || u.usuario?.id;
+    const perfil = (u.perfil || u.pivot?.perfil || "").toString().toLowerCase();
+    return userId === user.id && (perfil === "almoxarife" || perfil.includes("almoxarife"));
+  });
+  if (found) return true;
+  const userObj = user || {};
+  return (
+    (userObj.roles && userObj.roles.includes && userObj.roles.includes("almoxarife")) ||
+    (userObj.perfil && userObj.perfil.toString().toLowerCase().includes("almoxarife"))
+  );
+});
+
 const isCAF = computed(() => {
   const nome = setor.value?.nome?.toUpperCase() || "";
   return nome.includes("CAF") || nome.includes("FARMÁCIA CENTRAL") || nome.includes("FARMACIA CENTRAL");
@@ -118,18 +136,31 @@ const isCAF = computed(() => {
 
 // Watchers
 watch(isSolicitante, (val) => {
-  if (val && !["overview"].includes(activeTab.value))
+  if (val && !["overview", "estoque"].includes(activeTab.value))
     activeTab.value = "overview";
+});
+
+watch([isAdminUser, isSolicitante, isAlmoxarife], () => {
+  if (activeTab.value === "usuarios" && (!isAdminUser.value || isSolicitante.value || isAlmoxarife.value)) {
+    activeTab.value = "overview";
+  }
 });
 
 watch(
   () => route.query.tab,
   (newTab) => {
-    activeTab.value = newTab || "overview";
+    let tab = newTab || "overview";
+    if (tab === "usuarios" && (!isAdminUser.value || isSolicitante.value || isAlmoxarife.value)) {
+      tab = "overview";
+    }
+    activeTab.value = tab;
   },
 );
 
 const changeTab = (tab) => {
+  if (tab === "usuarios" && (!isAdminUser.value || isSolicitante.value || isAlmoxarife.value)) {
+    tab = "overview";
+  }
   activeTab.value = tab;
   router.replace({ query: { ...route.query, tab } });
 };
@@ -212,7 +243,11 @@ const loadSetorDetails = async () => {
   }
   
   loading.value = false;
-  if (route.query.tab) activeTab.value = route.query.tab;
+  let initialTab = route.query.tab || "overview";
+  if (initialTab === "usuarios" && (!isAdminUser.value || isSolicitante.value || isAlmoxarife.value)) {
+    initialTab = "overview";
+  }
+  activeTab.value = initialTab;
   updateHeader();
 };
 
@@ -306,7 +341,7 @@ onUnmounted(() => {
               </TabsTrigger>
 
               <TabsTrigger
-                v-if="!isSolicitante && isAdminUser"
+                v-if="!isSolicitante && !isAlmoxarife && isAdminUser"
                 value="usuarios"
                 class="gap-2 px-6 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-lg"
               >
@@ -341,7 +376,7 @@ onUnmounted(() => {
               />
             </TabsContent>
 
-            <TabsContent value="usuarios" class="mt-0">
+            <TabsContent v-if="!isSolicitante && !isAlmoxarife && isAdminUser" value="usuarios" class="mt-0">
               <TabUsuarios :setorId="setor.id" />
             </TabsContent>
           </div>

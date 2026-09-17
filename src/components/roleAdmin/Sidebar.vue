@@ -147,7 +147,7 @@
         </router-link>
 
         <router-link
-          v-if="!isSolicitante && isAdminUser"
+          v-if="!isSolicitante && !isAlmoxarifePerfil && (isAdminUser || isAdminPerfil || isAdminPolo)"
           class="menu-item"
           to="/setor-atual?tab=usuarios"
           title="Equipe"
@@ -158,7 +158,7 @@
         </router-link>
 
         <router-link
-          v-if="setoresConsumidores.length > 0"
+          v-if="setoresConsumidores.length > 0 && !isSolicitante && !isAlmoxarifePerfil && (isAdminUser || isAdminPerfil || isAdminPolo)"
           class="menu-item"
           to="/setores-consumidores"
           title="Setores Consumidores"
@@ -168,8 +168,8 @@
         </router-link>
 
         <!-- Submenu: Cadastros -->
-        <!-- Visível para: super admin, ou almoxarife/admin da CAF, ou admin comum/polo (apenas para ver Usuários/Setores) -->
-        <div v-if="isAdminUser || isAdminPerfil || isAdminPolo || (isCAF && isAlmoxarifePerfil)" class="submenu-section">
+        <!-- Visível apenas para administradores. Oculto para almoxarife e solicitante independente do setor. -->
+        <div v-if="!isAlmoxarifePerfil && !isSolicitante && (isAdminUser || isAdminPerfil || isAdminPolo)" class="submenu-section">
           <button
             class="menu-item submenu-toggle"
             @click="toggleSubmenu"
@@ -188,9 +188,9 @@
           <!-- Submenu Items -->
           <transition name="submenu-transition">
             <div v-show="submenuOpen" class="submenu-items">
-              <!-- Produtos: admin ou almoxarife da CAF -->
+              <!-- Produtos: apenas admin (super admin ou admin do setor) -->
               <router-link
-                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
                 class="submenu-item"
                 to="/produtos"
                 title="Produtos"
@@ -199,9 +199,9 @@
                 <span class="menu-text">Produtos</span>
               </router-link>
 
-              <!-- Fornecedores: admin ou almoxarife da CAF -->
+              <!-- Fornecedores: apenas admin (super admin ou admin do setor) -->
               <router-link
-                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
                 class="submenu-item"
                 to="/fornecedores"
                 title="Fornecedores"
@@ -232,9 +232,9 @@
                 <span class="menu-text">Setores</span>
               </router-link>
 
-              <!-- Grupos de Produtos: admin ou almoxarife da CAF -->
+              <!-- Grupos de Produtos: apenas admin (super admin ou admin do setor) -->
               <router-link
-                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
                 class="submenu-item"
                 to="/grupoProduto"
                 title="Grupos de Produtos"
@@ -243,9 +243,9 @@
                 <span class="menu-text">Grupos de Produtos</span>
               </router-link>
 
-              <!-- Unidades de Medida: admin ou almoxarife da CAF -->
+              <!-- Unidades de Medida: apenas admin (super admin ou admin do setor) -->
               <router-link
-                v-if="isAdminUser || (isCAF && isAdminPerfil) || (isCAF && isAlmoxarifePerfil)"
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
                 class="submenu-item"
                 to="/unidadesMedida"
                 title="Unidades de Medida"
@@ -463,7 +463,11 @@ const isAdminPerfil = computed(() => getPerfilAtual() === 'admin');
 const isAdminPolo = computed(() => store.state.user?.is_admin_polo || false);
 
 /** Usuário possui perfil 'almoxarife' no setor atual */
-const isAlmoxarifePerfil = computed(() => getPerfilAtual() === 'almoxarife');
+const isAlmoxarifePerfil = computed(() => {
+  if (store.getters.isSuperAdmin) return false;
+  const perfil = getPerfilAtual();
+  return perfil === 'almoxarife' || perfil.includes('almoxarife');
+});
 
 // Verificar se o usuário possui perfil 'solicitante' no setor atual
 const isSolicitante = computed(() => {
