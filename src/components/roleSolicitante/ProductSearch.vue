@@ -131,10 +131,12 @@
             <div class="flex items-center gap-2 flex-shrink-0">
               <Input
                 type="number"
+                step="1"
+                min="0"
                 v-model.number="quantidades[product.id]"
-                :min="1"
+                @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
                 placeholder="Qtd"
-                class="w-16 text-center h-9"
+                class="w-auto min-w-[5rem] px-2 text-center h-9"
               />
               <Button
                 size="icon"

@@ -40,11 +40,12 @@
                   <td class="px-4 py-3 text-center">
                     <Input
                       type="number"
-                      v-model="item.quantidade_devolvendo"
-                      :max="item.quantidade_liberada"
+                      step="1"
                       min="0"
-                      step="0.01"
-                      class="h-8 text-center"
+                      :max="item.quantidade_liberada"
+                      v-model.number="item.quantidade_devolvendo"
+                      @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
+                      class="h-8 text-center w-auto min-w-[5rem] px-2 mx-auto"
                       :class="{'border-red-500': item.quantidade_devolvendo > item.quantidade_liberada}"
                     />
                   </td>
@@ -173,7 +174,7 @@ const confirmarDevolucao = async () => {
       motivo: motivo.value,
       itens: itensParaDevolver.value.map(item => ({
         item_movimentacao_id: item.item_movimentacao_id,
-        quantidade_devolvendo: Number(item.quantidade_devolvendo)
+        quantidade_devolvendo: Math.max(0, Math.floor(Number(item.quantidade_devolvendo) || 0))
       }))
     };
     

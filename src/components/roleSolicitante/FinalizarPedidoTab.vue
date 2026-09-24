@@ -64,35 +64,6 @@
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <!-- Alternador entre Pedido Normal e Devolução de Materiais -->
-          <div v-if="!pedidoEmEdicaoId" class="flex items-center gap-2 mb-4 p-1 bg-slate-100 rounded-lg w-fit">
-            <button
-              type="button"
-              @click="finalidade = 'S'"
-              :class="[
-                'px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5',
-                finalidade === 'S'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              ]"
-            >
-              <i class="mdi mdi-cart-arrow-down"></i>
-              Pedido / Requisição
-            </button>
-            <button
-              type="button"
-              @click="finalidade = 'D'"
-              :class="[
-                'px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5',
-                finalidade === 'D'
-                  ? 'bg-white text-amber-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              ]"
-            >
-              <i class="mdi mdi-undo-variant"></i>
-              Devolução ao Distribuidor
-            </button>
-          </div>
 
           <!-- Linha 1: Tipo de Produto + Setor Fornecedor → Setor Destino -->
           <div class="flex flex-wrap items-center gap-4 mb-4">
@@ -225,12 +196,14 @@
                   </Button>
                   <Input
                     type="number"
+                    step="1"
+                    min="0"
                     :modelValue="item.quantidade"
+                    @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
                     @update:modelValue="
-                      (val) => updateQuantidade(item.produtoId, Number(val))
+                      (val) => updateQuantidade(item.produtoId, Math.max(0, Math.floor(Number(val))))
                     "
-                    class="w-16 text-center h-8"
-                    min="1"
+                    class="w-auto min-w-[5rem] px-2 text-center h-8"
                   />
                   <Button
                     variant="outline"
@@ -283,14 +256,11 @@
           <Button
             @click="enviarPedido"
             :disabled="submitting || distribuidoresDisponiveis.length === 0"
-            :class="[
-              'flex items-center gap-2 w-full sm:w-auto text-white',
-              finalidade === 'D' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'
-            ]"
+            class="flex items-center gap-2 w-full sm:w-auto text-white bg-blue-600 hover:bg-blue-700"
           >
             <LoadingSpinner v-if="submitting && submittingType === 'P'" size="sm" class="mr-1" />
-            <i v-else :class="finalidade === 'D' ? 'mdi mdi-undo-variant' : 'mdi mdi-send'"></i>
-            {{ pedidoEmEdicaoId ? "Enviar Pedido" : (finalidade === 'D' ? "Registrar Devolução" : "Finalizar Pedido") }}
+            <i v-else class="mdi mdi-send"></i>
+            {{ pedidoEmEdicaoId ? "Enviar Pedido" : "Finalizar Pedido" }}
           </Button>
         </div>
       </div>

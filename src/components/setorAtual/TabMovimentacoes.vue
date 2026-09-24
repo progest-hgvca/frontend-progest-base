@@ -885,6 +885,9 @@ const excluirRascunho = async () => {
                     <ArrowDownCircleIcon v-if="isEntrada(mov)" class="w-5 h-5 text-amber-600" />
                     <ArrowUpCircleIcon v-else class="w-5 h-5 text-amber-600" />
                     <span class="text-[11px] uppercase">{{ isEntrada(mov) ? 'Devolução (Entrada)' : 'Devolução (Saída)' }}</span>
+                    <span v-if="mov.numero_pedido" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-normal border border-amber-200">
+                      Pedido #{{ mov.numero_pedido }}
+                    </span>
                   </div>
                   <div
                     v-else-if="mov.tipo === 'C'"
@@ -1573,8 +1576,11 @@ const excluirRascunho = async () => {
                       <div class="relative">
                         <Input
                           type="number"
+                          step="1"
+                          min="0"
                           v-model.number="item.quantidade_liberada"
-                          class="h-9 font-black text-center pr-2"
+                          @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
+                          class="h-9 font-black text-center w-auto min-w-[5rem] px-2 mx-auto"
                           :class="
                             item.quantidade_liberada > item.estoque_atual
                               ? 'border-red-500 text-red-600 bg-red-50'

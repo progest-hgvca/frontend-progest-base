@@ -27,11 +27,12 @@
             <label class="text-sm font-medium mb-1 block">Quantidade a Consumir</label>
             <Input
               type="number"
+              step="1"
+              min="0"
               v-model.number="form.quantidade"
-              min="0.01"
-              step="any"
-              placeholder="Ex: 2.5"
-              class="w-full"
+              @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
+              placeholder="Ex: 2"
+              class="w-full min-w-[5rem] px-2"
             />
             <p v-if="erroQuantidade" class="text-xs text-red-500 mt-1">{{ erroQuantidade }}</p>
           </div>

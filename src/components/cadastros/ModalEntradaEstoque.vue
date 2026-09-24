@@ -232,9 +232,12 @@
               <Input
                 id="produtoQuantidade"
                 type="number"
-                min="1"
+                step="1"
+                min="0"
                 v-model.number="itemAtual.quantidade"
+                @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
                 placeholder="Ex: 100"
+                class="w-auto min-w-[5rem] px-2"
               />
             </div>
 

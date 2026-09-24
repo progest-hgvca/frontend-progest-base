@@ -13,11 +13,11 @@
 
       <div class="flex items-center gap-2">
         <div class="relative">
-          <i class="mdi mdi-magnify absolute left-2 top-2 text-muted-foreground"></i>
+          <i class="mdi mdi-magnify absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none text-base"></i>
           <Input 
             v-model="searchLote" 
             placeholder="Buscar por lote..." 
-            class="pl-8 h-8 text-sm w-48"
+            class="pl-9 h-8 text-sm w-52"
             @keyup.enter="fetchPedidos"
           />
         </div>
@@ -94,7 +94,7 @@
           <div class="space-y-3">
             <!-- Info do pedido e Ações -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex flex-wrap gap-4 text-sm">
+              <div class="flex flex-wrap items-center gap-4 text-sm">
                 <div class="flex items-center gap-2">
                   <i class="mdi mdi-store text-muted-foreground"></i>
                   <span class="text-muted-foreground">Distribuidor:</span>
@@ -109,17 +109,25 @@
                     {{ pedido.itens?.length || 0 }}
                   </span>
                 </div>
-                <!-- Aprovador (quando aprovado ou reprovado) -->
-                <div class="flex items-center gap-2 mt-2">
-                    <i class="mdi mdi-account-check text-muted-foreground"></i>
-                    <span class="text-muted-foreground">
-                      {{ pedido.status_solicitacao === 'A' ? 'Aprovado por:' : (pedido.status_solicitacao === 'R' ? 'Reprovado por:' : 'Responsável:') }}
-                    </span>
-                    <span class="font-medium" :class="pedido.status_solicitacao === 'A' ? 'text-green-700' : (pedido.status_solicitacao === 'R' ? 'text-red-600' : 'text-yellow-600')">
-                      {{ pedido.aprovador?.name || 'Aguardando avaliação' }}
-                    </span>
-                  </div>
+                <!-- Solicitante / Criador -->
+                <div class="flex items-center gap-2">
+                  <i class="mdi mdi-account text-muted-foreground"></i>
+                  <span class="text-muted-foreground">Solicitante:</span>
+                  <span class="font-medium text-slate-800">
+                    {{ pedido.usuario?.name || "Não informado" }}
+                  </span>
                 </div>
+                <!-- Aprovador / Avaliador (quando já avaliado) -->
+                <div v-if="['A', 'R'].includes(pedido.status_solicitacao)" class="flex items-center gap-2">
+                  <i class="mdi mdi-account-check text-muted-foreground"></i>
+                  <span class="text-muted-foreground">
+                    {{ pedido.status_solicitacao === 'A' ? 'Aprovado por:' : 'Reprovado por:' }}
+                  </span>
+                  <span class="font-medium" :class="pedido.status_solicitacao === 'A' ? 'text-green-700' : 'text-red-600'">
+                    {{ pedido.aprovador?.name || pedido.respondido_por?.name || 'Avaliado' }}
+                  </span>
+                </div>
+              </div>
 
               <!-- Botões de Ação -->
               <div class="flex items-center gap-1.5 self-end sm:self-auto">
@@ -138,14 +146,14 @@
                   <span>Enviar</span>
                 </Button>
 
-                <!-- RASCUNHO OU PENDENTE: Editar -->
+                <!-- RASCUNHO: Editar (Apenas rascunhos podem ser editados) -->
                 <Button
-                  v-if="pedido.status_solicitacao === 'C' || pedido.status_solicitacao === 'P'"
+                  v-if="pedido.status_solicitacao === 'C'"
                   variant="outline"
                   size="sm"
                   @click.stop="editarPedido(pedido)"
                   class="h-8 px-2.5 text-xs flex items-center gap-1"
-                  :title="pedido.status_solicitacao === 'C' ? 'Editar Rascunho' : 'Editar Pedido Pendente'"
+                  title="Editar Rascunho"
                 >
                   <i class="mdi mdi-pencil text-sm text-blue-600"></i>
                   <span>Editar</span>
@@ -285,6 +293,9 @@
                   </h4>
                   <div class="space-y-1.5">
                     <div v-for="dev in pedido.devolucoes" :key="dev.id" class="text-xs text-slate-700 flex flex-wrap gap-x-3 gap-y-1 items-center bg-white border border-amber-100 p-2 rounded">
+                      <span class="font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-200">
+                        Pedido #{{ dev.numero_pedido || pedido.id }}
+                      </span>
                       <span><strong>Item:</strong> {{ pedido.itens?.find(i => i.id === dev.item_movimentacao_id)?.produto?.nome || 'Item #' + dev.item_movimentacao_id }}</span>
                       <span><strong>Lote:</strong> <span class="bg-amber-100 px-1 py-0.5 rounded">{{ dev.lote }}</span></span>
                       <span><strong>Qtd:</strong> <span class="text-amber-700 font-bold">{{ dev.quantidade }}</span></span>

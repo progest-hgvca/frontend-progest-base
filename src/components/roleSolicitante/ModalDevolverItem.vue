@@ -42,11 +42,12 @@
             <label class="text-sm font-medium mb-1 block">Quantidade a Devolver</label>
             <Input
               type="number"
+              step="1"
+              min="0"
               v-model.number="form.quantidade"
-              min="0.01"
-              step="any"
+              @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
               placeholder="Ex: 1"
-              class="w-full"
+              class="w-full min-w-[5rem] px-2"
             />
             <p v-if="erroQuantidade" class="text-xs text-red-500 mt-1">{{ erroQuantidade }}</p>
           </div>

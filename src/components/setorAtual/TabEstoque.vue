@@ -558,8 +558,11 @@ watch(searchQuery, () => {
                       >
                         <Input
                           type="number"
+                          step="1"
+                          min="0"
                           v-model.number="novaQuantidadeMinima"
-                          class="h-8 w-20 text-center font-bold"
+                          @keydown="(e) => ['e', 'E', '+', '-', '.', ','].includes(e.key) && e.preventDefault()"
+                          class="h-8 w-auto min-w-[5rem] px-2 text-center font-bold"
                           @keyup.enter="salvarQuantidadeMinima(item.id)"
                           @keyup.escape="cancelarEdicao"
                           autofocus
