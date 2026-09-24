@@ -88,6 +88,8 @@ export function useSolicitacao() {
           id: distribuidorId,
           nome: distribuidorNome,
           tipo: rel.tipo_produto || null,
+          polo: rel.distribuidor?.polo || rel.polo,
+          sigla_polo: rel.distribuidor?.polo?.sigla || rel.sigla_polo || rel.polo?.sigla,
         };
       });
   });

@@ -103,6 +103,13 @@
                   </span>
                 </div>
                 <div class="flex items-center gap-2">
+                  <i class="mdi mdi-map-marker text-blue-600"></i>
+                  <span class="text-muted-foreground">Destino:</span>
+                  <span class="font-semibold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    {{ pedido.setor_destino?.nome_exibicao || pedido.setor_destino?.nome || "N/A" }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2">
                   <i class="mdi mdi-package-variant text-muted-foreground"></i>
                   <span class="text-muted-foreground">Itens:</span>
                   <span class="font-medium">
@@ -294,7 +301,7 @@
                   <div class="space-y-1.5">
                     <div v-for="dev in pedido.devolucoes" :key="dev.id" class="text-xs text-slate-700 flex flex-wrap gap-x-3 gap-y-1 items-center bg-white border border-amber-100 p-2 rounded">
                       <span class="font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-200">
-                        Pedido #{{ dev.numero_pedido || pedido.id }}
+                        Devolução referente ao Pedido #{{ dev.numero_pedido || dev.pedido_origem_id || dev.pedido_id || pedido.id }}
                       </span>
                       <span><strong>Item:</strong> {{ pedido.itens?.find(i => i.id === dev.item_movimentacao_id)?.produto?.nome || 'Item #' + dev.item_movimentacao_id }}</span>
                       <span><strong>Lote:</strong> <span class="bg-amber-100 px-1 py-0.5 rounded">{{ dev.lote }}</span></span>

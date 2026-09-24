@@ -100,11 +100,11 @@
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
-                    v-for="dist in distribuidoresDisponiveis"
-                    :key="dist.id"
-                    :value="String(dist.id)"
+                    v-for="setor in distribuidoresDisponiveis"
+                    :key="setor.id"
+                    :value="String(setor.id)"
                   >
-                    {{ dist.nome }}
+                    {{ setor.nome }} ({{ setor.polo?.sigla || setor.sigla_polo }})
                   </SelectItem>
                 </SelectContent>
               </Select>

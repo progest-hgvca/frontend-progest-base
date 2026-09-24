@@ -544,7 +544,7 @@ watch(searchQuery, () => {
                       <div
                         class="inline-flex items-center justify-center font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-lg"
                       >
-                        {{ item.quantidade_atual }}
+                        {{ parseInt(item.quantidade_atual) || 0 }}
                         <span
                           class="text-[9px] ml-1 text-slate-400 font-medium"
                           >{{ item.unidade }}</span
@@ -589,7 +589,7 @@ watch(searchQuery, () => {
                         class="flex items-center justify-center gap-1"
                       >
                         <span class="font-bold text-slate-600">{{
-                          item.quantidade_minima
+                          parseInt(item.quantidade_minima) || 0
                         }}</span>
                         <span class="text-[9px] text-slate-400 font-medium">{{
                           item.unidade

@@ -94,18 +94,6 @@ const abrirModalRequisicao = () => {
   modoInicialMovimentacao.value = "T";
   dialogMovimentacaoOpen.value = true;
 };
-
-const abrirModalNovaDevolucao = () => {
-  movimentacaoParaDevolver.value = null;
-  modoInicialMovimentacao.value = "D";
-  dialogMovimentacaoOpen.value = true;
-};
-
-const abrirDevolucaoDeMovimentacao = (mov) => {
-  movimentacaoParaDevolver.value = mov;
-  modoInicialMovimentacao.value = "D";
-  dialogMovimentacaoOpen.value = true;
-};
 const dialogDetalhesOpen = ref(false);
 const dialogAprovacaoOpen = ref(false);
 const movimentacaoSelecionada = ref(null);
@@ -637,15 +625,6 @@ const excluirRascunho = async () => {
     <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3">
       <Button
         v-if="!isCAF"
-        @click="abrirModalNovaDevolucao"
-        variant="outline"
-        class="gap-2 border-amber-300 text-amber-700 bg-amber-50/70 hover:bg-amber-100 hover:text-amber-800 shadow-sm"
-      >
-        <RotateCcwIcon class="w-4 h-4 text-amber-600" /> Nova Devolução
-      </Button>
-
-      <Button
-        v-if="!isCAF"
         @click="abrirModalRequisicao"
         class="gap-2 shadow-lg shadow-primary/20"
       >
@@ -885,8 +864,8 @@ const excluirRascunho = async () => {
                     <ArrowDownCircleIcon v-if="isEntrada(mov)" class="w-5 h-5 text-amber-600" />
                     <ArrowUpCircleIcon v-else class="w-5 h-5 text-amber-600" />
                     <span class="text-[11px] uppercase">{{ isEntrada(mov) ? 'Devolução (Entrada)' : 'Devolução (Saída)' }}</span>
-                    <span v-if="mov.numero_pedido" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-normal border border-amber-200">
-                      Pedido #{{ mov.numero_pedido }}
+                    <span v-if="mov.numero_pedido || mov.pedido_origem_id" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold border border-amber-200">
+                      Devolução referente ao Pedido #{{ mov.numero_pedido || mov.pedido_origem_id }}
                     </span>
                   </div>
                   <div
@@ -1016,17 +995,6 @@ const excluirRascunho = async () => {
                   <FileSpreadsheetIcon class="w-4 h-4" />
                 </Button>
 
-                <!-- Devolver itens desta requisição aprovada -->
-                <Button
-                  v-if="podeDevolverMovimentacao(mov)"
-                  variant="ghost"
-                  size="icon"
-                  @click="abrirDevolucaoDeMovimentacao(mov)"
-                  class="h-8 w-8 text-amber-600 hover:bg-amber-100 hover:text-amber-700 transition-colors"
-                  title="Realizar devolução desta requisição aprovada"
-                >
-                  <RotateCcwIcon class="w-4 h-4 text-amber-600" />
-                </Button>
 
                 <!-- Aprovar (Pendente) -->
                 <Button
@@ -1105,6 +1073,16 @@ const excluirRascunho = async () => {
               <td colspan="8" class="p-0">
                 <div class="px-6 py-5 border-l-[6px] border-l-slate-200">
                   <div
+                    v-if="mov.tipo === 'D' && (mov.numero_pedido || mov.pedido_origem_id)"
+                    class="mb-3"
+                  >
+                    <Badge variant="outline" class="border-amber-400 bg-amber-50 text-amber-900 font-bold px-2.5 py-1 text-xs">
+                      <RotateCcwIcon class="w-3.5 h-3.5 mr-1 inline text-amber-600" />
+                      Devolução referente ao Pedido #{{ mov.numero_pedido || mov.pedido_origem_id }}
+                    </Badge>
+                  </div>
+
+                  <div
                     v-if="mov.observacao"
                     class="mb-4 text-xs text-slate-500 italic"
                   >
@@ -1178,14 +1156,14 @@ const excluirRascunho = async () => {
                           </td>
                           <td class="py-3 px-5 text-center">
                             <Badge variant="secondary" class="font-black">{{
-                              item.quantidade_solicitada
+                              parseInt(item.quantidade_solicitada) || 0
                             }}</Badge>
                           </td>
                           <td class="py-3 px-5 text-center">
                             <Badge
                               v-if="item.quantidade_liberada > 0"
                               class="font-black bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
-                              >{{ item.quantidade_liberada }}</Badge
+                              >{{ parseInt(item.quantidade_liberada) || 0 }}</Badge
                             >
                             <span
                               v-else
@@ -1197,7 +1175,7 @@ const excluirRascunho = async () => {
                             v-if="mov.tipo === 'D'"
                             class="py-3 px-5 text-center font-bold text-amber-600"
                           >
-                            {{ item.quantidade_devolvendo }}
+                            {{ parseInt(item.quantidade_devolvendo) || 0 }}
                           </td>
                           <td
                             v-if="mov.tipo !== 'D' && isEntrada(mov) && mov.status_solicitacao === 'A'"
@@ -1206,7 +1184,7 @@ const excluirRascunho = async () => {
                             <Badge
                               v-if="calcularQtdDevolvida(mov, item.id) > 0"
                               class="font-black bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100"
-                              >{{ calcularQtdDevolvida(mov, item.id) }}</Badge
+                              >{{ parseInt(calcularQtdDevolvida(mov, item.id)) || 0 }}</Badge
                             >
                             <span v-else class="text-slate-300 font-bold italic text-xs">—</span>
                           </td>
@@ -1350,6 +1328,14 @@ const excluirRascunho = async () => {
           </div>
 
           <div
+            v-if="movimentacaoSelecionada?.tipo === 'D' && (movimentacaoSelecionada?.numero_pedido || movimentacaoSelecionada?.pedido_origem_id)"
+            class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 font-bold text-sm flex items-center gap-2"
+          >
+            <RotateCcwIcon class="w-4 h-4 text-amber-600" />
+            <span>Devolução referente ao Pedido #{{ movimentacaoSelecionada?.numero_pedido || movimentacaoSelecionada?.pedido_origem_id }}</span>
+          </div>
+
+          <div
             v-if="movimentacaoSelecionada?.observacao"
             class="p-4 bg-amber-50 rounded-2xl border border-amber-100 italic text-amber-800 text-sm"
           >
@@ -1413,7 +1399,7 @@ const excluirRascunho = async () => {
                     </td>
                     <td class="py-4 px-6 text-center">
                       <Badge variant="secondary" class="font-black">{{
-                        item.quantidade_solicitada
+                        parseInt(item.quantidade_solicitada) || 0
                       }}</Badge>
                     </td>
                     <td class="py-4 px-6 text-center">
@@ -1421,7 +1407,7 @@ const excluirRascunho = async () => {
                         v-if="item.quantidade_liberada"
                         variant="success"
                         class="font-black"
-                        >{{ item.quantidade_liberada }}</Badge
+                        >{{ parseInt(item.quantidade_liberada) || 0 }}</Badge
                       >
                       <span
                         v-else

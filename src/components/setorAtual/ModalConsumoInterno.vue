@@ -17,7 +17,7 @@
           <p class="text-sm font-semibold text-slate-800">{{ produto?.nome || produto?.nome_completo }}</p>
           <div class="flex justify-between items-center mt-2">
             <span class="text-xs text-slate-500">Lote: <span class="font-bold text-slate-700">{{ lote.lote }}</span></span>
-            <span class="text-xs text-slate-500">Saldo: <span class="font-bold text-slate-700">{{ lote.quantidade_disponivel }}</span></span>
+            <span class="text-xs text-slate-500">Saldo: <span class="font-bold text-slate-700">{{ parseInt(lote.quantidade_disponivel) || 0 }}</span></span>
           </div>
         </div>
 
