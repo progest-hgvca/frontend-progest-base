@@ -617,6 +617,21 @@ const excluirRascunho = async () => {
     loadingExcluirRascunho.value = false;
   }
 };
+
+/**
+ * Soma as devoluções registradas para um item específico de uma movimentação.
+ * Usa o array `devolucoes` já carregado pelo backend (via eager load).
+ */
+const calcularQtdDevolvida = (mov, itemId) => {
+  if (!mov.devolucoes || mov.devolucoes.length === 0) return 0;
+  let total = 0;
+  for (const d of mov.devolucoes) {
+    if (d.item_movimentacao_id === itemId) {
+      total += Number(d.quantidade);
+    }
+  }
+  return total;
+};
 </script>
 
 <template>
@@ -770,11 +785,8 @@ const excluirRascunho = async () => {
         <table class="w-full text-sm">
           <thead class="bg-slate-50 border-b">
             <tr>
-              <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Fluxo
-              </th>
+              <th class="py-4 px-3 text-left font-bold text-slate-500 uppercase text-[10px]">#ID</th>
+              <th class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]">Fluxo</th>
               <th
                 @click="handleSort('created_at')"
                 class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
@@ -786,26 +798,10 @@ const excluirRascunho = async () => {
                   <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
                 </div>
               </th>
-              <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Origem
-              </th>
-              <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Destino
-              </th>
-              <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Solicitante
-              </th>
-              <th
-                class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Itens
-              </th>
+              <th class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]">Origem</th>
+              <th class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]">Destino</th>
+              <th class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]">Solicitante</th>
+              <th class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px]">Itens</th>
               <th
                 @click="handleSort('status')"
                 class="py-4 px-6 text-center font-bold text-slate-500 uppercase text-[10px] cursor-pointer hover:bg-slate-100 transition-colors select-none"
@@ -817,16 +813,8 @@ const excluirRascunho = async () => {
                   <ArrowDownIcon v-else class="w-3 h-3 text-primary" />
                 </div>
               </th>
-              <th
-                class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Aprovador
-              </th>
-              <th
-                class="py-4 px-6 text-right font-bold text-slate-500 uppercase text-[10px]"
-              >
-                Ações
-              </th>
+              <th class="py-4 px-6 text-left font-bold text-slate-500 uppercase text-[10px]">Aprovador</th>
+              <th class="py-4 px-6 text-right font-bold text-slate-500 uppercase text-[10px]">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -843,6 +831,10 @@ const excluirRascunho = async () => {
                 'hover:bg-slate-50'
               ]"
             >
+              <!-- Coluna #ID -->
+              <td class="py-4 px-3 text-center">
+                <span class="text-[11px] font-black text-slate-400">#{{ mov.id }}</span>
+              </td>
               <td :class="[
                 'py-4 px-6 border-l-[6px]',
                 mov.status_solicitacao === 'A' ? 'border-l-emerald-500' :
@@ -857,15 +849,16 @@ const excluirRascunho = async () => {
                     class="w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200"
                     :class="{ 'rotate-90 text-primary': expandedRows[mov.id] }"
                   />
+                  <!-- Padrão Hospitalar: Devolução ao Distribuidor 📤 / Devolução Recebida 📥 -->
                   <div
                     v-if="mov.tipo === 'D'"
                     class="flex items-center gap-2 text-amber-600 font-bold"
                   >
-                    <ArrowDownCircleIcon v-if="isEntrada(mov)" class="w-5 h-5 text-amber-600" />
-                    <ArrowUpCircleIcon v-else class="w-5 h-5 text-amber-600" />
-                    <span class="text-[11px] uppercase">{{ isEntrada(mov) ? 'Devolução (Entrada)' : 'Devolução (Saída)' }}</span>
+                    <span v-if="isEntrada(mov)" class="text-base leading-none">📥</span>
+                    <span v-else class="text-base leading-none">📤</span>
+                    <span class="text-[11px] uppercase">{{ isEntrada(mov) ? 'Devolução Recebida' : 'Devolução ao Distribuidor' }}</span>
                     <span v-if="mov.numero_pedido || mov.pedido_origem_id" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold border border-amber-200">
-                      Devolução referente ao Pedido #{{ mov.numero_pedido || mov.pedido_origem_id }}
+                      Ref. Pedido #{{ mov.numero_pedido || mov.pedido_origem_id }}
                     </span>
                   </div>
                   <div
@@ -1106,7 +1099,7 @@ const excluirRascunho = async () => {
                           <th
                             class="py-2.5 px-5 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider"
                           >
-                            Lote
+                            Lote(s)
                           </th>
                           <th
                             class="py-2.5 px-5 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider"
@@ -1151,8 +1144,18 @@ const excluirRascunho = async () => {
                               item.produto?.nome || `Produto #${item.produto_id}`
                             }}
                           </td>
-                          <td class="py-3 px-5 text-xs text-slate-400">
-                            {{ item.lote || "—" }}
+                          <!-- Lotes: renderiza pills individuais quando há lotes_parsed -->
+                          <td class="py-3 px-5">
+                            <div v-if="item.lotes_parsed && item.lotes_parsed.length > 0" class="flex flex-wrap gap-1">
+                              <span
+                                v-for="(lp, li) in item.lotes_parsed"
+                                :key="li"
+                                class="inline-flex items-center gap-1 text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded font-mono"
+                              >
+                                {{ lp.lote }}<span v-if="lp.qtd" class="font-black text-slate-800">&times;{{ lp.qtd }}</span>
+                              </span>
+                            </div>
+                            <span v-else class="text-xs text-slate-300">—</span>
                           </td>
                           <td class="py-3 px-5 text-center">
                             <Badge variant="secondary" class="font-black">{{
@@ -1372,21 +1375,10 @@ const excluirRascunho = async () => {
               <table class="w-full text-sm">
                 <thead class="bg-slate-50 border-b">
                   <tr>
-                    <th
-                      class="py-3 px-6 text-left font-bold text-slate-400 text-[10px]"
-                    >
-                      Item
-                    </th>
-                    <th
-                      class="py-3 px-6 text-center font-bold text-slate-400 text-[10px]"
-                    >
-                      Solicitada
-                    </th>
-                    <th
-                      class="py-3 px-6 text-center font-bold text-slate-400 text-[10px]"
-                    >
-                      Liberada
-                    </th>
+                    <th class="py-3 px-6 text-left font-bold text-slate-400 text-[10px]">Item</th>
+                    <th class="py-3 px-6 text-left font-bold text-slate-400 text-[10px]">Lote(s)</th>
+                    <th class="py-3 px-6 text-center font-bold text-slate-400 text-[10px]">Solicitada</th>
+                    <th class="py-3 px-6 text-center font-bold text-slate-400 text-[10px]">Liberada</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -1396,6 +1388,19 @@ const excluirRascunho = async () => {
                   >
                     <td class="py-4 px-6 font-bold text-slate-700">
                       {{ item.produto?.nome || "-" }}
+                    </td>
+                    <!-- Lotes com pills individuais -->
+                    <td class="py-4 px-6">
+                      <div v-if="item.lotes_parsed && item.lotes_parsed.length > 0" class="flex flex-wrap gap-1">
+                        <span
+                          v-for="(lp, li) in item.lotes_parsed"
+                          :key="li"
+                          class="inline-flex items-center gap-1 text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded font-mono"
+                        >
+                          {{ lp.lote }}<span v-if="lp.qtd" class="font-black text-slate-800">&times;{{ lp.qtd }}</span>
+                        </span>
+                      </div>
+                      <span v-else class="text-slate-300 text-xs">—</span>
                     </td>
                     <td class="py-4 px-6 text-center">
                       <Badge variant="secondary" class="font-black">{{
