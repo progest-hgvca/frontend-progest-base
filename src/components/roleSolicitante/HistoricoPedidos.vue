@@ -73,8 +73,10 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <CardTitle class="text-lg flex items-center gap-2">
-                <span v-if="pedido.tipo === 'D'">Devolução #{{ pedido.numero_pedido || pedido.id }}</span>
-                <span v-else>Pedido #{{ pedido.numero_pedido || pedido.id }}</span>
+                <!-- Rótulo do fluxo pelo ponto de vista do setor logado -->
+                <span :title="fluxoDe(pedido).descricao">
+                  {{ fluxoDe(pedido).rotulo }} #{{ pedido.numero_pedido || pedido.id }}
+                </span>
                 <span v-if="pedido.status_solicitacao === 'C'" class="text-xs font-normal text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                   Rascunho não enviado
                 </span>
@@ -138,6 +140,18 @@
                   <span class="font-medium" :class="pedido.status_solicitacao === 'A' ? 'text-green-700' : 'text-red-600'">
                     {{ pedido.aprovador?.name || pedido.respondido_por?.name || 'Avaliado' }}
                   </span>
+                </div>
+                <!-- Quem separou os itens -->
+                <div v-if="pedido.atendente?.name" class="flex items-center gap-2">
+                  <i class="mdi mdi-package-check text-muted-foreground"></i>
+                  <span class="text-muted-foreground">Atendido por:</span>
+                  <span class="font-medium text-slate-800">{{ pedido.atendente.name }}</span>
+                </div>
+                <!-- Quem confirmou o recebimento no setor de destino -->
+                <div v-if="pedido.recebedor?.name" class="flex items-center gap-2">
+                  <i class="mdi mdi-hand-extended text-teal-600"></i>
+                  <span class="text-muted-foreground">Recebido por:</span>
+                  <span class="font-medium text-teal-700">{{ pedido.recebedor.name }}</span>
                 </div>
               </div>
 
@@ -208,6 +222,24 @@
                   title="Imprimir Pedido"
                 >
                   <i class="mdi mdi-printer text-lg"></i>
+                </Button>
+
+                <!--
+                  APROVADO: Confirmar recebimento. Fecha a cadeia de
+                  responsáveis da via impressa; não movimenta estoque.
+                -->
+                <Button
+                  v-if="podeConfirmarRecebimento(pedido)"
+                  variant="outline"
+                  size="sm"
+                  :disabled="confirmandoRecebimento === pedido.id"
+                  @click.stop="confirmarRecebimento(pedido)"
+                  class="h-7 text-xs font-semibold text-teal-700 border-teal-300 hover:bg-teal-50 flex items-center gap-1"
+                  title="Confirmar que os itens foram recebidos"
+                >
+                  <LoadingSpinner v-if="confirmandoRecebimento === pedido.id" size="sm" />
+                  <i v-else class="mdi mdi-hand-extended"></i>
+                  <span>Confirmar recebimento</span>
                 </Button>
 
                 <!-- APROVADO: Devolver (Apenas para pedidos que não sejam devolução) -->
@@ -389,7 +421,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import axios from "axios";
@@ -418,6 +450,7 @@ import { Input } from "@/components/ui/input";
 import ModalDevolucaoPedido from "./ModalDevolucaoPedido.vue";
 import { setorCookie } from "@/utils/setorCookie";
 import { usePedidosStateMachine } from "@/composables/usePedidosStateMachine";
+import { descreverFluxo } from "@/utils/nomenclaturaFluxo";
 
 const router = useRouter();
 const store = useStore();
@@ -625,6 +658,20 @@ const toggleExpand = (pedidoId) => {
   expanded.value[pedidoId] = !expanded.value[pedidoId];
 };
 
+/** Setor de referência para nomear os fluxos nesta tela. */
+const setorRefId = computed(
+  () =>
+    store.state.estoque.setorAtualId ||
+    store.state.estoque.setorDetails?.id ||
+    (setorCookie?.getSectorId ? setorCookie.getSectorId() : null),
+);
+
+/**
+ * Descrição do fluxo pelo ponto de vista do setor logado — é o que distingue
+ * "Devolução enviada" de "Devolução recebida" para o mesmo registro.
+ */
+const fluxoDe = (pedido) => descreverFluxo(pedido, setorRefId.value);
+
 const fetchPedidos = async () => {
   loading.value = true;
   try {
@@ -712,6 +759,48 @@ const confirmarCancelamento = async () => {
   showCancelDialog.value = false;
   await cancelarPedido(pedido);
   pedidoSelecionado.value = null;
+};
+
+/**
+ * Quem recebeu os itens é quem confirma. Numa devolução os papéis invertem:
+ * quem recebe de volta é o setor de origem do registro.
+ */
+const podeConfirmarRecebimento = (pedido) => {
+  if (!pedido || pedido.status_solicitacao !== "A" || pedido.recebido_em) return false;
+  const ref = Number(setorRefId.value);
+  if (!ref) return false;
+
+  return pedido.tipo === "D"
+    ? Number(pedido.setor_origem_id) === ref
+    : Number(pedido.setor_destino_id) === ref;
+};
+
+const confirmandoRecebimento = ref(null);
+
+const confirmarRecebimento = async (pedido) => {
+  confirmandoRecebimento.value = pedido.id;
+  try {
+    const token = localStorage.getItem("token");
+    await axios.post(
+      `/movimentacao/${pedido.id}/confirmar-recebimento`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    toast({
+      title: "Recebimento confirmado",
+      description: `Pedido #${pedido.id} registrado como recebido.`,
+    });
+    await fetchPedidos();
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description:
+        error.response?.data?.message || "Não foi possível confirmar o recebimento.",
+      variant: "destructive",
+    });
+  } finally {
+    confirmandoRecebimento.value = null;
+  }
 };
 
 const abrirExcluirRascunho = (pedido) => {

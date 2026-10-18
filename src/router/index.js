@@ -133,6 +133,12 @@ const router = createRouter({
       component: Setores,
       meta: { requiresAuth: true, requiresSector: true, allowAdminSetores: true, roles: ['admin'] },
     },
+    {
+      path: "/regras-produto",
+      name: "regrasProdutoSetor",
+      component: () => import("@/views/cadastros/RegrasProdutoSetor.vue"),
+      meta: { requiresAuth: true, requiresSector: true, globalAdminOnly: true },
+    },
 
     // Relatórios (placeholders / views de relatórios)
     {

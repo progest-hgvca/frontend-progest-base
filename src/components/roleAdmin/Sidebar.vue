@@ -243,6 +243,17 @@
                 <span class="menu-text">Grupos de Produtos</span>
               </router-link>
 
+              <!-- Regras de que produtos cada categoria de setor pode solicitar -->
+              <router-link
+                v-if="isAdminUser || (isCAF && isAdminPerfil)"
+                class="submenu-item"
+                to="/regras-produto"
+                title="Produtos por Setor"
+              >
+                <span class="material-icons menu-icon">rule</span>
+                <span class="menu-text">Produtos por Setor</span>
+              </router-link>
+
               <!-- Unidades de Medida: apenas admin (super admin ou admin do setor) -->
               <router-link
                 v-if="isAdminUser || (isCAF && isAdminPerfil)"

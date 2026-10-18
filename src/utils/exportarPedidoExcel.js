@@ -13,6 +13,9 @@
  * usuário exporta de fato, para não pesar no carregamento inicial do sistema.
  */
 
+import { formatarSimpas, unidadeMedidaDoItem } from "@/utils/formatarSimpas";
+import { rotuloStatus, rotuloTipo } from "@/utils/nomenclaturaFluxo";
+
 /** Carrega o xlsx sob demanda (code splitting) */
 const carregarXLSX = () => import("xlsx");
 
@@ -27,27 +30,16 @@ const formatarDataHora = (valor) => {
   });
 };
 
-const getStatusLabel = (status) => {
-  const labels = {
-    P: "Pendente",
-    A: "Aprovado",
-    R: "Rejeitado",
-    C: "Rascunho",
-    X: "Cancelado",
-  };
-  return labels[status] || status || "-";
-};
+// Rótulos de status e de tipo vêm de nomenclaturaFluxo para que a planilha use
+// exatamente o mesmo vocabulário da tela e da via impressa.
+const getStatusLabel = rotuloStatus;
+const getTipoLabel = rotuloTipo;
 
 const getSetorFornecedor = (pedido) =>
   pedido.setor_origem?.nome || pedido.setorOrigem?.nome || "N/A";
 
 const getSetorSolicitante = (pedido) =>
   pedido.setor_destino?.nome || pedido.setorDestino?.nome || "N/A";
-
-const getTipoLabel = (tipo) => {
-  const labels = { T: "Transferência", D: "Devolução", S: "Saída/Solicitação" };
-  return labels[tipo] || tipo || "-";
-};
 
 /**
  * Os lotes consumidos ficam serializados em JSON no campo `lote` do item,
@@ -100,15 +92,24 @@ export async function exportarPedidoExcel(pedido) {
   linhas.push(["Setor Solicitante", getSetorSolicitante(pedido)]);
   linhas.push(["Setor Fornecedor", getSetorFornecedor(pedido)]);
   linhas.push(["Status", getStatusLabel(pedido.status_solicitacao)]);
-  if (pedido.aprovador?.name) {
-    linhas.push(["Aprovado por", pedido.aprovador.name]);
-  }
+  // Os quatro responsáveis do fluxo, na mesma ordem da via impressa.
+  linhas.push(["Autorizado por", pedido.aprovador?.name || "—"]);
+  linhas.push(["Atendido por", pedido.atendente?.name || "—"]);
+  linhas.push(["Recebido por", pedido.recebedor?.name || "—"]);
   if (pedido.observacao) {
     linhas.push(["Observação", pedido.observacao]);
   }
   linhas.push([]);
 
-  linhas.push(["#", "Produto", "Qtd. Solicitada", "Qtd. Liberada", "Lotes consumidos"]);
+  linhas.push([
+    "#",
+    "Cód. SIMPAS",
+    "Produto",
+    "Unidade",
+    "Qtd. Solicitada",
+    "Qtd. Liberada",
+    "Lotes consumidos",
+  ]);
 
   let totalSolicitado = 0;
   let totalLiberado = 0;
@@ -121,14 +122,16 @@ export async function exportarPedidoExcel(pedido) {
 
     linhas.push([
       index + 1,
+      formatarSimpas(item.produto?.codigo_simpas),
       getNomeProduto(item),
+      unidadeMedidaDoItem(item),
       solicitada,
       liberada,
       getLotesConsumidos(pedido, item),
     ]);
   });
 
-  linhas.push(["", "TOTAL", totalSolicitado, totalLiberado, ""]);
+  linhas.push(["", "", "TOTAL", "", totalSolicitado, totalLiberado, ""]);
   linhas.push([]);
   linhas.push([`Documento gerado em ${new Date().toLocaleString("pt-BR")}`]);
   linhas.push(["Sistema de Gestão de Estoque - ProGest HGVC"]);
@@ -136,15 +139,17 @@ export async function exportarPedidoExcel(pedido) {
   const ws = XLSX.utils.aoa_to_sheet(linhas);
   ws["!cols"] = [
     { wch: 6 },
+    { wch: 20 },
     { wch: 45 },
+    { wch: 12 },
     { wch: 16 },
     { wch: 16 },
     { wch: 40 },
   ];
-  // Mescla as células do título e do subtítulo para as 5 colunas
+  // Mescla as células do título e do subtítulo para as 7 colunas
   ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -185,6 +190,9 @@ export async function exportarPedidosExcel(pedidos, opcoes = {}) {
     "Solicitante",
     "Setor Solicitante",
     "Setor Fornecedor",
+    "Autorizado por",
+    "Atendido por",
+    "Recebido por",
     "Itens",
     "Qtd. Solicitada",
     "Qtd. Liberada",
@@ -210,6 +218,9 @@ export async function exportarPedidosExcel(pedidos, opcoes = {}) {
       pedido.usuario?.name || "N/A",
       getSetorSolicitante(pedido),
       getSetorFornecedor(pedido),
+      pedido.aprovador?.name || "",
+      pedido.atendente?.name || "",
+      pedido.recebedor?.name || "",
       itens.length,
       totalSolicitado,
       totalLiberado,
@@ -220,11 +231,12 @@ export async function exportarPedidosExcel(pedidos, opcoes = {}) {
   const wsResumo = XLSX.utils.aoa_to_sheet(resumo);
   wsResumo["!cols"] = [
     { wch: 8 }, { wch: 18 }, { wch: 20 }, { wch: 12 }, { wch: 25 },
-    { wch: 28 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 16 }, { wch: 40 },
+    { wch: 28 }, { wch: 28 }, { wch: 25 }, { wch: 25 }, { wch: 25 },
+    { wch: 8 }, { wch: 16 }, { wch: 16 }, { wch: 40 },
   ];
   wsResumo["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } },
   ];
 
   /* ----- Aba 2: uma linha por item ----- */
@@ -235,7 +247,9 @@ export async function exportarPedidosExcel(pedidos, opcoes = {}) {
     "Status",
     "Setor Solicitante",
     "Setor Fornecedor",
+    "Cód. SIMPAS",
     "Produto",
+    "Unidade",
     "Qtd. Solicitada",
     "Qtd. Liberada",
     "Lotes consumidos",
@@ -249,7 +263,9 @@ export async function exportarPedidosExcel(pedidos, opcoes = {}) {
         getStatusLabel(pedido.status_solicitacao),
         getSetorSolicitante(pedido),
         getSetorFornecedor(pedido),
+        formatarSimpas(item.produto?.codigo_simpas),
         getNomeProduto(item),
+        unidadeMedidaDoItem(item),
         Number(item.quantidade_solicitada) || 0,
         Number(item.quantidade_liberada) || 0,
         getLotesConsumidos(pedido, item),
@@ -260,7 +276,7 @@ export async function exportarPedidosExcel(pedidos, opcoes = {}) {
   const wsDetalhe = XLSX.utils.aoa_to_sheet(detalhe);
   wsDetalhe["!cols"] = [
     { wch: 8 }, { wch: 18 }, { wch: 12 }, { wch: 28 }, { wch: 28 },
-    { wch: 45 }, { wch: 16 }, { wch: 16 }, { wch: 40 },
+    { wch: 20 }, { wch: 45 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 40 },
   ];
 
   const wb = XLSX.utils.book_new();

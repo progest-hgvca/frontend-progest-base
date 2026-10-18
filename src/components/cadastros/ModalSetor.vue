@@ -29,6 +29,7 @@ const localData = ref({
   descricao: "",
   estoque: false,
   tipo: "Material",
+  categoria: "Administrativo",
   polo_id: "",
 });
 const distribuidores = ref([]);
@@ -70,6 +71,15 @@ watch(
       if (!localData.value.status) localData.value.status = "A";
       if (localData.value.polo_id)
         localData.value.polo_id = localData.value.polo_id.toString();
+      // Setores anteriores à introdução da categoria vêm com o campo nulo;
+      // deduz pelo mesmo critério usado no backfill da migration.
+      if (!localData.value.categoria) {
+        localData.value.categoria = localData.value.estoque
+          ? "Farmacia"
+          : localData.value.tipo === "Material"
+            ? "Administrativo"
+            : "Internamento";
+      }
 
       // Popular distribuidores a partir dos dados do backend
       const rel =
@@ -177,6 +187,23 @@ const removeDistribuidor = (index) => {
               <SelectItem value="Ambos">Ambos</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div class="space-y-2">
+          <Label>Categoria do setor</Label>
+          <Select v-model="localData.categoria">
+            <SelectTrigger><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Farmacia">Farmácia</SelectItem>
+              <SelectItem value="Internamento">Internamento</SelectItem>
+              <SelectItem value="Administrativo">Administrativo</SelectItem>
+            </SelectContent>
+          </Select>
+          <p class="text-xs text-muted-foreground">
+            Define quais produtos o setor pode solicitar. Farmácias solicitam
+            tudo; internamento, itens clínicos; administrativo, expediente e
+            limpeza.
+          </p>
         </div>
 
         <div class="space-y-2">

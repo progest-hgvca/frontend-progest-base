@@ -441,6 +441,48 @@ var devolverPedido = (content, movimentacaoId, payload) => {
     });
 };
 
+/**
+ * Registra quem recebeu fisicamente os itens de um pedido já aprovado.
+ *
+ * Não movimenta estoque — o débito e o crédito acontecem na aprovação. Serve
+ * para fechar a cadeia de responsáveis da via impressa
+ * (solicitou → autorizou → atendeu → recebeu).
+ *
+ * @param {Object} content - componente Vue (para $axios / $store / $toastr)
+ * @param {number} movimentacaoId
+ * @param {Object} [payload] - { observacao?: string }
+ */
+var confirmarRecebimento = (content, movimentacaoId, payload = {}) => {
+  return content.$axios
+    .post(`/movimentacao/${movimentacaoId}/confirmar-recebimento`, payload, {
+      headers: {
+        Authorization: "Bearer " + (content.$store?.getters ? (content.$store.getters["auth/getUserToken"] || content.$store.getters.getUserToken || "") : ""),
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      if (response.data && response.data.status) {
+        try {
+          if (content.$toastr && content.$toastr.s) content.$toastr.s(response.data.message || "Recebimento confirmado!");
+        } catch (e) {
+          console.warn("Erro ao exibir notificação:", e);
+        }
+        return response.data;
+      }
+      return Promise.reject(response.data);
+    })
+    .catch((error) => {
+      console.error("Erro ao confirmar recebimento:", error);
+      const mensagem = error.response?.data?.message || "Erro ao confirmar o recebimento";
+      try {
+        if (content.$toastr && content.$toastr.e) content.$toastr.e(mensagem);
+      } catch (e) {
+        console.warn("Erro ao exibir notificação:", e);
+      }
+      return Promise.reject(error);
+    });
+};
+
 export default {
   listBySetor,
   listAll,
@@ -448,4 +490,5 @@ export default {
   ADD_UP,
   registrarConsumoInterno,
   devolverPedido,
+  confirmarRecebimento,
 };

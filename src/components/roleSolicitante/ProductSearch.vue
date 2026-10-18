@@ -77,7 +77,11 @@
       >
         <i class="mdi mdi-magnify-close text-4xl mb-2 block"></i>
         <p v-if="searchQuery">Nenhum produto encontrado para "{{ searchQuery }}".</p>
-        <p v-else>Nenhum produto cadastrado para este tipo.</p>
+        <p v-else>Nenhum produto disponível para este tipo.</p>
+        <p v-if="!searchQuery && categoriaLabel" class="text-xs mt-1">
+          O setor é de {{ categoriaLabel }} e enxerga apenas os grupos de produto
+          liberados para essa categoria.
+        </p>
       </div>
 
       <Card
@@ -225,6 +229,28 @@ watch(tipo, (newVal) => {
   tipoLocal.value = newVal;
 });
 
+const CATEGORIA_LABELS = {
+  Farmacia: "farmácia",
+  Internamento: "internamento",
+  Administrativo: "administrativo",
+};
+
+const categoriaLabel = computed(
+  () => CATEGORIA_LABELS[setorAtual.value?.categoria] || "",
+);
+
+// O catálogo depende do setor: trocar de setor precisa recarregar a lista,
+// senão o usuário continua vendo os produtos do setor anterior.
+watch(
+  () => setorAtual.value?.id,
+  (novoId, antigoId) => {
+    if (novoId && novoId !== antigoId) {
+      currentPage.value = 1;
+      fetchProducts();
+    }
+  },
+);
+
 const filteredProducts = computed(() => {
   if (!searchQuery.value) return products.value;
   const query = searchQuery.value.toLowerCase();
@@ -292,7 +318,14 @@ const fetchProducts = async () => {
   try {
     const token = localStorage.getItem("token");
     const payload = {
-      filters: { tipo_produto: tipoLocal.value, status: "A" },
+      filters: {
+        tipo_produto: tipoLocal.value,
+        status: "A",
+        // Restringe o catálogo ao que a categoria do setor permite solicitar.
+        // O backend aplica a mesma regra na criação do pedido — aqui é só para
+        // o usuário não montar um pedido que seria recusado depois.
+        ...(setorAtual.value?.id ? { setor_id: setorAtual.value.id } : {}),
+      },
       sort_by: "nome",
       sort_dir: "asc",
       per_page: 1000,
