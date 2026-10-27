@@ -77,8 +77,8 @@
                           <td>{{ e.id }}</td>
                           <td>{{ formatDateTime(e.data_hora || e.created_at) }}</td>
                           <td>
-                            <span class="badge" :class="e.tipo === 'T' ? 'bg-info' : 'bg-primary'">
-                              {{ e.tipo === 'T' ? 'Transferência Setorial' : 'Saída Direta' }}
+                            <span class="badge" :class="e.tipo === 'D' ? 'bg-warning' : 'bg-info'">
+                              {{ rotuloTipo(e.tipo) }}
                             </span>
                           </td>
                           <td>
@@ -172,6 +172,7 @@ import functionsRelatorios from '@/functions/cad_relatorios.js'
 import functionsPolos from '@/functions/cad_unidades_polos.js'
 import functionsSetores from '@/functions/cad_setores.js'
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils'
+import { rotuloTipo } from '@/utils/nomenclaturaFluxo'
 
 export default {
   name: 'SaidasReport',
@@ -211,6 +212,8 @@ export default {
     }
   },
   methods: {
+    // Exposto ao template: o vocabulário de fluxos vive em nomenclaturaFluxo.js.
+    rotuloTipo,
     onPoloChange() {
       this.filters.setor_id = '';
     },
@@ -340,7 +343,7 @@ export default {
       
       // Dados
       for (const e of this.exits) {
-        const tipoLabel = e.tipo === 'T' ? 'Transferência Setorial' : 'Saída Direta';
+        const tipoLabel = rotuloTipo(e.tipo);
         if (e.itens && e.itens.length > 0) {
           e.itens.forEach(item => {
             data.push([

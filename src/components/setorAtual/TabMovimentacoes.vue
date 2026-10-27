@@ -55,6 +55,7 @@ import {
   ChevronRightIcon,
   RotateCcwIcon,
   ArrowRightIcon,
+  CheckCircleIcon,
 } from "lucide-vue-next";
 import ModalDevolucaoPedido from "@/components/roleSolicitante/ModalDevolucaoPedido.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -72,6 +73,8 @@ import {
   podeDevolverMovimentacao as podeDevolverMovimentacaoGov,
 } from "@/utils/movimentacaoPermissions";
 import { calcularAlocacaoFifo } from "@/utils/fifoCalculator";
+import { descreverFluxo } from "@/utils/nomenclaturaFluxo";
+import cadMovimentacao from "@/functions/cad_movimentacao";
 
 const props = defineProps({
   setorId: { type: Number, required: true },
@@ -309,6 +312,54 @@ const currentSetorId = computed(() => Number(setorAtual.value?.id || props.setor
 
 const isEntrada = (mov) => isEntradaMovimentacao(mov, currentSetorId.value);
 const isSaida = (mov) => isSaidaMovimentacao(mov, currentSetorId.value);
+
+/** Descrição do fluxo do ponto de vista do setor aberto na tela. */
+const fluxoDe = (mov) => descreverFluxo(mov, currentSetorId.value);
+
+/** Cores do badge por tipo de fluxo, mantendo o mesmo código de cor em toda a tela. */
+const CLASSES_FLUXO = {
+  emerald: "bg-emerald-50 text-emerald-800 border-emerald-200",
+  sky: "bg-sky-50 text-sky-800 border-sky-200",
+  amber: "bg-amber-50 text-amber-800 border-amber-200",
+  violet: "bg-violet-50 text-violet-800 border-violet-200",
+  slate: "bg-slate-100 text-slate-700 border-slate-200",
+};
+
+const classeFluxo = (mov) => CLASSES_FLUXO[fluxoDe(mov).cor] || CLASSES_FLUXO.slate;
+
+/**
+ * Quem recebeu os itens pode confirmar o recebimento. Numa devolução os papéis
+ * invertem: quem recebe de volta é o setor de origem do registro.
+ */
+const podeConfirmarRecebimento = (mov) => {
+  if (!mov || mov.status_solicitacao !== "A" || mov.recebido_em) return false;
+  return mov.tipo === "D" ? isSaida(mov) : isEntrada(mov);
+};
+
+const confirmandoRecebimento = ref(null);
+
+const confirmarRecebimento = async (mov) => {
+  confirmandoRecebimento.value = mov.id;
+  try {
+    await cadMovimentacao.confirmarRecebimento({ $axios: axios, $store: store }, mov.id);
+    toast({
+      title: "Recebimento confirmado",
+      description: `Pedido #${mov.id} registrado como recebido.`,
+    });
+    // Mesmo padrão das demais ações desta tela: recarrega para refletir o
+    // estado global (estoque, badges e responsáveis).
+    location.reload();
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description:
+        error.response?.data?.message || "Não foi possível confirmar o recebimento.",
+      variant: "destructive",
+    });
+  } finally {
+    confirmandoRecebimento.value = null;
+  }
+};
 
 // Funções de governança delegadas para movimentacaoPermissions
 const podeAprovar = (mov) =>
@@ -1047,28 +1098,31 @@ const calcularQtdDevolvida = (mov, itemId) => {
                     class="w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200"
                     :class="{ 'rotate-90 text-primary': expandedRows[mov.id] }"
                   />
-                  <!-- Nomenclatura Padrão Hospitalar: Devolução ao Distribuidor / Devolução Recebida -->
-                  <div
-                    v-if="mov.tipo === 'D'"
-                    class="flex items-center gap-1.5 flex-wrap"
-                  >
-                    <!-- Devolução Recebida (quando o setor atual recebe de volta) -->
+                  <!--
+                    Rótulo vindo de nomenclaturaFluxo.js: o mesmo registro tem
+                    nomes diferentes para quem envia e para quem recebe, e é
+                    isso que distingue devolução de saída de devolução de entrada.
+                  -->
+                  <div class="flex items-center gap-1.5 flex-wrap">
                     <span
-                      v-if="isEntrada(mov)"
-                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border shadow-2xs"
+                      :class="classeFluxo(mov)"
+                      :title="fluxoDe(mov).descricao"
                     >
-                      <RotateCcwIcon class="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Devolução Recebida</span>
+                      <RotateCcwIcon v-if="mov.tipo === 'D'" class="w-3.5 h-3.5" />
+                      <ArrowDownCircleIcon
+                        v-else-if="fluxoDe(mov).sentido === 'entrada'"
+                        class="w-4 h-4"
+                      />
+                      <ArrowUpCircleIcon v-else class="w-4 h-4" />
+                      <span>{{ fluxoDe(mov).rotulo }}</span>
                     </span>
 
-                    <!-- Devolução ao Distribuidor (quando o setor atual devolve) -->
-                    <span
-                      v-else
-                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs"
+                    <Badge
+                      v-if="mov.tem_devolucao"
+                      class="text-[9px] h-4 px-1 bg-amber-100 text-amber-800 border-amber-300 font-semibold"
+                      >Devolvido</Badge
                     >
-                      <RotateCcwIcon class="w-3.5 h-3.5 text-amber-600" />
-                      <span>Devolução ao Distribuidor</span>
-                    </span>
 
                     <!-- Badge destacada de referência ao pedido -->
                     <span
@@ -1077,28 +1131,6 @@ const calcularQtdDevolvida = (mov, itemId) => {
                     >
                       Devolução referente ao Pedido #{{ mov.pedido_origem_id || mov.movimentacao_origem_id }}
                     </span>
-                  </div>
-                  <div
-                    v-else-if="mov.tipo === 'C'"
-                    class="flex items-center gap-1.5 text-purple-600 font-bold"
-                  >
-                    <span class="text-[11px] uppercase">Consumo</span>
-                  </div>
-                  <div
-                    v-else-if="isEntrada(mov)"
-                    class="flex items-center gap-2 text-emerald-600 font-bold"
-                  >
-                    <ArrowDownCircleIcon class="w-5 h-5" />
-                    <span class="text-[11px] uppercase">Entrada</span>
-                    <Badge v-if="mov.tem_devolucao" class="text-[9px] h-4 px-1 bg-amber-100 text-amber-800 border-amber-300 font-semibold">Devolvido</Badge>
-                  </div>
-                  <div
-                    v-else
-                    class="flex items-center gap-2 text-blue-600 font-bold"
-                  >
-                    <ArrowUpCircleIcon class="w-5 h-5" />
-                    <span class="text-[11px] uppercase">Saída</span>
-                    <Badge v-if="mov.tem_devolucao" class="text-[9px] h-4 px-1 bg-amber-100 text-amber-800 border-amber-300 font-semibold">Devolvido</Badge>
                   </div>
                 </div>
               </td>
@@ -1241,6 +1273,32 @@ const calcularQtdDevolvida = (mov, itemId) => {
                 >
                   <RotateCcwIcon class="w-4 h-4" />
                 </Button>
+
+                <!--
+                  Confirmar recebimento: fecha a cadeia de responsáveis
+                  (solicitou → autorizou → atendeu → recebeu). Não mexe em
+                  estoque — a baixa já ocorreu na aprovação.
+                -->
+                <Button
+                  v-if="podeConfirmarRecebimento(mov)"
+                  variant="ghost"
+                  size="icon"
+                  :disabled="confirmandoRecebimento === mov.id"
+                  @click="confirmarRecebimento(mov)"
+                  class="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
+                  title="Confirmar o recebimento dos itens"
+                >
+                  <CheckCircleIcon class="w-4 h-4" />
+                </Button>
+
+                <!-- Já recebido: marca visual, sem ação -->
+                <span
+                  v-else-if="mov.recebido_em && mov.recebedor"
+                  class="inline-flex items-center h-8 px-2 text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded"
+                  :title="`Recebido por ${mov.recebedor.name}`"
+                >
+                  Recebido
+                </span>
 
                 <!-- Ações de Rascunho -->
                 <template v-if="podeEditarRascunho(mov)">
@@ -1495,7 +1553,7 @@ const calcularQtdDevolvida = (mov, itemId) => {
                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
                 >
                   <span class="text-sm leading-none">{{ isEntrada(movimentacaoSelecionada) ? '📥' : '📤' }}</span>
-                  <span>{{ isEntrada(movimentacaoSelecionada) ? 'Devolução Recebida' : 'Devolução ao Distribuidor' }}</span>
+                  <span>{{ fluxoDe(movimentacaoSelecionada).rotulo }}</span>
                 </span>
                 <span
                   v-else-if="movimentacaoSelecionada?.tipo === 'C'"
@@ -1661,6 +1719,48 @@ const calcularQtdDevolvida = (mov, itemId) => {
                 </template>
                 <template v-else>
                   <p class="text-sm font-medium text-slate-400 italic">Pendente de avaliação</p>
+                  <p class="text-xs text-slate-400">—</p>
+                </template>
+              </div>
+
+              <!-- Quem separou fisicamente os itens -->
+              <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <TruckIcon class="w-3 h-3 text-sky-500" />
+                  Atendido por
+                </span>
+                <template v-if="movimentacaoSelecionada?.atendente">
+                  <p class="text-sm font-bold text-slate-800">
+                    {{ movimentacaoSelecionada.atendente.name }}
+                  </p>
+                  <p class="text-xs text-slate-500 flex items-center gap-1">
+                    <CalendarIcon class="w-3 h-3" />
+                    {{ formatarData(movimentacaoSelecionada?.atendido_em) }}
+                  </p>
+                </template>
+                <template v-else>
+                  <p class="text-sm font-medium text-slate-400 italic">Não atendido</p>
+                  <p class="text-xs text-slate-400">—</p>
+                </template>
+              </div>
+
+              <!-- Quem confirmou o recebimento no setor de destino -->
+              <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 space-y-1">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircleIcon class="w-3 h-3 text-teal-500" />
+                  Recebido por
+                </span>
+                <template v-if="movimentacaoSelecionada?.recebedor">
+                  <p class="text-sm font-bold text-slate-800">
+                    {{ movimentacaoSelecionada.recebedor.name }}
+                  </p>
+                  <p class="text-xs text-slate-500 flex items-center gap-1">
+                    <CalendarIcon class="w-3 h-3" />
+                    {{ formatarData(movimentacaoSelecionada?.recebido_em) }}
+                  </p>
+                </template>
+                <template v-else>
+                  <p class="text-sm font-medium text-slate-400 italic">Aguardando confirmação</p>
                   <p class="text-xs text-slate-400">—</p>
                 </template>
               </div>

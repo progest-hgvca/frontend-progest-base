@@ -247,6 +247,28 @@
               <router-link
                 v-if="isSuperAdmin || (isCAF && isAdminPerfil)"
                 class="submenu-item"
+                to="/regras-produto"
+                title="Produtos por Setor"
+              >
+                <span class="material-icons menu-icon">rule</span>
+                <span class="menu-text">Produtos por Setor</span>
+              </router-link>
+
+              <!-- Regras de que produtos cada categoria de setor pode solicitar -->
+              <router-link
+                v-if="isSuperAdmin || (isCAF && isAdminPerfil)"
+                class="submenu-item"
+                to="/regras-produto"
+                title="Produtos por Setor"
+              >
+                <span class="material-icons menu-icon">rule</span>
+                <span class="menu-text">Produtos por Setor</span>
+              </router-link>
+
+              <!-- Unidades de Medida: apenas super admin ou admin da CAF -->
+              <router-link
+                v-if="isSuperAdmin || (isCAF && isAdminPerfil)"
+                class="submenu-item"
                 to="/unidadesMedida"
                 title="Unidades de Medida"
               >

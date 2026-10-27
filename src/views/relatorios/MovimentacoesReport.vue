@@ -29,9 +29,12 @@
                   <label class="form-label">Tipo</label>
                   <select v-model="filters.tipo" class="form-select">
                     <option value="">Todos</option>
-                    <option value="T">Transferência</option>
-                    <option value="S">Saída</option>
+                    <!-- T e S são a mesma operação; separados aqui só para
+                         permitir filtrar pela origem do registro. -->
+                    <option value="S">Requisição (solicitante)</option>
+                    <option value="T">Requisição (almoxarife)</option>
                     <option value="D">Devolução</option>
+                    <option value="C">Consumo interno</option>
                   </select>
                 </div>
                 <div class="col-md-2">
@@ -167,6 +170,7 @@ import functionsRelatorios from '@/functions/cad_relatorios.js'
 import functionsPolos from '@/functions/cad_unidades_polos.js'
 import functionsSetores from '@/functions/cad_setores.js'
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils'
+import { rotuloTipo } from '@/utils/nomenclaturaFluxo'
 
 export default {
   name: 'MovimentacoesReport',
@@ -279,20 +283,19 @@ export default {
       return `${parts[2]}/${parts[1]}/${parts[0]} ${time}`;
     },
     getTipoBadge(tipo) {
+      // 'T' e 'S' compartilham a cor porque são a mesma operação de negócio.
       const mapa = {
         'T': 'bg-info',
-        'S': 'bg-warning',
-        'D': 'bg-success',
+        'S': 'bg-info',
+        'D': 'bg-warning',
+        'C': 'bg-secondary',
       };
       return mapa[tipo] || 'bg-secondary';
     },
+    // Vocabulário único em src/utils/nomenclaturaFluxo.js — sem setor de
+    // referência, o relatório usa o rótulo neutro do tipo.
     getTipoLabel(tipo) {
-      const mapa = {
-        'T': 'Transferência',
-        'S': 'Saída',
-        'D': 'Devolução',
-      };
-      return mapa[tipo] || tipo;
+      return rotuloTipo(tipo);
     },
     getStatusSolicitacaoBadge(status) {
       const mapa = {

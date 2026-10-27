@@ -354,6 +354,34 @@
                   </div>
                 </router-link>
               </div>
+
+              <!-- Financeiro: valores só aparecem para quem tem permissão;
+                   o próprio endpoint recusa quem não pode ver custos. -->
+              <div class="col-md-6">
+                <router-link to="/relatorios/financeiro" class="report-card">
+                  <div class="card-accent bg-success"></div>
+                  <div class="report-icon bg-success-subtle">
+                    <i class="mdi mdi-cash-multiple text-success"></i>
+                  </div>
+                  <div class="report-content">
+                    <h6 class="fw-bold mb-1">Relatório Financeiro</h6>
+                    <p class="text-muted small mb-2">
+                      Valores unitários de entradas e saídas, consolidados por pedido e por setor
+                    </p>
+                    <div class="report-meta">
+                      <span class="badge bg-success-subtle text-success me-2">
+                        <i class="mdi mdi-file-excel me-1"></i>Excel
+                      </span>
+                      <span class="badge bg-success-subtle text-success">
+                        <i class="mdi mdi-lock-outline me-1"></i>Restrito
+                      </span>
+                    </div>
+                  </div>
+                  <div class="report-arrow">
+                    <i class="mdi mdi-chevron-right"></i>
+                  </div>
+                </router-link>
+              </div>
             </div>
           </div>
 
